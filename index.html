@@ -1,0 +1,1329 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LOG arquitectura</title>
+  <link rel="icon" type="image/png" href="https://logarquitectura.com.ar/logo-pagina.png">
+  <link rel="apple-touch-icon" href="https://logarquitectura.com.ar/logo-pagina.png">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,200;0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['DM Sans', 'sans-serif'],
+          },
+          colors: {
+            cream: '#F7F5F2',
+            'off-black': '#0D0D0D',
+          }
+        }
+      }
+    }
+  </script>
+  <!-- Datos de proyectos (generado por update-projects.js) -->
+  <script>window.PROJECTS = window.PROJECTS || [];</script>
+  <script src="projects-data.js" onerror="void 0"></script>
+  <style>
+    html { scroll-behavior: smooth; }
+    body { font-feature-settings: "ss01"; }
+
+    /* ── MOBILE RESPONSIVE ── */
+    @media (max-width: 767px) {
+      #nav-links { display: none !important; }
+      #nav-hamburger { display: flex !important; }
+      #mobile-menu.open { display: flex !important; }
+
+      #hero-title { font-size: clamp(28px, 8vw, 40px) !important; }
+      #hero-overlay-card { top: 72px !important; left: 12px !important; right: 12px !important; padding: 20px 14px 60px !important; }
+      #hero-slider-wrap { height: clamp(320px, 55vw, 480px) !important; }
+
+      #contacto-section { padding: 32px 20px 40px !important; }
+      #contacto-header  { flex-direction: column !important; align-items: flex-start !important; gap: 16px !important; margin-bottom: 28px !important; }
+      #contacto-header p { max-width: 100% !important; }
+      #contacto-grid    { grid-template-columns: 1fr !important; gap: 28px !important; }
+      #form-row-names   { grid-template-columns: 1fr !important; gap: 0; }
+
+      #videos-text { padding-left: 20px !important; padding-right: 20px !important; padding-bottom: 36px !important; }
+      #videos-h2   { font-size: clamp(28px, 8vw, 40px) !important; }
+
+      #footer-top  { flex-direction: column !important; gap: 28px !important; }
+      #footer-cols { grid-template-columns: 1fr 1fr !important; gap: 20px !important; }
+    }
+    @media (max-width: 480px) {
+      #footer-cols { grid-template-columns: 1fr !important; }
+    }
+
+    /* ── INTRO ── */
+    #intro {
+      cursor: pointer;
+      transition: opacity 1.2s ease;
+    }
+    #intro.out { opacity: 0; pointer-events: none; }
+
+    /* Cursor spotlight */
+    #spotlight {
+      position: absolute;
+      width: 600px; height: 600px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,255,255,0.04) 0%, transparent 60%);
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      transition: left 0.18s ease, top 0.18s ease;
+      left: 50%; top: 50%;
+    }
+
+    /* ── Word column: absolute centered ── */
+    #iw-words {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      white-space: nowrap;
+    }
+
+    /* Each word slides in independently, blur resolves to sharp */
+    .iw-word {
+      display: inline-block;
+      opacity: 0;
+      filter: blur(12px);
+      transform: translateY(28px);
+      transition: opacity 0.9s ease,
+                  filter  0.9s ease,
+                  transform 0.9s cubic-bezier(0.22, 0.61, 0.36, 1);
+    }
+    .iw-word.in {
+      opacity: 1;
+      filter: blur(0px);
+      transform: translateY(0);
+    }
+    .iw-word.out {
+      opacity: 0;
+      filter: blur(10px);
+      transform: translateY(-22px);
+      transition: opacity 0.55s ease, filter 0.55s ease, transform 0.55s ease;
+    }
+
+    /* "Hola!" — con globo de diálogo SVG */
+    #iw-w1 {
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 400;
+      font-size: clamp(22px, 1.9vw, 28px);
+      color: #ffffff;
+      letter-spacing: -0.01em;
+      position: relative;
+      padding: 22px 36px 50px;
+    }
+
+    /* ── Fly-logo ── */
+    #fly-logo {
+      position: fixed;
+      inset: 0;
+      z-index: 51;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      opacity: 0;
+      filter: blur(14px);
+      transition: opacity 1s ease, filter 1s ease;
+    }
+    #fly-logo.in  { opacity: 1; filter: blur(0); }
+    #fly-logo img {
+      height: clamp(110px, 14vw, 170px);
+      width: auto;
+      display: block;
+    }
+
+    /* ── Hint ── */
+    #iw-hint {
+      position: absolute;
+      bottom: 44px; left: 50%;
+      transform: translateX(-50%);
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 300;
+      font-size: 8px;
+      letter-spacing: 0.38em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.15);
+      white-space: nowrap;
+      opacity: 0;
+      transition: opacity 0.9s ease;
+    }
+    #iw-hint.in { opacity: 1; }
+
+    /* ── Speech-bubble card ── */
+    .bubble-card {
+      background: #fff;
+      position: absolute;
+      filter: drop-shadow(0 2px 14px rgba(0,0,0,0.09));
+      clip-path: polygon(0 0, 100% 0, 100% 68%, 30% 68%, 0 100%);
+    }
+    .bubble-card::after { display: none; }
+    /* Inner wrapper centra el texto dentro de la zona visible (0-68%) */
+    .bubble-card-inner {
+      padding: 10px 20px 38px;   /* bottom-extra crea el espacio para la cola */
+    }
+  </style>
+</head>
+<body class="font-sans text-[#0D0D0D] bg-white overflow-x-hidden">
+
+  <!-- ─── INTRO SPLASH ─────────────────────────────────────── -->
+  <div id="intro" class="fixed inset-0 bg-[#0D0D0D] z-50 select-none" onclick="dismissIntro()">
+    <div id="spotlight"></div>
+
+    <div id="iw-words">
+      <div id="iw-logi" class="iw-word" style="position:absolute; top:62%; left:-52px; transition-delay:0.1s;">
+        <img src="https://lh3.googleusercontent.com/d/1jTMMqGqqECXQIB3G4K5NqvcCHBpEjRO5" alt="Logi"
+             style="height:clamp(72px,7.5vw,95px); width:auto; display:block; opacity:0.92;">
+      </div>
+      <div id="iw-w1" class="iw-word">
+        <svg style="position:absolute;inset:0;width:100%;height:100%;"
+             preserveAspectRatio="none" viewBox="0 0 100 100"
+             xmlns="http://www.w3.org/2000/svg">
+          <polygon points="1,1 99,1 99,70 28,70 1,99"
+                   fill="none"
+                   stroke="rgba(255,255,255,0.75)"
+                   stroke-width="1.5"
+                   vector-effect="non-scaling-stroke"/>
+        </svg>
+        Hola!
+      </div>
+    </div>
+
+    <div id="iw-hint">Clic para continuar</div>
+  </div>
+
+  <!-- ── Fly-logo ── -->
+  <div id="fly-logo">
+    <img id="fly-logo-img" src="https://lh3.googleusercontent.com/d/1oT79ZpldR-UwMVNijHdIJTuN8oPKvzrg" alt="LOG">
+  </div>
+
+  <script>
+    (function () {
+      var intro   = document.getElementById('intro');
+      var spot    = document.getElementById('spotlight');
+      var w1      = document.getElementById('iw-w1');
+      var logi    = document.getElementById('iw-logi');
+      var hint    = document.getElementById('iw-hint');
+      var fly     = document.getElementById('fly-logo');
+      var navWrap = document.getElementById('nav-logo-wrapper');
+      var T = [];
+      function at(ms, fn) { T.push(setTimeout(fn, ms)); }
+
+      intro.addEventListener('mousemove', function (e) {
+        spot.style.left = e.clientX + 'px';
+        spot.style.top  = e.clientY + 'px';
+      });
+
+      at(300,  function () { w1.classList.add('in'); logi.classList.add('in'); });
+      at(1300, function () { hint.classList.add('in'); });
+      at(2400, function () { w1.classList.replace('in','out'); logi.classList.replace('in','out'); });
+      at(2900, function () { fly.classList.add('in'); });
+      at(5000, function () { window.dismissIntro(); });
+
+      window.dismissIntro = function () {
+        T.forEach(clearTimeout); T.length = 0;
+        intro.classList.add('out');
+        fly.style.transition = 'opacity 0.6s ease';
+        fly.style.opacity    = '0';
+        setTimeout(function () {
+          intro.style.display = 'none';
+          fly.style.display   = 'none';
+          var wa = document.getElementById('whatsapp-btn');
+          wa.style.display = 'flex';
+        }, 650);
+      };
+    })();
+  </script>
+
+  <!-- ─── ANNOUNCEMENT BAR ────────────────────────────────── -->
+  <div id="announcement-bar" style="position:fixed; top:0; left:0; right:0; z-index:45; background:#0D0D0D; height:32px; overflow:hidden; display:flex; align-items:center; cursor:default;"
+       onmouseenter="document.getElementById('ticker-inner').style.animationPlayState='paused'"
+       onmouseleave="document.getElementById('ticker-inner').style.animationPlayState='running'">
+    <div id="ticker-inner" style="display:flex; animation:ticker 30s linear infinite; white-space:nowrap;">
+      <span class="ticker-track"></span>
+      <span class="ticker-track"></span>
+    </div>
+  </div>
+  <style>
+    .ticker-track {
+      display:inline-flex; align-items:center; gap:0;
+    }
+    .ticker-track::before {
+      content:
+        "Costo m² de construcción: $2.074.886 (Tucumán)\00a0\00a0\00a0\00a0\00a0\00a0·\00a0\00a0\00a0\00a0\00a0\00a0"
+        "Presupuestos por m²\00a0\00a0\00a0\00a0\00a0\00a0·\00a0\00a0\00a0\00a0\00a0\00a0"
+        "Costo m² de construcción: $2.074.886 (Tucumán)\00a0\00a0\00a0\00a0\00a0\00a0·\00a0\00a0\00a0\00a0\00a0\00a0"
+        "Presupuestos por m²\00a0\00a0\00a0\00a0\00a0\00a0·\00a0\00a0\00a0\00a0\00a0\00a0"
+        "Costo m² de construcción: $2.074.886 (Tucumán)\00a0\00a0\00a0\00a0\00a0\00a0·\00a0\00a0\00a0\00a0\00a0\00a0"
+        "Presupuestos por m²\00a0\00a0\00a0\00a0\00a0\00a0·\00a0\00a0\00a0\00a0\00a0\00a0";
+      font-family: 'DM Sans', sans-serif;
+      font-size: 10px;
+      font-weight: 300;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.75);
+    }
+    @keyframes ticker {
+      0%   { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+    #announcement-bar:hover div {
+      animation-play-state: paused;
+    }
+  </style>
+
+  <!-- ─── NAV ──────────────────────────────────────────────── -->
+  <nav class="fixed left-0 right-0 z-40 bg-white/95 backdrop-blur-sm border-b border-gray-100 flex items-center justify-between px-4 md:px-10 h-[68px]" style="top:32px;">
+    <a id="nav-logo-wrapper" href="#" class="flex items-center gap-3 cursor-pointer">
+      <img id="nav-logo-img" src="https://lh3.googleusercontent.com/d/1oT79ZpldR-UwMVNijHdIJTuN8oPKvzrg" alt="LOG" style="height:54px; width:auto; filter:invert(1);">
+      <span class="text-[10px] font-light tracking-[0.28em] uppercase text-gray-600">arquitectura</span>
+    </a>
+    <div id="nav-links" class="flex items-center gap-9">
+      <a href="#nosotros"  class="text-[11px] tracking-[0.15em] uppercase text-gray-500 hover:text-[#0D0D0D] transition-colors leading-none">Estudio</a>
+      <a href="#proyectos" class="text-[11px] tracking-[0.15em] uppercase text-gray-500 hover:text-[#0D0D0D] transition-colors leading-none">Proyectos</a>
+      <a href="#contacto"  class="text-[11px] tracking-[0.15em] uppercase text-gray-500 hover:text-[#0D0D0D] transition-colors leading-none">Lo que hacemos</a>
+      <a href="#contacto-section" class="text-[11px] tracking-[0.15em] uppercase text-gray-500 hover:text-[#0D0D0D] transition-colors leading-none">Contacto</a>
+      <button onclick="openPresupuesto()"
+         class="text-[11px] tracking-[0.15em] uppercase text-white hover:opacity-75 transition-opacity flex items-center cursor-pointer border-none"
+         style="background:#0D0D0D; align-self:center; height:52px; padding:0 28px 10px;
+                clip-path: polygon(0 0, 100% 0, 100% 82%, 14% 82%, 0 94%);">
+        Cotizar
+      </button>
+    </div>
+    <!-- Hamburger (mobile only) -->
+    <button id="nav-hamburger" onclick="toggleMobileMenu()" style="display:none; flex-direction:column; gap:5px; background:none; border:none; cursor:pointer; padding:4px;">
+      <span class="ham-bar" style="display:block; width:22px; height:1.5px; background:#0D0D0D; transition:all 0.3s;"></span>
+      <span class="ham-bar" style="display:block; width:22px; height:1.5px; background:#0D0D0D; transition:all 0.3s;"></span>
+      <span class="ham-bar" style="display:block; width:22px; height:1.5px; background:#0D0D0D; transition:all 0.3s;"></span>
+    </button>
+  </nav>
+
+  <!-- Mobile menu overlay -->
+  <div id="mobile-menu" style="display:none; position:fixed; inset:0; z-index:38; background:#fff; flex-direction:column; align-items:center; justify-content:center; gap:36px; top:100px;">
+    <a href="#nosotros"  onclick="toggleMobileMenu()" class="text-[13px] tracking-[0.2em] uppercase text-gray-600">Estudio</a>
+    <a href="#proyectos" onclick="toggleMobileMenu()" class="text-[13px] tracking-[0.2em] uppercase text-gray-600">Proyectos</a>
+    <a href="#contacto"  onclick="toggleMobileMenu()" class="text-[13px] tracking-[0.2em] uppercase text-gray-600">Lo que hacemos</a>
+    <a href="#contacto-section" onclick="toggleMobileMenu()" class="text-[13px] tracking-[0.2em] uppercase text-gray-600">Contacto</a>
+    <button onclick="toggleMobileMenu(); openPresupuesto();"
+       class="text-[11px] tracking-[0.15em] uppercase text-white border-none cursor-pointer"
+       style="background:#0D0D0D; height:48px; padding:0 32px 10px; clip-path: polygon(0 0, 100% 0, 100% 82%, 14% 82%, 0 94%);">
+      Cotizar
+    </button>
+  </div>
+  <script>
+    function toggleMobileMenu() {
+      var m = document.getElementById('mobile-menu');
+      m.classList.toggle('open');
+    }
+  </script>
+
+  <!-- ─── HERO ──────────────────────────────────────────────── -->
+  <section class="bg-white" style="position:relative; padding-top:100px;">
+
+    <!-- Texto superpuesto sobre las imágenes -->
+    <div id="hero-overlay-card" style="position:absolute; top:100px; left:24px; z-index:10;">
+      <div class="bg-white" style="padding: 32px 20px 90px 20px; clip-path: polygon(0 0, 100% 0, 100% 100%, 74% 78%, 0 78%);">
+        <h1 id="hero-title" class="text-[54px] font-light leading-[1.05] tracking-[-0.025em]">
+          Diseñemos Tu<br>Próximo Espacio
+        </h1>
+      </div>
+    </div>
+
+    <!-- Slider: arranca exactamente en la línea del encabezado -->
+    <div id="hero-slider-wrap" class="relative z-0" style="height:640px;">
+
+      <div id="hero-slider"
+           class="absolute inset-0 overflow-hidden" style="height:100%;">
+        <!-- slides generados por JS -->
+      </div>
+
+      <div class="bubble-card" style="position:absolute; bottom:36px; left:32px; z-index:10;">
+        <div class="bubble-card-inner">
+          <p id="slide-label" class="text-[9px] text-gray-400 tracking-widest uppercase mb-1">Proyecto Destacado</p>
+          <p id="slide-name"  class="text-[12px] font-medium leading-snug"></p>
+        </div>
+      </div>
+
+      <div id="slider-dots"
+           style="position:absolute; bottom:44px; right:28px; z-index:10; display:flex; gap:7px; align-items:center;">
+      </div>
+
+    </div>
+
+    <script>
+      (function () {
+        var RAW = window.PROJECTS && window.PROJECTS.length > 0 ? window.PROJECTS : null;
+
+        var SLIDES = RAW ? RAW.map(function(p) {
+          return {
+            name: p.name,
+            location: p.location,
+            year: p.year,
+            img: p.cover
+          };
+        }) : [
+          { name: 'Casa Mínima',         location: '', year: '2024', img: 'https://placehold.co/1440x640/C4BBB2/A09590?text=Proyecto+01' },
+          { name: 'Residencia Norte',     location: '', year: '2024', img: 'https://placehold.co/1440x640/B0A898/887C78?text=Proyecto+02' },
+          { name: 'Edificio Comercial',   location: '', year: '2023', img: 'https://placehold.co/1440x640/8C8880/5C5854?text=Proyecto+03' },
+          { name: 'Vivienda Unifamiliar', location: '', year: '2023', img: 'https://placehold.co/1440x640/D0CBC5/A09C98?text=Proyecto+04' },
+          { name: 'Espacio Corporativo',  location: '', year: '2023', img: 'https://placehold.co/1440x640/9A9490/6A6460?text=Proyecto+05' }
+        ];
+
+        var sliderEl = document.getElementById('hero-slider');
+        var dotsWrap = document.getElementById('slider-dots');
+        var nameEl   = document.getElementById('slide-name');
+        var current  = 0;
+
+        function slideLabel(s) {
+          var parts = [s.name];
+          if (s.location) parts.push(s.location);
+          return parts.join(' · ');
+        }
+
+        /* Build slides & dots */
+        SLIDES.forEach(function(s, i) {
+          var slide = document.createElement('div');
+          slide.className = 'slide absolute inset-0';
+          slide.style.cssText = 'opacity:' + (i===0?'1':'0') + ';z-index:' + (i===0?'1':'0') + ';transition:opacity 1.2s ease;background:#fff;display:flex;align-items:center;justify-content:center;';
+          var img = document.createElement('img');
+          img.src = s.img;
+          img.style.cssText = 'max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;display:block;';
+          img.alt = s.name;
+          slide.appendChild(img);
+          sliderEl.appendChild(slide);
+
+          var d = document.createElement('button');
+          d.style.cssText = 'width:6px;height:6px;border-radius:50%;border:none;cursor:pointer;padding:0;' +
+                            'background:' + (i===0?'#fff':'rgba(255,255,255,0.35)') + ';transition:background 0.4s;';
+          d.addEventListener('click', function () { goTo(i); clearInterval(timer); });
+          dotsWrap.appendChild(d);
+        });
+
+        nameEl.textContent = slideLabel(SLIDES[0]);
+
+        function getDots() { return dotsWrap.querySelectorAll('button'); }
+
+        function goTo(n) {
+          var slides = sliderEl.querySelectorAll('.slide');
+          var dots   = getDots();
+          slides[current].style.opacity  = '0';
+          slides[current].style.zIndex   = '0';
+          dots[current].style.background = 'rgba(255,255,255,0.35)';
+          current = (n + SLIDES.length) % SLIDES.length;
+          slides[current].style.zIndex   = '1';
+          slides[current].style.opacity  = '1';
+          dots[current].style.background = '#fff';
+          nameEl.textContent = slideLabel(SLIDES[current]);
+        }
+
+        var timer = setInterval(function () { goTo(current + 1); }, 4500);
+      })();
+    </script>
+
+  </section>
+
+  <!-- ─── STATEMENT ─────────────────────────────────────────── -->
+  <section id="nosotros" class="pt-14 pb-16 px-4 md:px-10" style="scroll-margin-top: 108px;">
+    <div class="mx-auto" style="max-width:1100px;">
+      <p class="text-[9px] text-gray-400 tracking-[0.24em] uppercase mb-6">Estudio</p>
+      <p class="text-[13px] font-light leading-[1.85] text-gray-700 mb-4">
+        <span class="text-[#0D0D0D] font-bold">LOG ARQUITECTURA</span> es un estudio dedicado al desarrollo de proyectos arquitectónicos creativos y funcionales, donde cada propuesta nace de la identidad del lugar y de las necesidades particulares de quienes lo habitan.
+      </p>
+      <p class="text-[13px] font-light leading-[1.85] text-gray-700 mb-4">
+        Entendemos la arquitectura como una herramienta para transformar espacios en experiencias auténticas, combinando diseño, sensibilidad y funcionalidad en cada detalle. Nuestro enfoque busca crear obras con carácter propio, adaptadas a su contexto y pensadas para perdurar en el tiempo.
+      </p>
+      <p class="text-[13px] font-light leading-[1.85] text-gray-700">
+        Buscamos responder a cada uno de nuestros encargos atendiendo a su particularidad y necesidad de cada cliente.
+      </p>
+    </div>
+  </section>
+
+  <!-- ─── PROYECTOS ─────────────────────────────────────────── -->
+  <section id="proyectos" class="pt-4 pb-16 px-4 md:px-10" style="scroll-margin-top: 108px;">
+    <div class="flex items-end justify-between mb-6 max-w-[1100px] mx-auto">
+      <div>
+        <p class="text-[9px] text-gray-400 tracking-[0.24em] uppercase mb-1.5">Trabajo Seleccionado</p>
+        <h2 class="text-[32px] font-light tracking-[-0.01em]">Proyectos</h2>
+      </div>
+      <a href="#" class="text-[10px] tracking-[0.2em] uppercase border-b border-[#0D0D0D] pb-px hover:opacity-50 transition-opacity">Ver Todos</a>
+    </div>
+
+    <!-- Grid dinámico — generado por JS -->
+    <div id="proyectos-grid"></div>
+
+    <script>
+      (function () {
+        var PROYECTOS_API = 'https://script.google.com/macros/s/AKfycbz_vTRyYCjKrAmWJ636VfHs6U5SyvcODoLqPb5rZaoP2R1RRpUSuo_-Djxyv99lUxCmBA/exec?action=proyectos';
+        var grid = document.getElementById('proyectos-grid');
+
+        function card(p, idx, imgH) {
+          var num = (idx + 1) < 10 ? '0' + (idx + 1) : String(idx + 1);
+          return '<div class="group cursor-pointer">' +
+            '<img src="' + p.cover + '" alt="' + p.name + '" class="w-full object-cover" style="height:' + imgH + '">' +
+            '<div class="mt-2.5 flex justify-between items-start">' +
+              '<div>' +
+                '<p class="text-[13px] font-medium leading-snug">' + p.name + '</p>' +
+                '<p class="text-[11px] text-gray-400 mt-0.5">' + p.location + '</p>' +
+              '</div>' +
+              '<span class="text-[10px] text-gray-300 mt-0.5">' + num + '</span>' +
+            '</div>' +
+          '</div>';
+        }
+
+        function renderProjects(projects) {
+          var html = '';
+          if (projects.length >= 1) {
+            html += '<div class="grid grid-cols-1 md:grid-cols-3 gap-3 max-w-[1100px] mx-auto mb-2">';
+            html += '<div class="md:col-span-2">' + card(projects[0], 0, '310px') + '</div>';
+            if (projects.length >= 2) html += '<div>' + card(projects[1], 1, '310px') + '</div>';
+            html += '</div>';
+          }
+          var rest = projects.slice(2);
+          for (var r = 0; r < rest.length; r += 3) {
+            var row = rest.slice(r, r + 3);
+            html += '<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 max-w-[1100px] mx-auto mb-2">';
+            for (var c = 0; c < row.length; c++) html += card(row[c], 2 + r + c, '190px');
+            html += '</div>';
+          }
+          grid.innerHTML = html;
+        }
+
+        function fallback() {
+          var local = window.PROJECTS && window.PROJECTS.length > 0 ? window.PROJECTS : null;
+          renderProjects(local || [
+            { name: 'Residencia Familiar',  location: 'Tucumán',     year: '2024', cover: 'https://placehold.co/800x520/B8B2AA/888280?text=Proyecto+01' },
+            { name: 'Edificio Comercial',   location: 'Buenos Aires', year: '2024', cover: 'https://placehold.co/380x520/CCC6BE/9C9690?text=Proyecto+02' },
+            { name: 'Vivienda Unifamiliar', location: 'Salta',        year: '2023', cover: 'https://placehold.co/380x300/B0AAA4/807A7480?text=Proyecto+03' }
+          ]);
+        }
+
+        fetch(PROYECTOS_API)
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            if (Array.isArray(data) && data.length > 0) renderProjects(data);
+            else fallback();
+          })
+          .catch(fallback);
+      })();
+    </script>
+
+  </section>
+
+  <!-- ─── RECORRIDOS ──────────────────────────────────────────── -->
+  <section id="contacto" class="relative h-screen overflow-hidden" style="background:#111;">
+
+    <!-- Contenedor de videos -->
+    <div id="video-bg" class="absolute inset-0 w-full h-full"></div>
+
+    <div class="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent"></div>
+    <div id="videos-text" class="relative h-full flex flex-col justify-end px-16 pb-14">
+      <h2 id="videos-h2" class="text-[52px] font-light text-white leading-[1.08] mb-6">
+        Mirá lo que<br>hacemos
+      </h2>
+      <a href="#" id="link-youtube" target="_blank" rel="noopener" class="flex items-center gap-4 w-fit group">
+        <span class="text-[10px] tracking-[0.22em] uppercase text-white border-b border-white pb-px group-hover:opacity-60 transition-opacity">Clic aquí</span>
+        <svg width="18" height="10" viewBox="0 0 18 10" fill="none">
+          <path d="M0 5H16M12 1L16 5L12 9" stroke="white" stroke-width="1"/>
+        </svg>
+      </a>
+    </div>
+
+    <script>
+      (function () {
+        var VIDEOS_API = 'https://script.google.com/macros/s/AKfycbz_vTRyYCjKrAmWJ636VfHs6U5SyvcODoLqPb5rZaoP2R1RRpUSuo_-Djxyv99lUxCmBA/exec?action=videos';
+        var container  = document.getElementById('video-bg');
+        var current    = 0;
+        var videos     = [];
+
+        function crearVideo(url) {
+          var v = document.createElement('video');
+          v.src = url;
+          v.autoplay = true;
+          v.muted    = true;
+          v.playsInline = true;
+          v.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity 1s ease;';
+          v.addEventListener('canplay', function () {
+            v.style.opacity = '1';
+          });
+          v.addEventListener('ended', function () {
+            v.style.opacity = '0';
+            current = (current + 1) % videos.length;
+            videos[current].style.opacity = '1';
+            videos[current].currentTime = 0;
+            videos[current].play();
+          });
+          return v;
+        }
+
+        fetch(VIDEOS_API)
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            if (!Array.isArray(data) || data.length === 0) return;
+            data.forEach(function(v, i) {
+              var el = crearVideo(v.url);
+              if (i !== 0) { el.autoplay = false; }
+              container.appendChild(el);
+              videos.push(el);
+            });
+            if (videos.length > 0) videos[0].play();
+          })
+          .catch(function() {});
+      })();
+    </script>
+
+  </section>
+
+  <!-- ─── CONTACTO ───────────────────────────────────────────── -->
+  <section id="contacto-section" style="background:#0D0D0D; padding: 48px 64px 52px; scroll-margin-top: 100px;">
+    <div style="max-width:1100px; margin:0 auto;">
+
+      <div id="contacto-header" style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:56px;">
+        <div>
+          <p style="font-size:9px; color:#555; letter-spacing:0.24em; text-transform:uppercase; margin-bottom:8px;">Escribinos</p>
+          <h2 style="font-size:36px; font-weight:300; color:#f0f0f0; letter-spacing:-0.01em; line-height:1.1;">¿Tenés un proyecto<br>en mente?</h2>
+        </div>
+        <p style="font-size:12px; color:#666; max-width:480px; line-height:1.7;">Haciendo clic en <strong style="color:#aaa; cursor:pointer;" onclick="openPresupuesto()">COTIZAR</strong> podés ver los servicios que ofrecemos y solicitar tu presupuesto. También podés contarnos tu idea y nos ponemos en contacto para poder guiarte en el proceso.</p>
+      </div>
+
+      <!-- Formulario + info -->
+      <div id="contacto-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:48px; align-items:start;">
+
+        <!-- Info lateral -->
+        <div style="display:flex; flex-direction:column; gap:14px;">
+          <div style="border-top:1px solid #2a2a2a; padding-top:14px;">
+            <p style="font-size:9px; color:#555; letter-spacing:0.2em; text-transform:uppercase; margin-bottom:5px;">Email</p>
+            <p style="font-size:12px; color:#aaa; font-weight:300;">estudiologarquitectura@gmail.com</p>
+          </div>
+          <div style="border-top:1px solid #2a2a2a; padding-top:14px;">
+            <p style="font-size:9px; color:#555; letter-spacing:0.2em; text-transform:uppercase; margin-bottom:5px;">Teléfono</p>
+            <p style="font-size:12px; color:#aaa; font-weight:300;">+54 381 517 1638</p>
+          </div>
+          <div style="border-top:1px solid #2a2a2a; padding-top:14px;">
+            <p style="font-size:9px; color:#555; letter-spacing:0.2em; text-transform:uppercase; margin-bottom:5px;">Ubicación</p>
+            <p style="font-size:12px; color:#aaa; font-weight:300;">Tucumán, Argentina</p>
+          </div>
+          <div style="border-top:1px solid #2a2a2a; padding-top:14px;">
+            <p style="font-size:9px; color:#555; letter-spacing:0.2em; text-transform:uppercase; margin-bottom:10px;">Redes</p>
+            <div style="display:flex; flex-direction:row; gap:16px;">
+              <a href="https://www.instagram.com/logarquitectura" target="_blank" rel="noopener" style="color:#aaa; text-decoration:none;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#aaa'">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4.5"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+              </a>
+              <a href="https://www.linkedin.com/company/logarquitectura" target="_blank" rel="noopener" style="color:#aaa; text-decoration:none;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#aaa'">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="3"/><line x1="8" y1="11" x2="8" y2="16"/><line x1="8" y1="8" x2="8" y2="8.5"/><path d="M12 16v-5m4 5v-3a2 2 0 0 0-4 0"/></svg>
+              </a>
+              <a href="https://www.tiktok.com/@logarquitectura" target="_blank" rel="noopener" style="color:#aaa; text-decoration:none;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#aaa'">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"/></svg>
+              </a>
+              <a href="https://www.youtube.com/@logarquitectura" target="_blank" rel="noopener" style="color:#aaa; text-decoration:none;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#aaa'">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="4"/><polygon points="10,9 16,12 10,15" fill="currentColor" stroke="none"/></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Formulario -->
+        <form id="form-contacto-directo" onsubmit="enviarContacto(event)" style="display:flex; flex-direction:column; gap:14px;">
+          <div id="form-row-names" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px;">
+            <div>
+              <label style="font-size:9px; color:#555; letter-spacing:0.18em; text-transform:uppercase; display:block; margin-bottom:6px;">Nombre</label>
+              <input id="c-nombre" type="text" required placeholder="Tu nombre"
+                style="width:100%; background:#1a1a1a; border:1px solid #2a2a2a; color:#ddd; font-size:12px; padding:12px 14px; font-family:'DM Sans',sans-serif; outline:none;">
+            </div>
+            <div>
+              <label style="font-size:9px; color:#555; letter-spacing:0.18em; text-transform:uppercase; display:block; margin-bottom:6px;">Email</label>
+              <input id="c-email" type="email" required placeholder="tu@email.com"
+                style="width:100%; background:#1a1a1a; border:1px solid #2a2a2a; color:#ddd; font-size:12px; padding:12px 14px; font-family:'DM Sans',sans-serif; outline:none;">
+            </div>
+            <div>
+              <label style="font-size:9px; color:#555; letter-spacing:0.18em; text-transform:uppercase; display:block; margin-bottom:6px;">Teléfono</label>
+              <input id="c-telefono" type="tel" placeholder="Ej: +54 381 123 4567"
+                style="width:100%; background:#1a1a1a; border:1px solid #2a2a2a; color:#ddd; font-size:12px; padding:12px 14px; font-family:'DM Sans',sans-serif; outline:none;">
+            </div>
+          </div>
+          <div>
+            <label style="font-size:9px; color:#555; letter-spacing:0.18em; text-transform:uppercase; display:block; margin-bottom:6px;">Mensaje</label>
+            <textarea id="c-mensaje" rows="4" placeholder="Contanos sobre tu proyecto..."
+              style="width:100%; background:#1a1a1a; border:1px solid #2a2a2a; color:#ddd; font-size:12px; padding:12px 14px; font-family:'DM Sans',sans-serif; outline:none; resize:vertical; min-height:100px;"></textarea>
+          </div>
+          <div style="display:flex; align-items:center; gap:16px; margin-top:4px;">
+            <button id="btn-contacto-submit" type="submit"
+              style="background:#f0f0f0; color:#0D0D0D; font-size:11px; letter-spacing:0.2em; text-transform:uppercase;
+                     padding:0 36px; height:48px; border:none; cursor:pointer; font-family:'DM Sans',sans-serif;
+                     clip-path: polygon(0 0, 100% 0, 100% 78%, 88% 100%, 0 100%);
+                     transition:opacity 0.2s;"
+              onmouseover="this.style.opacity='0.75'" onmouseout="this.style.opacity='1'">
+              Enviar mensaje
+            </button>
+            <span id="contacto-success" style="display:none; font-size:11px; color:#6b8; letter-spacing:0.05em;">Mensaje enviado correctamente.</span>
+            <span id="contacto-error" style="display:none; font-size:11px; color:#e88; letter-spacing:0.05em;">Error al enviar. Intentá de nuevo.</span>
+          </div>
+        </form>
+
+      </div>
+
+      <script>
+        function enviarContacto(e) {
+          e.preventDefault();
+          var btn = document.getElementById('btn-contacto-submit');
+          var data = {
+            hoja     : 'mensajes',
+            nombre   : document.getElementById('c-nombre').value,
+            email    : document.getElementById('c-email').value,
+            telefono : document.getElementById('c-telefono').value,
+            mensaje  : document.getElementById('c-mensaje').value,
+            fecha    : new Date().toLocaleString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' })
+          };
+          btn.disabled = true;
+          btn.textContent = 'Enviando...';
+          fetch(GSHEET_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams(data).toString()
+          })
+          .then(function() {
+            document.getElementById('contacto-success').style.display = 'inline';
+            document.getElementById('form-contacto-directo').reset();
+            btn.disabled = false;
+            btn.textContent = 'Enviar mensaje';
+          })
+          .catch(function() {
+            document.getElementById('contacto-error').style.display = 'inline';
+            btn.disabled = false;
+            btn.textContent = 'Enviar mensaje';
+          });
+        }
+      </script>
+
+    </div>
+  </section>
+
+  <!-- ─── FOOTER ────────────────────────────────────────────── -->
+  <footer class="px-4 md:px-16 pt-7 pb-5" style="background:#fff; color:#0D0D0D;">
+    <div id="footer-top" class="flex justify-between items-start mb-6">
+      <div style="display:flex; align-items:center; gap:14px;">
+        <img src="https://lh3.googleusercontent.com/d/1wO7vvBIvbyUuU8pksDBJbd2e-hPbC3iG" alt="Logi" style="height:70px; width:auto; opacity:0.7;">
+        <div>
+          <p class="text-[13px] font-light tracking-[0.18em] uppercase mb-1.5" style="color:#0D0D0D;">LOG arquitectura</p>
+          <p class="text-[11px]" style="color:#999;">Estudio de Diseño Arquitectónico</p>
+        </div>
+      </div>
+      <div id="footer-cols" class="grid grid-cols-3 gap-16">
+        <div>
+          <p class="text-[9px] tracking-[0.24em] uppercase mb-3" style="color:#bbb;">Navegar</p>
+          <div class="space-y-2">
+            <a href="#proyectos" class="block text-[12px] transition-colors" style="color:#777;" onmouseover="this.style.color='#0D0D0D'" onmouseout="this.style.color='#777'">Proyectos</a>
+            <a href="#nosotros"  class="block text-[12px] transition-colors" style="color:#777;" onmouseover="this.style.color='#0D0D0D'" onmouseout="this.style.color='#777'">Estudio</a>
+            <a href="#contacto"  class="block text-[12px] transition-colors" style="color:#777;" onmouseover="this.style.color='#0D0D0D'" onmouseout="this.style.color='#777'">Lo que hacemos</a>
+            <a href="#contacto-section" class="block text-[12px] transition-colors" style="color:#777;" onmouseover="this.style.color='#0D0D0D'" onmouseout="this.style.color='#777'">Contacto</a>
+          </div>
+        </div>
+        <div>
+          <p class="text-[9px] tracking-[0.24em] uppercase mb-3" style="color:#bbb;">Contacto</p>
+          <div class="space-y-2">
+            <p class="text-[12px]" style="color:#777;">estudiologarquitectura@gmail.com</p>
+            <p class="text-[12px]" style="color:#777;">+54 381 517 1638</p>
+            <p class="text-[12px]" style="color:#777;">Tucumán, Argentina</p>
+          </div>
+        </div>
+        <div>
+          <p class="text-[9px] tracking-[0.24em] uppercase mb-3" style="color:#bbb;">Redes</p>
+          <div class="space-y-2">
+            <a href="https://www.instagram.com/logarquitectura" target="_blank" rel="noopener" class="flex items-center gap-2 text-[12px] transition-colors" style="color:#777;" onmouseover="this.style.color='#0D0D0D'" onmouseout="this.style.color='#777'">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><circle cx="12" cy="12" r="4.5"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/>
+              </svg>
+              Instagram
+            </a>
+            <a href="https://www.linkedin.com/company/logarquitectura" target="_blank" rel="noopener" class="flex items-center gap-2 text-[12px] transition-colors" style="color:#777;" onmouseover="this.style.color='#0D0D0D'" onmouseout="this.style.color='#777'">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="2" width="20" height="20" rx="3"/><line x1="8" y1="11" x2="8" y2="16"/><line x1="8" y1="8" x2="8" y2="8.5"/><path d="M12 16v-5m4 5v-3a2 2 0 0 0-4 0"/>
+              </svg>
+              LinkedIn
+            </a>
+            <a href="https://www.tiktok.com/@logarquitectura" target="_blank" rel="noopener" class="flex items-center gap-2 text-[12px] transition-colors" style="color:#777;" onmouseover="this.style.color='#0D0D0D'" onmouseout="this.style.color='#777'">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"/>
+              </svg>
+              TikTok
+            </a>
+            <a href="https://www.youtube.com/@logarquitectura" target="_blank" rel="noopener" class="flex items-center gap-2 text-[12px] transition-colors" style="color:#777;" onmouseover="this.style.color='#0D0D0D'" onmouseout="this.style.color='#777'">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="5" width="20" height="14" rx="4"/><polygon points="10,9 16,12 10,15" fill="currentColor" stroke="none"/>
+              </svg>
+              YouTube
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="pt-5 flex justify-between items-center" style="border-top:1px solid #e5e5e5;">
+      <p class="text-[10px]" style="color:#bbb;">© <script>document.write(new Date().getFullYear())</script> LOG arquitectura. Todos los derechos reservados.</p>
+      <p class="text-[10px]" style="color:#bbb;">Argentina</p>
+    </div>
+  </footer>
+
+  <!-- ─── WHATSAPP BUTTON ──────────────────────────────────── -->
+  <a id="whatsapp-btn" href="https://wa.me/543815171638" target="_blank" rel="noopener"
+     style="position:fixed; bottom:24px; right:24px; z-index:55;
+            width:60px; height:60px; border-radius:50%;
+            background:#fff; display:none; align-items:center; justify-content:center;
+            box-shadow:0 2px 12px rgba(0,0,0,0.15);
+            transition:transform 0.18s ease;">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="34" height="34" fill="#0D0D0D">
+      <path d="M256 18C124.9 18 18 124.9 18 256c0 41.7 11 80.9 30.2 114.8L18 494l126.2-32.9C177.7 479.5 216 490 256 490c131.1 0 238-106.9 238-238S387.1 18 256 18zm0 436c-36.5 0-70.5-10-99.5-27.4l-7.1-4.2-73.5 19.2 19.6-71.6-4.6-7.4C72.5 333.5 62 295.7 62 256 62 149.1 149.1 62 256 62s194 87.1 194 194-87.1 198-194 198z"/>
+      <path d="M349.7 295.5c-5.4-2.7-31.9-15.7-36.8-17.5-4.9-1.8-8.5-2.7-12.1 2.7-3.6 5.4-13.9 17.5-17 21.1-3.1 3.6-6.3 4-11.6 1.3-5.4-2.7-22.7-8.4-43.2-26.7-16-14.2-26.7-31.8-29.9-37.2-3.1-5.4-.3-8.3 2.3-11 2.4-2.4 5.4-6.3 8-9.4 2.7-3.1 3.6-5.4 5.4-9 1.8-3.6.9-6.7-.4-9.4-1.3-2.7-12.1-29.2-16.6-40-4.4-10.5-8.9-9.1-12.1-9.3-3.1-.2-6.7-.2-10.3-.2s-9.4 1.3-14.3 6.7c-4.9 5.4-18.8 18.4-18.8 44.8s19.3 52 22 55.6c2.7 3.6 37.9 57.9 91.9 81.2 12.8 5.5 22.8 8.8 30.6 11.3 12.9 4.1 24.6 3.5 33.8 2.1 10.3-1.5 31.9-13 36.4-25.5 4.5-12.5 4.5-23.2 3.1-25.5-1.2-2.3-4.8-3.6-10.2-6.3z"/>
+    </svg>
+  </a>
+
+  <!-- ─── MODAL PRESUPUESTO ───────────────────────────────── -->
+  <div id="modal-presupuesto"
+       style="display:none; position:fixed; inset:0; z-index:60; background:#111; overflow-y:auto;">
+
+    <style>
+      #modal-presupuesto {
+        font-family: 'DM Sans', sans-serif;
+        color: #f0f0f0;
+      }
+      .pres-card {
+        background: #1c1c1c;
+        border: 1px solid #2a2a2a;
+        border-radius: 16px;
+        padding: 36px 32px;
+        display: flex;
+        flex-direction: column;
+        transition: border-color 0.2s;
+      }
+      .pres-card:hover { border-color: #444; }
+      .pres-tab {
+        padding: 8px 28px;
+        border-radius: 999px;
+        font-size: 12px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        cursor: pointer;
+        border: none;
+        transition: background 0.2s, color 0.2s;
+        font-family: 'DM Sans', sans-serif;
+      }
+      .pres-tab.active   { background: #fff; color: #111; }
+      .pres-tab.inactive { background: transparent; color: #888; }
+      .pres-tab.inactive:hover { color: #ccc; }
+      .pres-icon {
+        width: 44px; height: 44px;
+        border: 1px solid #333;
+        border-radius: 10px;
+        display: flex; align-items: center; justify-content: center;
+        margin-bottom: 20px;
+      }
+      .pres-feature {
+        display: flex; align-items: flex-start; gap: 10px;
+        font-size: 12.5px; color: #aaa; line-height: 1.5;
+        margin-bottom: 8px;
+      }
+      .pres-check {
+        flex-shrink: 0; margin-top: 3px;
+      }
+      .pres-note-wrapper {
+        display: flex; align-items: flex-start; gap: 10px;
+        margin-top: 10px; background: #161616;
+        border: 1px solid #2a2a2a; border-radius: 8px;
+        padding: 10px 12px; transition: border-color 0.2s;
+      }
+      .pres-note-wrapper:focus-within { border-color: #555; }
+      .pres-note-icon { flex-shrink: 0; margin-top: 2px; color: #555; }
+      .pres-note {
+        flex: 1; background: transparent; border: none;
+        color: #aaa; font-family: 'DM Sans', sans-serif; font-size: 12px;
+        resize: none; outline: none; height: 58px; line-height: 1.5;
+      }
+      .pres-note::placeholder { color: #444; }
+      .pres-disclaimer {
+        display: flex; align-items: flex-start; gap: 10px;
+        margin-top: 10px; background: #161616;
+        border: 1px solid #2a2a2a; border-radius: 8px;
+        padding: 10px 12px; font-size: 11px; color: #666; line-height: 1.5;
+      }
+      .pres-cta {
+        margin-top: auto;
+        padding-top: 28px;
+      }
+      .pres-cta a {
+        display: block; text-align: center;
+        padding: 12px;
+        border: 1px solid #444;
+        border-radius: 8px;
+        font-size: 11px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: #e0e0e0;
+        text-decoration: none;
+        transition: background 0.2s, border-color 0.2s;
+      }
+      .pres-cta a:hover { background: #2a2a2a; border-color: #666; }
+      #pres-grid-clientes  { display: grid; }
+      #pres-grid-empresas  { display: none; }
+
+      @media (max-width: 767px) {
+        #pres-topbar { padding: 16px 20px !important; flex-wrap: wrap; gap: 12px; }
+        #pres-topbar h2 { font-size: 16px !important; }
+        #pres-topbar-title { position: static !important; transform: none !important; text-align: left; order: 3; width: 100%; }
+        #pres-grid-clientes, #pres-grid-empresas { grid-template-columns: 1fr !important; }
+        #pres-cards-wrap { padding: 20px 16px 48px !important; }
+        .pres-card { padding: 24px 20px !important; }
+        #pres-tabs { padding: 20px 0 4px !important; }
+      }
+      @media (min-width: 768px) and (max-width: 1023px) {
+        #pres-grid-clientes { grid-template-columns: repeat(2,1fr) !important; }
+      }
+    </style>
+
+    <!-- Top bar -->
+    <div id="pres-topbar" style="display:flex; align-items:center; justify-content:space-between; padding:24px 40px; border-bottom:1px solid #222;">
+      <button onclick="closePresupuesto()"
+              style="background:none; border:1px solid #333; border-radius:8px; color:#aaa; cursor:pointer;
+                     display:flex; align-items:center; gap:8px; padding:8px 16px; font-size:12px;
+                     font-family:'DM Sans',sans-serif; letter-spacing:0.08em; transition:border-color 0.2s;"
+              onmouseover="this.style.borderColor='#666'" onmouseout="this.style.borderColor='#333'">
+        <svg width="14" height="10" viewBox="0 0 14 10" fill="none">
+          <path d="M13 5H1M5 1L1 5L5 9" stroke="currentColor" stroke-width="1.2"/>
+        </svg>
+        Volver
+      </button>
+      <div id="pres-topbar-title" style="position:absolute; left:50%; transform:translateX(-50%); text-align:center;">
+        <p style="font-size:11px; letter-spacing:0.22em; text-transform:uppercase; color:#555; margin-bottom:4px;">LOG arquitectura</p>
+        <h2 style="font-size:26px; font-weight:300; color:#f0f0f0; letter-spacing:-0.01em;">Servicios que se adaptan a tus requerimientos</h2>
+      </div>
+      <div style="width:120px;"></div><!-- spacer -->
+    </div>
+
+    <!-- Tab switcher -->
+    <div id="pres-tabs" style="display:flex; justify-content:center; padding:32px 0 8px;">
+      <div style="display:flex; gap:4px; background:#1a1a1a; border:1px solid #2a2a2a; border-radius:999px; padding:4px;">
+        <button id="tab-clientes" class="pres-tab active" onclick="switchTab('clientes')">Clientes</button>
+        <button id="tab-empresas" class="pres-tab inactive" onclick="switchTab('empresas')">Empresas</button>
+      </div>
+    </div>
+
+    <!-- Cards -->
+    <div id="pres-cards-wrap" style="padding:32px 40px 60px; max-width:1500px; margin:0 auto;">
+
+      <!-- CLIENTES: 3 cards -->
+      <div id="pres-grid-clientes"
+           style="grid-template-columns:repeat(4,1fr); gap:20px;">
+
+        <!-- ANTEPROYECTO -->
+        <div class="pres-card">
+          <div class="pres-icon">
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="#aaa" stroke-width="1.2">
+              <rect x="2" y="3" width="13" height="16" rx="1"/>
+              <path d="M5 7h7M5 10h7M5 13h4"/>
+              <path d="M15 8l4-4M19 4l-2 2"/>
+            </svg>
+          </div>
+          <p style="font-size:11px; letter-spacing:0.2em; text-transform:uppercase; color:#666; margin-bottom:6px;">Servicio/Etapa 01</p>
+          <h3 style="font-size:22px; font-weight:300; margin-bottom:8px; color:#f0f0f0;">Anteproyecto</h3>
+          <p style="font-size:12.5px; color:#777; line-height:1.55; margin-bottom:24px;">
+            Idea generadora y propuesta de diseño, mostrando cómo serán los espacios, el estilo y el funcionamiento. En esta etapa se pueden hacer cambios importantes en el diseño.</p>
+          <div>
+            <div class="pres-feature"><svg class="pres-check" width="14" height="11" viewBox="0 0 14 11" fill="none" stroke="#888" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 5.5l3.5 3.5 7-8"/></svg>Relevamiento</div>
+            <div class="pres-feature"><svg class="pres-check" width="14" height="11" viewBox="0 0 14 11" fill="none" stroke="#888" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 5.5l3.5 3.5 7-8"/></svg>Memoria descriptiva</div>
+            <div class="pres-feature"><svg class="pres-check" width="14" height="11" viewBox="0 0 14 11" fill="none" stroke="#888" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 5.5l3.5 3.5 7-8"/></svg>Esquemas de diseño</div>
+            <div class="pres-feature"><svg class="pres-check" width="14" height="11" viewBox="0 0 14 11" fill="none" stroke="#888" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 5.5l3.5 3.5 7-8"/></svg>Plano de ubicación</div>
+            <div class="pres-feature"><svg class="pres-check" width="14" height="11" viewBox="0 0 14 11" fill="none" stroke="#888" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 5.5l3.5 3.5 7-8"/></svg>Planta de techos</div>
+            <div class="pres-feature"><svg class="pres-check" width="14" height="11" viewBox="0 0 14 11" fill="none" stroke="#888" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 5.5l3.5 3.5 7-8"/></svg>Plantas de arquitectura</div>
+            <div class="pres-feature"><svg class="pres-check" width="14" height="11" viewBox="0 0 14 11" fill="none" stroke="#888" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 5.5l3.5 3.5 7-8"/></svg>Frentes arquitectónicos</div>
+            <div class="pres-feature"><svg class="pres-check" width="14" height="11" viewBox="0 0 14 11" fill="none" stroke="#888" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 5.5l3.5 3.5 7-8"/></svg>Cortes arquitectónicos</div>
+            <div class="pres-feature"><svg class="pres-check" width="14" height="11" viewBox="0 0 14 11" fill="none" stroke="#888" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 5.5l3.5 3.5 7-8"/></svg>Cómputo de superficies</div>
+            <div class="pres-feature"><svg class="pres-check" width="14" height="11" viewBox="0 0 14 11" fill="none" stroke="#888" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 5.5l3.5 3.5 7-8"/></svg>Imágenes fotorrealistas</div>
+            <div class="pres-feature"><svg class="pres-check" width="14" height="11" viewBox="0 0 14 11" fill="none" stroke="#888" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 5.5l3.5 3.5 7-8"/></svg>Recorrido virtual</div>
+          </div>
+          <div class="pres-cta">
+            <a href="#" onclick="solicitarServicio('Anteproyecto'); return false;">Solicitar Anteproyecto</a>
+          </div>
+        </div>
+
+        <!-- PROYECTO -->
+        <div class="pres-card">
+          <div class="pres-icon" style="border-color:#3a3a3a;">
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="#d0d0d0" stroke-width="1.2">
+              <rect x="1" y="1" width="20" height="20" rx="2"/>
+              <path d="M1 6h20M6 1v20"/>
+              <path d="M9 10h8M9 13h6M9 16h4"/>
+            </svg>
+          </div>
+          <p style="font-size:11px; letter-spacing:0.2em; text-transform:uppercase; color:#666; margin-bottom:6px;">Servicio/Etapa 02</p>
+          <h3 style="font-size:22px; font-weight:300; margin-bottom:8px; color:#f0f0f0;">Proyecto</h3>
+          <p style="font-size:12.5px; color:#777; line-height:1.55; margin-bottom:24px;">
+            Documentación técnica más desarrollada y definida del diseño. Permite entender el sistema constructivo y los materiales que conforman el proyecto.
+          </p>
+          <div>
+            <div class="pres-feature"><svg class="pres-check" width="14" height="11" viewBox="0 0 14 11" fill="none" stroke="#888" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 5.5l3.5 3.5 7-8"/></svg>Todo lo incluido del Anteproyecto</div>
+            <div class="pres-feature"><svg class="pres-check" width="14" height="11" viewBox="0 0 14 11" fill="none" stroke="#888" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 5.5l3.5 3.5 7-8"/></svg>Planos de replanteo y excavaciones</div>
+            <div class="pres-feature"><svg class="pres-check" width="14" height="11" viewBox="0 0 14 11" fill="none" stroke="#888" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 5.5l3.5 3.5 7-8"/></svg>Planos de cimentación</div>
+            <div class="pres-feature"><svg class="pres-check" width="14" height="11" viewBox="0 0 14 11" fill="none" stroke="#888" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 5.5l3.5 3.5 7-8"/></svg>Planta de muros</div>
+            <div class="pres-feature"><svg class="pres-check" width="14" height="11" viewBox="0 0 14 11" fill="none" stroke="#888" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 5.5l3.5 3.5 7-8"/></svg>Planta de cielorrasos</div>
+            <div class="pres-feature"><svg class="pres-check" width="14" height="11" viewBox="0 0 14 11" fill="none" stroke="#888" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 5.5l3.5 3.5 7-8"/></svg>Planta de pisos y/o entrepisos</div>
+            <div class="pres-feature"><svg class="pres-check" width="14" height="11" viewBox="0 0 14 11" fill="none" stroke="#888" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 5.5l3.5 3.5 7-8"/></svg>Planilla de carpinterías</div>
+            <div class="pres-feature"><svg class="pres-check" width="14" height="11" viewBox="0 0 14 11" fill="none" stroke="#888" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 5.5l3.5 3.5 7-8"/></svg>Detalles constructivos y especificaciones técnicas relevantes</div>
+            <div class="pres-feature"><svg class="pres-check" width="14" height="11" viewBox="0 0 14 11" fill="none" stroke="#888" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 5.5l3.5 3.5 7-8"/></svg>Cómputo métrico y cantidad de materiales</div>
+            <div class="pres-feature"><svg class="pres-check" width="14" height="11" viewBox="0 0 14 11" fill="none" stroke="#888" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 5.5l3.5 3.5 7-8"/></svg>Presupuesto estimado de materiales</div>
+          </div>
+          <div class="pres-cta">
+            <a href="#" onclick="solicitarServicio('Proyecto'); return false;">Solicitar Proyecto</a>
+          </div>
+        </div>
+
+        <!-- SUPERVISIÓN TÉCNICA -->
+        <div class="pres-card">
+          <div class="pres-icon">
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="#aaa" stroke-width="1.2">
+              <path d="M3 18h16M5 18V9l6-6 6 6v9"/>
+              <rect x="8" y="13" width="3" height="5"/>
+              <rect x="13" y="10" width="3" height="3"/>
+              <path d="M7 9l4-4 4 4"/>
+            </svg>
+          </div>
+          <p style="font-size:11px; letter-spacing:0.2em; text-transform:uppercase; color:#666; margin-bottom:6px;">Servicio/Etapa 03</p>
+          <h3 style="font-size:22px; font-weight:300; margin-bottom:8px; color:#f0f0f0;">Carpeta Ejecutiva</h3>
+          <p style="font-size:12.5px; color:#777; line-height:1.55; margin-bottom:24px;">
+            Carpeta técnica presentada en los organismos correspondientes según requerimientos y normativas, para su aprobación y correcta ejecución de la obra.
+          </p>
+          <div>
+            <div class="pres-feature"><svg class="pres-check" width="14" height="11" viewBox="0 0 14 11" fill="none" stroke="#888" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 5.5l3.5 3.5 7-8"/></svg>Memoria descriptiva</div>
+            <div class="pres-feature"><svg class="pres-check" width="14" height="11" viewBox="0 0 14 11" fill="none" stroke="#888" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 5.5l3.5 3.5 7-8"/></svg>Cómputo de superficies</div>
+            <div class="pres-feature"><svg class="pres-check" width="14" height="11" viewBox="0 0 14 11" fill="none" stroke="#888" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 5.5l3.5 3.5 7-8"/></svg>Planos de Arquitectura</div>
+            <div class="pres-feature"><svg class="pres-check" width="14" height="11" viewBox="0 0 14 11" fill="none" stroke="#888" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 5.5l3.5 3.5 7-8"/></svg>Planos de Estructuras</div>
+            <div class="pres-feature"><svg class="pres-check" width="14" height="11" viewBox="0 0 14 11" fill="none" stroke="#888" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 5.5l3.5 3.5 7-8"/></svg>Planilla de cálculos estructurales</div>
+            <div class="pres-feature"><svg class="pres-check" width="14" height="11" viewBox="0 0 14 11" fill="none" stroke="#888" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 5.5l3.5 3.5 7-8"/></svg>Planos de Instalación Sanitaria y pluvial</div>
+            <div class="pres-feature"><svg class="pres-check" width="14" height="11" viewBox="0 0 14 11" fill="none" stroke="#888" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 5.5l3.5 3.5 7-8"/></svg>Cálculo de Instalación sanitaria</div>
+            <div class="pres-feature"><svg class="pres-check" width="14" height="11" viewBox="0 0 14 11" fill="none" stroke="#888" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 5.5l3.5 3.5 7-8"/></svg>Planos de Instalación Eléctrica</div>
+            <div class="pres-feature"><svg class="pres-check" width="14" height="11" viewBox="0 0 14 11" fill="none" stroke="#888" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 5.5l3.5 3.5 7-8"/></svg>Esquema de cálculo de Instalación eléctrica</div>
+          </div>
+          <div class="pres-disclaimer">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#555" stroke-width="1.2" style="flex-shrink:0;margin-top:1px"><circle cx="7" cy="7" r="6"/><path d="M7 6v4M7 4.5v.5"/></svg>
+            <span>La carpeta se presenta en dos etapas (Anteproyecto y Proyecto) y es adicional al cliente el pago de tasas municipales y otros trámites durante el proceso de aprobación.</span>
+          </div>
+          <div class="pres-cta">
+            <a href="#" onclick="solicitarServicio('Carpeta Ejecutiva'); return false;">Solicitar Carpeta Ejecutiva</a>
+          </div>
+        </div>
+
+        <!-- DISEÑO DE INTERIORES -->
+        <div class="pres-card">
+          <div class="pres-icon">
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="#aaa" stroke-width="1.2">
+              <rect x="2" y="2" width="18" height="18" rx="1"/>
+              <path d="M2 8h18M8 8v12"/>
+              <circle cx="5" cy="5" r="0.8" fill="#aaa"/>
+              <path d="M11 12h6M11 15h4"/>
+            </svg>
+          </div>
+          <p style="font-size:11px; letter-spacing:0.2em; text-transform:uppercase; color:#666; margin-bottom:6px;">Servicio/Etapa 04</p>
+          <h3 style="font-size:22px; font-weight:300; margin-bottom:8px; color:#f0f0f0;">Diseño de Interiores</h3>
+          <p style="font-size:12.5px; color:#777; line-height:1.55; margin-bottom:24px;">
+            Diseño de los espacios interiores para que sean funcionales, cómodos y estéticos. Incluye la elección y organización de muebles, iluminación, colores, materiales, decoración y equipamiento.
+          </p>
+          <div>
+            <div class="pres-feature"><svg class="pres-check" width="14" height="11" viewBox="0 0 14 11" fill="none" stroke="#888" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 5.5l3.5 3.5 7-8"/></svg>Planos de diseño interior y equipamiento</div>
+            <div class="pres-feature"><svg class="pres-check" width="14" height="11" viewBox="0 0 14 11" fill="none" stroke="#888" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 5.5l3.5 3.5 7-8"/></svg>Planilla de materiales, texturas y equipamiento</div>
+            <div class="pres-feature"><svg class="pres-check" width="14" height="11" viewBox="0 0 14 11" fill="none" stroke="#888" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 5.5l3.5 3.5 7-8"/></svg>Imágenes fotorrealistas</div>
+            <div class="pres-feature"><svg class="pres-check" width="14" height="11" viewBox="0 0 14 11" fill="none" stroke="#888" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 5.5l3.5 3.5 7-8"/></svg>Recorrido virtual</div>
+            <div class="pres-feature"><svg class="pres-check" width="14" height="11" viewBox="0 0 14 11" fill="none" stroke="#888" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 5.5l3.5 3.5 7-8"/></svg>Cómputo de materiales y equipamiento</div>
+            <div class="pres-feature"><svg class="pres-check" width="14" height="11" viewBox="0 0 14 11" fill="none" stroke="#888" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 5.5l3.5 3.5 7-8"/></svg>Presupuesto de la obra</div>
+          </div>
+          <div class="pres-cta">
+            <a href="#" onclick="solicitarServicio('Diseño de Interiores'); return false;">Solicitar Diseño de Interiores</a>
+          </div>
+        </div>
+
+      </div><!-- /clientes -->
+
+      <!-- EMPRESAS: 1 card centrada -->
+      <div id="pres-grid-empresas"
+           style="justify-content:center;">
+
+        <div class="pres-card" style="max-width:420px; margin:0 auto;">
+          <div class="pres-icon">
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="#aaa" stroke-width="1.2">
+              <path d="M11 2L2 7l9 5 9-5-9-5z"/>
+              <path d="M2 12l9 5 9-5"/>
+              <path d="M2 17l9 5 9-5"/>
+            </svg>
+          </div>
+          <p style="font-size:11px; letter-spacing:0.2em; text-transform:uppercase; color:#666; margin-bottom:6px;">Servicio Empresas</p>
+          <h3 style="font-size:22px; font-weight:300; margin-bottom:8px; color:#f0f0f0;">Modelado BIM</h3>
+          <p style="font-size:12.5px; color:#777; line-height:1.55; margin-bottom:24px;">
+            Documentación digital inteligente para proyectos complejos. Coordinación multidisciplinaria y entrega en formatos estándar de la industria.
+          </p>
+          <div>
+            <div class="pres-feature"><svg class="pres-check" width="14" height="11" viewBox="0 0 14 11" fill="none" stroke="#888" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 5.5l3.5 3.5 7-8"/></svg>Modelo BIM LOD 300+ (Revit / Archicad)</div>
+            <div class="pres-feature"><svg class="pres-check" width="14" height="11" viewBox="0 0 14 11" fill="none" stroke="#888" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 5.5l3.5 3.5 7-8"/></svg>Detección y gestión de interferencias</div>
+            <div class="pres-feature"><svg class="pres-check" width="14" height="11" viewBox="0 0 14 11" fill="none" stroke="#888" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 5.5l3.5 3.5 7-8"/></svg>Planillas de cómputos automáticas</div>
+            <div class="pres-feature"><svg class="pres-check" width="14" height="11" viewBox="0 0 14 11" fill="none" stroke="#888" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 5.5l3.5 3.5 7-8"/></svg>Coordinación multidisciplinaria (estructuras, HVAC, instalaciones)</div>
+            <div class="pres-feature"><svg class="pres-check" width="14" height="11" viewBox="0 0 14 11" fill="none" stroke="#888" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 5.5l3.5 3.5 7-8"/></svg>Entrega en formatos IFC / RVT / DWG</div>
+          </div>
+          <div class="pres-cta">
+            <a href="#" onclick="solicitarServicio('Modelado BIM'); return false;" style="background:#f0f0f0; color:#111; border-color:#f0f0f0;">Solicitar Cotización BIM</a>
+          </div>
+        </div>
+
+      </div><!-- /empresas -->
+
+    </div>
+  </div><!-- /modal-presupuesto -->
+
+  <!-- ─── MODAL FORMULARIO ──────────────────────────────────── -->
+  <div id="modal-formulario" style="display:none; position:fixed; inset:0; z-index:70; background:#111; overflow-y:auto; font-family:'DM Sans',sans-serif;">
+    <style>
+      .fform-label {
+        display: block;
+        font-size: 11px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: #666;
+        margin-bottom: 8px;
+      }
+      .fform-input {
+        width: 100%;
+        background: #1c1c1c;
+        border: 1px solid #2a2a2a;
+        border-radius: 10px;
+        padding: 14px 16px;
+        font-size: 14px;
+        font-family: 'DM Sans', sans-serif;
+        color: #f0f0f0;
+        outline: none;
+        transition: border-color 0.2s;
+        box-sizing: border-box;
+        appearance: none;
+      }
+      .fform-input:focus { border-color: #555; }
+      .fform-input::placeholder { color: #444; }
+      .fform-group { margin-bottom: 22px; }
+      .fform-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+      .fform-submit {
+        width: 100%;
+        background: #f0f0f0;
+        color: #111;
+        border: none;
+        border-radius: 10px;
+        padding: 16px;
+        font-size: 13px;
+        font-family: 'DM Sans', sans-serif;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: opacity 0.2s;
+        margin-top: 8px;
+      }
+      .fform-submit:hover { opacity: 0.85; }
+      .fform-submit:disabled { opacity: 0.4; cursor: not-allowed; }
+      #fform-success {
+        display: none;
+        background: #1a2e1a;
+        border: 1px solid #2a4a2a;
+        border-radius: 10px;
+        padding: 16px 20px;
+        color: #6dbf6d;
+        font-size: 13px;
+        margin-top: 20px;
+        text-align: center;
+      }
+      #fform-error {
+        display: none;
+        background: #2e1a1a;
+        border: 1px solid #4a2a2a;
+        border-radius: 10px;
+        padding: 16px 20px;
+        color: #bf6d6d;
+        font-size: 13px;
+        margin-top: 20px;
+        text-align: center;
+      }
+      select.fform-input option { background: #1c1c1c; }
+
+      @media (max-width: 767px) {
+        .fform-row { grid-template-columns: 1fr !important; gap: 0; }
+        #fform-topbar { padding: 16px 20px !important; }
+        #fform-topbar h2 { font-size: 18px !important; }
+        #fform-topbar > div:last-child { display: none; }
+        #fform-body { margin: 28px auto 60px !important; padding: 0 16px !important; }
+      }
+    </style>
+
+    <!-- Top bar -->
+    <div id="fform-topbar" style="display:flex; align-items:center; justify-content:space-between; padding:20px 32px; border-bottom:1px solid #1e1e1e; position:sticky; top:0; background:#111; z-index:1;">
+      <button onclick="closeFormulario()" style="display:flex; align-items:center; gap:8px; background:none; border:1px solid #2a2a2a; border-radius:8px; color:#aaa; font-size:12px; font-family:'DM Sans',sans-serif; letter-spacing:0.1em; padding:8px 16px; cursor:pointer; transition:border-color 0.2s;" onmouseover="this.style.borderColor='#555'" onmouseout="this.style.borderColor='#2a2a2a'">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M9 2L4 7l5 5"/></svg>
+        Volver
+      </button>
+      <div style="text-align:center;">
+        <p style="font-size:10px; letter-spacing:0.22em; text-transform:uppercase; color:#444; margin-bottom:3px;">LOG arquitectura</p>
+        <h2 style="font-size:22px; font-weight:300; color:#f0f0f0; letter-spacing:-0.01em;">Solicitar Presupuesto</h2>
+      </div>
+      <div style="width:100px;"></div>
+    </div>
+
+    <!-- Form -->
+    <div id="fform-body" style="max-width:620px; margin:48px auto 80px; padding:0 24px;">
+      <form id="form-solicitud" onsubmit="enviarFormulario(event)" novalidate>
+
+        <!-- Servicio requerido -->
+        <div class="fform-group">
+          <label class="fform-label">Servicio requerido</label>
+          <input type="text" id="f-servicio" class="fform-input" readonly
+                 style="cursor:default; color:#aaa; background:#161616; border-color:#222;">
+        </div>
+
+        <!-- Nombre + Email -->
+        <div class="fform-row">
+          <div class="fform-group">
+            <label class="fform-label">Nombre del solicitante</label>
+            <input type="text" id="f-nombre" class="fform-input" required placeholder="Tu nombre completo">
+          </div>
+          <div class="fform-group">
+            <label class="fform-label">Correo electrónico</label>
+            <input type="email" id="f-email" class="fform-input" required placeholder="tu@email.com">
+          </div>
+        </div>
+
+        <!-- Teléfono -->
+        <div class="fform-group">
+          <label class="fform-label">Número de teléfono</label>
+          <input type="tel" id="f-telefono" class="fform-input" placeholder="Ej: +54 381 123 4567">
+        </div>
+
+        <!-- Tipo de proyecto + m² -->
+        <div class="fform-row">
+          <div class="fform-group">
+            <label class="fform-label">Tipo de Proyecto</label>
+            <select id="f-tipo" class="fform-input" required>
+              <option value="">Seleccionar...</option>
+              <option value="Vivienda">Vivienda</option>
+              <option value="Oficina">Oficina</option>
+              <option value="Local comercial">Local comercial</option>
+              <option value="Otro">Otro</option>
+            </select>
+          </div>
+          <div class="fform-group">
+            <label class="fform-label">Metros cuadrados (aprox.)</label>
+            <input type="number" id="f-m2" class="fform-input" required placeholder="Ej: 120" min="1">
+          </div>
+        </div>
+
+        <!-- Mensaje libre -->
+        <div class="fform-group">
+          <label class="fform-label">Información adicional</label>
+          <textarea id="f-mensaje" class="fform-input" rows="5" placeholder="Contanos más sobre tu proyecto, ubicación, plazos, referencias de diseño u otro detalle que consideres importante..." style="resize:vertical; min-height:120px;"></textarea>
+        </div>
+
+        <button type="submit" class="fform-submit" id="btn-fform-submit">Enviar solicitud</button>
+        <div id="fform-success">✓ Tu solicitud fue enviada correctamente. Te contactaremos a la brevedad.</div>
+        <div id="fform-error">Hubo un error al enviar. Por favor intentá de nuevo o escribinos a <a href="mailto:estudiologarquitectura@gmail.com" style="color:#bf6d6d;">estudiologarquitectura@gmail.com</a></div>
+      </form>
+    </div>
+  </div><!-- /modal-formulario -->
+
+  <script>
+    /* ── Google Apps Script URL ── reemplazá con tu URL al publicar el script */
+    var GSHEET_URL = 'https://script.google.com/macros/s/AKfycbz_vTRyYCjKrAmWJ636VfHs6U5SyvcODoLqPb5rZaoP2R1RRpUSuo_-Djxyv99lUxCmBA/exec';
+
+    function solicitarServicio(servicio) {
+      openFormulario(servicio);
+    }
+    function openFormulario(servicio) {
+      document.getElementById('modal-formulario').style.display = 'block';
+      document.body.style.overflow = 'hidden';
+      document.getElementById('fform-success').style.display = 'none';
+      document.getElementById('fform-error').style.display = 'none';
+      document.getElementById('form-solicitud').reset();
+      document.getElementById('f-servicio').value = servicio || '';
+    }
+    function closeFormulario() {
+      document.getElementById('modal-formulario').style.display = 'none';
+      document.body.style.overflow = '';
+    }
+    function enviarFormulario(e) {
+      e.preventDefault();
+      var btn = document.getElementById('btn-fform-submit');
+      var data = {
+        servicio  : document.getElementById('f-servicio').value,
+        nombre    : document.getElementById('f-nombre').value,
+        email     : document.getElementById('f-email').value,
+        telefono  : document.getElementById('f-telefono').value,
+        tipo      : document.getElementById('f-tipo').value,
+        m2        : document.getElementById('f-m2').value,
+        mensaje   : document.getElementById('f-mensaje').value,
+        fecha     : new Date().toLocaleString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' })
+      };
+      if (!data.servicio || !data.nombre || !data.email || !data.tipo || !data.m2) {
+        alert('Por favor completá todos los campos obligatorios.');
+        return;
+      }
+      btn.disabled = true;
+      btn.textContent = 'Enviando...';
+      fetch(GSHEET_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams(data).toString()
+      })
+      .then(function() {
+        document.getElementById('fform-success').style.display = 'block';
+        document.getElementById('form-solicitud').reset();
+        btn.disabled = false;
+        btn.textContent = 'Enviar solicitud';
+      })
+      .catch(function() {
+        document.getElementById('fform-error').style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = 'Enviar solicitud';
+      });
+    }
+    function openPresupuesto() {
+      var m = document.getElementById('modal-presupuesto');
+      m.style.display = 'block';
+      document.body.style.overflow = 'hidden';
+      switchTab('clientes');
+    }
+    function closePresupuesto() {
+      document.getElementById('modal-presupuesto').style.display = 'none';
+      document.body.style.overflow = '';
+    }
+    function switchTab(tab) {
+      var tc = document.getElementById('tab-clientes');
+      var te = document.getElementById('tab-empresas');
+      var gc = document.getElementById('pres-grid-clientes');
+      var ge = document.getElementById('pres-grid-empresas');
+      if (tab === 'clientes') {
+        tc.className = 'pres-tab active';
+        te.className = 'pres-tab inactive';
+        gc.style.display = 'grid';
+        ge.style.display = 'none';
+      } else {
+        tc.className = 'pres-tab inactive';
+        te.className = 'pres-tab active';
+        gc.style.display = 'none';
+        ge.style.display = 'block';
+      }
+    }
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        closeFormulario();
+        closePresupuesto();
+      }
+    });
+  </script>
+
+</body>
+</html>
