@@ -1460,15 +1460,16 @@
         </button>
       </div>
 
-      <!-- Vista: Pago (MercadoPago — se conecta al agregar credenciales) -->
-      <div id="cl-vista-pago" style="display:none;">
-        <div style="display:flex; align-items:center; gap:8px; margin-bottom:20px;">
-          <button onclick="clMostrarDatos()" style="background:none; border:none; cursor:pointer; color:#888; font-size:18px; padding:0; line-height:1;">&#8592;</button>
-          <p style="font-size:10px; letter-spacing:0.18em; text-transform:uppercase; color:#888; margin:0;">Pago</p>
-        </div>
-        <div id="cl-mp-container" style="min-height:120px; display:flex; align-items:center; justify-content:center;">
-          <p style="font-size:13px; color:#888; text-align:center;">Cargando opciones de pago…</p>
-        </div>
+      <!-- Vista: Pago -->
+      <div id="cl-vista-pago" style="display:none; text-align:center; padding:12px 0;">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#0D0D0D" stroke-width="1" style="margin-bottom:14px;"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+        <p style="font-size:14px; font-weight:300; color:#0D0D0D; margin:0 0 6px;">Tus datos fueron guardados.</p>
+        <p style="font-size:12px; color:#888; margin:0 0 24px;">Hacé clic para completar el pago en MercadoPago.</p>
+        <a id="cl-mp-link" href="https://link.mercadopago.com.ar/logarquitectura" target="_blank"
+          style="display:inline-block; background:#009ee3; color:#fff; text-decoration:none; padding:14px 32px; font-size:11px; letter-spacing:0.15em; text-transform:uppercase; font-family:'DM Sans',sans-serif;">
+          Pagar con MercadoPago
+        </a>
+        <p style="margin-top:16px; font-size:11px; color:#aaa;">Plan: <span id="cl-pago-plan"></span></p>
       </div>
 
       <!-- Vista: Confirmación -->
@@ -1647,42 +1648,8 @@
 
     function clMostrarPago(email) {
       ['cl-vista-login','cl-vista-suscripcion','cl-vista-datos','cl-vista-confirmacion'].forEach(function(id){ document.getElementById(id).style.display='none'; });
+      document.getElementById('cl-pago-plan').textContent = _clPlan + (_clMonto ? ' — $' + Number(_clMonto).toLocaleString('es-AR') : '');
       document.getElementById('cl-vista-pago').style.display = 'block';
-      document.getElementById('cl-mp-container').innerHTML = '<p style="font-size:13px;color:#888;text-align:center;">Cargando opciones de pago…</p>';
-
-      if (_mpBrick) { try { _mpBrick.unmount(); } catch(e){} _mpBrick = null; }
-
-      var mp = new MercadoPago(MP_PUBLIC_KEY, { locale: 'es-AR' });
-      mp.bricks().create('payment', 'cl-mp-container', {
-        initialization: { amount: _clMonto || 1000, payer: { email: email } },
-        customization: {
-          paymentMethods: { creditCard: 'all', debitCard: 'all', ticket: 'all', bankTransfer: 'all', mercadoPago: 'all' },
-          visual: { style: { theme: 'default' } }
-        },
-        callbacks: {
-          onReady: function() {},
-          onSubmit: function(formData) {
-            return new Promise(function(resolve, reject) {
-              var p2 = new URLSearchParams();
-              p2.append('action', 'procesar-pago');
-              p2.append('formData', JSON.stringify(formData));
-              fetch(GSHEET_URL, { method: 'POST', body: p2 })
-                .then(function(r){ return r.json(); })
-                .then(function(result) {
-                  if (result.status === 'approved' || result.status === 'in_process') {
-                    ['cl-vista-login','cl-vista-suscripcion','cl-vista-datos','cl-vista-pago'].forEach(function(id){ document.getElementById(id).style.display='none'; });
-                    document.getElementById('cl-vista-confirmacion').style.display = 'block';
-                    resolve();
-                  } else {
-                    reject(new Error(result.status));
-                  }
-                })
-                .catch(reject);
-            });
-          },
-          onError: function(error) { console.error('MP:', error); }
-        }
-      }).then(function(brick){ _mpBrick = brick; });
     }
 
     function clientesLogin() {
