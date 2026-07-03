@@ -1649,6 +1649,9 @@
     function clMostrarPago(email) {
       ['cl-vista-login','cl-vista-suscripcion','cl-vista-datos','cl-vista-confirmacion'].forEach(function(id){ document.getElementById(id).style.display='none'; });
       document.getElementById('cl-pago-plan').textContent = _clPlan + (_clMonto ? ' — $' + Number(_clMonto).toLocaleString('es-AR') : '');
+      var url = 'https://link.mercadopago.com.ar/logarquitectura';
+      if (_clMonto) url += '?amount=' + _clMonto;
+      document.getElementById('cl-mp-link').href = url;
       document.getElementById('cl-vista-pago').style.display = 'block';
     }
 
