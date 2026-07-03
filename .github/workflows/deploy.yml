@@ -10,16 +10,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Instalar lftp
-        run: sudo apt-get install -y lftp
-
       - name: Deploy por FTP
         run: |
-          lftp -u "${{ secrets.FTP_USER }}","${{ secrets.FTP_PASS }}" ${{ secrets.FTP_HOST }} <<EOF
-          set ftp:ssl-allow no
-          set net:timeout 30
-          set net:max-retries 3
-          put index.html
-          put projects-data.js
-          bye
-          EOF
+          curl -v --ftp-pasv --ftp-create-dirs \
+            -u "${{ secrets.FTP_USER }}:${{ secrets.FTP_PASS }}" \
+            -T index.html \
+            "ftp://${{ secrets.FTP_HOST }}/index.html"
+          curl -v --ftp-pasv --ftp-create-dirs \
+            -u "${{ secrets.FTP_USER }}:${{ secrets.FTP_PASS }}" \
+            -T projects-data.js \
+            "ftp://${{ secrets.FTP_HOST }}/projects-data.js"
