@@ -1335,16 +1335,16 @@
   </script>
 
   <!-- ─── MODAL LOGIN CLIENTES ─────────────────────────────────── -->
-  <div id="modal-clientes-login" style="display:none; position:fixed; inset:0; z-index:80; background:rgba(0,0,0,0.7); align-items:center; justify-content:center;">
-    <div style="background:#fff; width:100%; max-width:420px; margin:16px; padding:40px 32px 36px; font-family:'DM Sans',sans-serif;">
+  <div id="modal-clientes-login" style="display:none; position:fixed; inset:0; z-index:80; background:rgba(0,0,0,0.7); align-items:center; justify-content:center; overflow-y:auto; padding:16px 0;">
+    <div style="background:#fff; width:100%; max-width:520px; margin:auto; padding:36px 32px 32px; font-family:'DM Sans',sans-serif;">
 
       <!-- Header común -->
-      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:28px;">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:24px;">
         <div>
           <p style="font-size:10px; letter-spacing:0.22em; text-transform:uppercase; color:#888; margin:0 0 6px;">LOG arquitectura</p>
           <h2 style="font-size:11px; font-weight:300; color:#0D0D0D; margin:0;">Si ya sos cliente de LOG arquitectura podés ver y descargar tus Proyectos o también podés suscribirte para aprovechar nuestros servicios</h2>
         </div>
-        <button onclick="closeClientesLogin()" style="background:none; border:none; cursor:pointer; font-size:22px; color:#888; line-height:1; padding:0;">&times;</button>
+        <button onclick="closeClientesLogin()" style="background:none; border:none; cursor:pointer; font-size:22px; color:#888; line-height:1; padding:0; margin-left:12px;">&times;</button>
       </div>
 
       <!-- Vista: Login -->
@@ -1359,45 +1359,137 @@
           <input id="cl-dni" type="password" placeholder="Tu contraseña"
             style="width:100%; border:none; border-bottom:1px solid #ddd; padding:8px 0; font-size:14px; font-family:'DM Sans',sans-serif; outline:none; box-sizing:border-box;">
         </div>
-
         <p id="cl-error" style="display:none; color:#c0392b; font-size:12px; margin-bottom:16px;"></p>
-
         <button id="cl-btn" onclick="clientesLogin()"
           style="width:100%; background:#0D0D0D; color:#fff; border:none; padding:14px; font-size:11px; letter-spacing:0.18em; text-transform:uppercase; cursor:pointer; font-family:'DM Sans',sans-serif;">
           Ingresar
         </button>
-
         <p style="margin-top:20px; font-size:11px; color:#888; text-align:center;">
           ¿Aún no tenés suscripción?
           <a href="#" onclick="clMostrarSuscripcion(); return false;" style="color:#0D0D0D; font-weight:600; text-decoration:none; letter-spacing:0.05em;">SUSCRIBIRME</a>
         </p>
       </div>
 
-      <!-- Vista: Suscripción -->
+      <!-- Vista: Elegir plan -->
       <div id="cl-vista-suscripcion" style="display:none;">
-        <p style="font-size:10px; letter-spacing:0.18em; text-transform:uppercase; color:#888; margin:0 0 20px;">Elegí tu plan</p>
-        <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:28px;">
-          <a id="cl-plan-1" href="#" style="display:flex; justify-content:space-between; align-items:center; border:1px solid #e0e0e0; padding:14px 18px; text-decoration:none; color:#0D0D0D; font-size:13px; transition:border-color 0.2s;" onmouseover="this.style.borderColor='#0D0D0D'" onmouseout="this.style.borderColor='#e0e0e0'">
+        <p style="font-size:10px; letter-spacing:0.18em; text-transform:uppercase; color:#888; margin:0 0 16px;">Elegí tu plan</p>
+        <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:24px;">
+          <button onclick="clSeleccionarPlan('1 mes')" style="display:flex; justify-content:space-between; align-items:center; border:1px solid #e0e0e0; padding:14px 18px; background:#fff; color:#0D0D0D; font-size:13px; font-family:'DM Sans',sans-serif; cursor:pointer; text-align:left;" onmouseover="this.style.borderColor='#0D0D0D'" onmouseout="this.style.borderColor='#e0e0e0'">
             <span>1 mes</span>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0D0D0D" stroke-width="1.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-          </a>
-          <a id="cl-plan-3" href="#" style="display:flex; justify-content:space-between; align-items:center; border:1px solid #e0e0e0; padding:14px 18px; text-decoration:none; color:#0D0D0D; font-size:13px; transition:border-color 0.2s;" onmouseover="this.style.borderColor='#0D0D0D'" onmouseout="this.style.borderColor='#e0e0e0'">
+          </button>
+          <button onclick="clSeleccionarPlan('3 meses')" style="display:flex; justify-content:space-between; align-items:center; border:1px solid #e0e0e0; padding:14px 18px; background:#fff; color:#0D0D0D; font-size:13px; font-family:'DM Sans',sans-serif; cursor:pointer; text-align:left;" onmouseover="this.style.borderColor='#0D0D0D'" onmouseout="this.style.borderColor='#e0e0e0'">
             <span>3 meses</span>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0D0D0D" stroke-width="1.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-          </a>
-          <a id="cl-plan-6" href="#" style="display:flex; justify-content:space-between; align-items:center; border:1px solid #e0e0e0; padding:14px 18px; text-decoration:none; color:#0D0D0D; font-size:13px; transition:border-color 0.2s;" onmouseover="this.style.borderColor='#0D0D0D'" onmouseout="this.style.borderColor='#e0e0e0'">
+          </button>
+          <button onclick="clSeleccionarPlan('6 meses')" style="display:flex; justify-content:space-between; align-items:center; border:1px solid #e0e0e0; padding:14px 18px; background:#fff; color:#0D0D0D; font-size:13px; font-family:'DM Sans',sans-serif; cursor:pointer; text-align:left;" onmouseover="this.style.borderColor='#0D0D0D'" onmouseout="this.style.borderColor='#e0e0e0'">
             <span>6 meses</span>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0D0D0D" stroke-width="1.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-          </a>
-          <a id="cl-plan-12" href="#" style="display:flex; justify-content:space-between; align-items:center; border:1px solid #e0e0e0; padding:14px 18px; text-decoration:none; color:#0D0D0D; font-size:13px; transition:border-color 0.2s;" onmouseover="this.style.borderColor='#0D0D0D'" onmouseout="this.style.borderColor='#e0e0e0'">
+          </button>
+          <button onclick="clSeleccionarPlan('12 meses')" style="display:flex; justify-content:space-between; align-items:center; border:1px solid #e0e0e0; padding:14px 18px; background:#fff; color:#0D0D0D; font-size:13px; font-family:'DM Sans',sans-serif; cursor:pointer; text-align:left;" onmouseover="this.style.borderColor='#0D0D0D'" onmouseout="this.style.borderColor='#e0e0e0'">
             <span>12 meses</span>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0D0D0D" stroke-width="1.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-          </a>
+          </button>
         </div>
         <p style="font-size:11px; color:#888; text-align:center;">
           ¿Ya tenés cuenta?
           <a href="#" onclick="clMostrarLogin(); return false;" style="color:#0D0D0D; font-weight:600; text-decoration:none;">INGRESAR</a>
         </p>
+      </div>
+
+      <!-- Vista: Datos del suscriptor -->
+      <div id="cl-vista-datos" style="display:none;">
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:20px;">
+          <button onclick="clMostrarSuscripcion()" style="background:none; border:none; cursor:pointer; color:#888; font-size:18px; padding:0; line-height:1;">&#8592;</button>
+          <p style="font-size:10px; letter-spacing:0.18em; text-transform:uppercase; color:#888; margin:0;">Tus datos — Plan: <span id="sub-plan-label" style="color:#0D0D0D; font-weight:600;"></span></p>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px;">
+          <div>
+            <label style="display:block; font-size:10px; letter-spacing:0.15em; text-transform:uppercase; color:#888; margin-bottom:5px;">Nombre <span style="color:#c0392b;">*</span></label>
+            <input id="sub-nombre" type="text" style="width:100%; border:none; border-bottom:1px solid #ddd; padding:8px 0; font-size:13px; font-family:'DM Sans',sans-serif; outline:none; box-sizing:border-box;">
+          </div>
+          <div>
+            <label style="display:block; font-size:10px; letter-spacing:0.15em; text-transform:uppercase; color:#888; margin-bottom:5px;">Apellidos <span style="color:#c0392b;">*</span></label>
+            <input id="sub-apellidos" type="text" style="width:100%; border:none; border-bottom:1px solid #ddd; padding:8px 0; font-size:13px; font-family:'DM Sans',sans-serif; outline:none; box-sizing:border-box;">
+          </div>
+        </div>
+
+        <div style="margin-bottom:14px;">
+          <label style="display:block; font-size:10px; letter-spacing:0.15em; text-transform:uppercase; color:#888; margin-bottom:5px;">País <span style="color:#c0392b;">*</span></label>
+          <select id="sub-pais" onchange="clActualizarProvincias()" style="width:100%; border:none; border-bottom:1px solid #ddd; padding:8px 0; font-size:13px; font-family:'DM Sans',sans-serif; outline:none; background:#fff; box-sizing:border-box; color:#0D0D0D;">
+            <option value="">Seleccioná un país / región…</option>
+            <option value="Argentina">Argentina</option>
+            <option value="Bolivia">Bolivia</option>
+            <option value="Brasil">Brasil</option>
+            <option value="Chile">Chile</option>
+            <option value="Colombia">Colombia</option>
+            <option value="Ecuador">Ecuador</option>
+            <option value="México">México</option>
+            <option value="Paraguay">Paraguay</option>
+            <option value="Perú">Perú</option>
+            <option value="Uruguay">Uruguay</option>
+            <option value="Venezuela">Venezuela</option>
+            <option value="Otro">Otro</option>
+          </select>
+        </div>
+
+        <div style="margin-bottom:14px;">
+          <label style="display:block; font-size:10px; letter-spacing:0.15em; text-transform:uppercase; color:#888; margin-bottom:5px;">Región / Provincia <span style="color:#c0392b;">*</span></label>
+          <select id="sub-provincia" style="width:100%; border:none; border-bottom:1px solid #ddd; padding:8px 0; font-size:13px; font-family:'DM Sans',sans-serif; outline:none; background:#fff; box-sizing:border-box; color:#0D0D0D;">
+            <option value="">Elegí una opción…</option>
+          </select>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px;">
+          <div>
+            <label style="display:block; font-size:10px; letter-spacing:0.15em; text-transform:uppercase; color:#888; margin-bottom:5px;">Email <span style="color:#c0392b;">*</span></label>
+            <input id="sub-email" type="email" style="width:100%; border:none; border-bottom:1px solid #ddd; padding:8px 0; font-size:13px; font-family:'DM Sans',sans-serif; outline:none; box-sizing:border-box;">
+          </div>
+          <div>
+            <label style="display:block; font-size:10px; letter-spacing:0.15em; text-transform:uppercase; color:#888; margin-bottom:5px;">Confirmar Email <span style="color:#c0392b;">*</span></label>
+            <input id="sub-email2" type="email" placeholder="nombre@ejemplo.com" style="width:100%; border:none; border-bottom:1px solid #ddd; padding:8px 0; font-size:13px; font-family:'DM Sans',sans-serif; outline:none; box-sizing:border-box;">
+          </div>
+        </div>
+
+        <div style="margin-bottom:14px;">
+          <label style="display:block; font-size:10px; letter-spacing:0.15em; text-transform:uppercase; color:#888; margin-bottom:5px;">Nombre de usuario <span style="color:#c0392b;">*</span></label>
+          <input id="sub-usuario" type="text" placeholder="Nombre de usuario" style="width:100%; border:none; border-bottom:1px solid #ddd; padding:8px 0; font-size:13px; font-family:'DM Sans',sans-serif; outline:none; box-sizing:border-box;">
+        </div>
+
+        <div style="margin-bottom:22px; position:relative;">
+          <label style="display:block; font-size:10px; letter-spacing:0.15em; text-transform:uppercase; color:#888; margin-bottom:5px;">Crear una contraseña <span style="color:#c0392b;">*</span></label>
+          <input id="sub-pass" type="password" placeholder="Contraseña" style="width:100%; border:none; border-bottom:1px solid #ddd; padding:8px 32px 8px 0; font-size:13px; font-family:'DM Sans',sans-serif; outline:none; box-sizing:border-box;">
+          <button onclick="clTogglePass()" style="position:absolute; right:0; bottom:8px; background:none; border:none; cursor:pointer; color:#888; padding:0;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+
+        <p id="sub-error" style="display:none; color:#c0392b; font-size:12px; margin-bottom:14px;"></p>
+
+        <button onclick="clEnviarDatos()"
+          style="width:100%; background:#0D0D0D; color:#fff; border:none; padding:14px; font-size:11px; letter-spacing:0.18em; text-transform:uppercase; cursor:pointer; font-family:'DM Sans',sans-serif;">
+          Continuar al pago
+        </button>
+      </div>
+
+      <!-- Vista: Pago (MercadoPago — se conecta al agregar credenciales) -->
+      <div id="cl-vista-pago" style="display:none;">
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:20px;">
+          <button onclick="clMostrarDatos()" style="background:none; border:none; cursor:pointer; color:#888; font-size:18px; padding:0; line-height:1;">&#8592;</button>
+          <p style="font-size:10px; letter-spacing:0.18em; text-transform:uppercase; color:#888; margin:0;">Pago</p>
+        </div>
+        <div id="cl-mp-container" style="min-height:120px; display:flex; align-items:center; justify-content:center;">
+          <p style="font-size:13px; color:#888; text-align:center;">Cargando opciones de pago…</p>
+        </div>
+      </div>
+
+      <!-- Vista: Confirmación -->
+      <div id="cl-vista-confirmacion" style="display:none; text-align:center; padding:20px 0;">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#0D0D0D" stroke-width="1" style="margin-bottom:16px;"><circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10"/></svg>
+        <p style="font-size:16px; font-weight:300; color:#0D0D0D; margin:0 0 8px;">¡Suscripción confirmada!</p>
+        <p style="font-size:12px; color:#888; margin:0 0 24px;">Te enviamos un email con tus datos de acceso.</p>
+        <button onclick="closeClientesLogin()" style="background:#0D0D0D; color:#fff; border:none; padding:12px 32px; font-size:11px; letter-spacing:0.18em; text-transform:uppercase; cursor:pointer; font-family:'DM Sans',sans-serif;">Cerrar</button>
       </div>
 
     </div>
@@ -1461,14 +1553,95 @@
       clMostrarLogin();
     }
 
+    var _clPlan = '';
+
     function clMostrarSuscripcion() {
-      document.getElementById('cl-vista-login').style.display = 'none';
+      ['cl-vista-login','cl-vista-datos','cl-vista-pago','cl-vista-confirmacion'].forEach(function(id){ document.getElementById(id).style.display='none'; });
       document.getElementById('cl-vista-suscripcion').style.display = 'block';
     }
 
     function clMostrarLogin() {
-      document.getElementById('cl-vista-suscripcion').style.display = 'none';
+      ['cl-vista-suscripcion','cl-vista-datos','cl-vista-pago','cl-vista-confirmacion'].forEach(function(id){ document.getElementById(id).style.display='none'; });
       document.getElementById('cl-vista-login').style.display = 'block';
+    }
+
+    function clMostrarDatos() {
+      ['cl-vista-login','cl-vista-suscripcion','cl-vista-pago','cl-vista-confirmacion'].forEach(function(id){ document.getElementById(id).style.display='none'; });
+      document.getElementById('cl-vista-datos').style.display = 'block';
+    }
+
+    function clSeleccionarPlan(plan) {
+      _clPlan = plan;
+      document.getElementById('sub-plan-label').textContent = plan;
+      clMostrarDatos();
+    }
+
+    function clActualizarProvincias() {
+      var pais = document.getElementById('sub-pais').value;
+      var sel  = document.getElementById('sub-provincia');
+      var provinciaAR = ['Buenos Aires','CABA','Catamarca','Chaco','Chubut','Córdoba','Corrientes','Entre Ríos','Formosa','Jujuy','La Pampa','La Rioja','Mendoza','Misiones','Neuquén','Río Negro','Salta','San Juan','San Luis','Santa Cruz','Santa Fe','Santiago del Estero','Tierra del Fuego','Tucumán'];
+      sel.innerHTML = '<option value="">Elegí una opción…</option>';
+      if (pais === 'Argentina') {
+        provinciaAR.forEach(function(p){ sel.innerHTML += '<option value="'+p+'">'+p+'</option>'; });
+      } else if (pais) {
+        sel.innerHTML += '<option value="Otra">Otra</option>';
+      }
+    }
+
+    function clTogglePass() {
+      var inp = document.getElementById('sub-pass');
+      inp.type = inp.type === 'password' ? 'text' : 'password';
+    }
+
+    function clEnviarDatos() {
+      var campos = {
+        nombre:    document.getElementById('sub-nombre').value.trim(),
+        apellidos: document.getElementById('sub-apellidos').value.trim(),
+        pais:      document.getElementById('sub-pais').value,
+        provincia: document.getElementById('sub-provincia').value,
+        email:     document.getElementById('sub-email').value.trim().toLowerCase(),
+        email2:    document.getElementById('sub-email2').value.trim().toLowerCase(),
+        usuario:   document.getElementById('sub-usuario').value.trim(),
+        pass:      document.getElementById('sub-pass').value
+      };
+      var err = document.getElementById('sub-error');
+      err.style.display = 'none';
+
+      if (!campos.nombre || !campos.apellidos || !campos.pais || !campos.provincia || !campos.email || !campos.email2 || !campos.usuario || !campos.pass) {
+        err.textContent = 'Completá todos los campos obligatorios.'; err.style.display = 'block'; return;
+      }
+      if (campos.email !== campos.email2) {
+        err.textContent = 'Los emails no coinciden.'; err.style.display = 'block'; return;
+      }
+      if (campos.pass.length < 6) {
+        err.textContent = 'La contraseña debe tener al menos 6 caracteres.'; err.style.display = 'block'; return;
+      }
+
+      var btn = event.target;
+      btn.textContent = 'Guardando…'; btn.disabled = true;
+
+      var params = new URLSearchParams();
+      params.append('action', 'suscripcion');
+      params.append('nombre',    campos.nombre);
+      params.append('apellidos', campos.apellidos);
+      params.append('pais',      campos.pais);
+      params.append('provincia', campos.provincia);
+      params.append('email',     campos.email);
+      params.append('usuario',   campos.usuario);
+      params.append('pass',      campos.pass);
+      params.append('plan',      _clPlan);
+
+      fetch(GSHEET_URL, { method: 'POST', body: params })
+        .then(function(){
+          btn.textContent = 'Continuar al pago'; btn.disabled = false;
+          // TODO: conectar MercadoPago aquí
+          ['cl-vista-login','cl-vista-suscripcion','cl-vista-datos','cl-vista-pago'].forEach(function(id){ document.getElementById(id).style.display='none'; });
+          document.getElementById('cl-vista-confirmacion').style.display = 'block';
+        })
+        .catch(function(){
+          btn.textContent = 'Continuar al pago'; btn.disabled = false;
+          err.textContent = 'Error al guardar. Intentá de nuevo.'; err.style.display = 'block';
+        });
     }
 
     function clientesLogin() {

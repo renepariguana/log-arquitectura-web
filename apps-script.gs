@@ -240,6 +240,30 @@ function doPost(e) {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var p  = e.parameter;
 
+    if (p.action === 'suscripcion') {
+      var sheetSub = ss.getSheetByName('Suscriptores');
+      if (!sheetSub) {
+        sheetSub = ss.insertSheet('Suscriptores');
+        sheetSub.appendRow(['Fecha', 'Nombre', 'Apellidos', 'País', 'Provincia', 'Email', 'Usuario', 'Contraseña', 'Plan', 'Estado']);
+        sheetSub.getRange(1, 1, 1, 10).setFontWeight('bold');
+      }
+      sheetSub.appendRow([
+        new Date().toLocaleString('es-AR'),
+        p.nombre    || '',
+        p.apellidos || '',
+        p.pais      || '',
+        p.provincia || '',
+        p.email     || '',
+        p.usuario   || '',
+        p.pass      || '',
+        p.plan      || '',
+        'pendiente'
+      ]);
+      return ContentService
+        .createTextOutput(JSON.stringify({ status: 'ok' }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
     if (p.hoja === 'mensajes') {
       // Sección Contacto → envío por email al estudio
       var asunto = 'Nuevo mensaje desde logarquitectura.com.ar — ' + (p.nombre || 'Sin nombre');
