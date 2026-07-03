@@ -64,6 +64,50 @@ function doGet(e) {
     }
   }
 
+  if (e && e.parameter && e.parameter.action === 'items') {
+    try {
+      var AP_ID = '1mzWe4dXvMYvRDJA9MIqjJDy3U2kZY133qKyICT6W43s';
+      var apSS  = SpreadsheetApp.openById(AP_ID);
+      var hoja  = apSS.getSheetByName('BASE DE DATOS')
+               || apSS.getSheetByName('Inicio')
+               || apSS.getSheetByName('base de datos');
+      if (!hoja) throw new Error('Hoja BASE DE DATOS no encontrada en ANALISIS DE PRECIOS');
+
+      var datos  = hoja.getDataRange().getValues();
+      var rubros = [];
+      var items  = [];
+
+      // Encontrar primer fila con código numérico (saltar encabezados)
+      var inicio = 0;
+      for (var ri = 0; ri < datos.length; ri++) {
+        if (/^\d+\.?\d*$/.test((datos[ri][0] || '').toString().trim())) { inicio = ri; break; }
+      }
+
+      for (var ri = inicio; ri < datos.length; ri++) {
+        var codigo = (datos[ri][0] || '').toString().trim();
+        var nombre = (datos[ri][1] || '').toString().trim();
+        var unidad = (datos[ri][2] || '').toString().trim();
+        var precio = parseFloat(datos[ri][3]) || 0;
+
+        if (!codigo || !nombre || !/^\d+\.?\d*$/.test(codigo)) continue;
+
+        if (/^\d+$/.test(codigo)) {
+          rubros.push({ codigo: codigo, nombre: nombre });
+        } else {
+          items.push({ codigo: codigo, nombre: nombre, unidad: unidad, precio: precio, rubroId: codigo.split('.')[0] });
+        }
+      }
+
+      return ContentService
+        .createTextOutput(JSON.stringify({ rubros: rubros, items: items }))
+        .setMimeType(ContentService.MimeType.JSON);
+    } catch (err) {
+      return ContentService
+        .createTextOutput(JSON.stringify({ error: err.toString() }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+  }
+
   if (e && e.parameter && e.parameter.action === 'videos') {
     try {
       var folder = DriveApp.getFolderById(VIDEOS_FOLDER_ID);
@@ -82,6 +126,84 @@ function doGet(e) {
 
       return ContentService
         .createTextOutput(JSON.stringify(videos))
+        .setMimeType(ContentService.MimeType.JSON);
+
+    } catch (err) {
+      return ContentService
+        .createTextOutput(JSON.stringify({ error: err.toString() }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+  }
+
+  if (e && e.parameter && e.parameter.action === 'login') {
+    try {
+      var ss      = SpreadsheetApp.getActiveSpreadsheet();
+      var hoja    = ss.getSheetByName('Clientes');
+      if (!hoja) throw new Error('Hoja Clientes no encontrada');
+
+      var datos   = hoja.getDataRange().getValues();
+      // Fila 0 = encabezados, buscar desde fila 1
+      for (var i = 1; i < datos.length; i++) {
+        var nombre   = (datos[i][0] || '').toString().trim();
+        var email    = (datos[i][2] || '').toString().trim().toLowerCase();
+        var dni      = (datos[i][3] || '').toString().trim();
+        var linkDrive = (datos[i][4] || '').toString().trim();
+        var estado   = (datos[i][5] || '').toString().trim().toLowerCase();
+
+        if (email !== (e.parameter.email || '').toLowerCase().trim()) continue;
+        if (estado === 'inactivo') {
+          return ContentService
+            .createTextOutput(JSON.stringify({ ok: false, error: 'Cuenta inactiva' }))
+            .setMimeType(ContentService.MimeType.JSON);
+        }
+        if (dni !== (e.parameter.dni || '').trim()) {
+          return ContentService
+            .createTextOutput(JSON.stringify({ ok: false, error: 'DNI incorrecto' }))
+            .setMimeType(ContentService.MimeType.JSON);
+        }
+
+        // Extraer ID de la carpeta del link de Drive
+        var folderMatch = linkDrive.match(/[-\w]{25,}/);
+        var folderId = folderMatch ? folderMatch[0] : '';
+
+        return ContentService
+          .createTextOutput(JSON.stringify({ ok: true, nombre: nombre, folderId: folderId }))
+          .setMimeType(ContentService.MimeType.JSON);
+      }
+
+      return ContentService
+        .createTextOutput(JSON.stringify({ ok: false, error: 'Email no encontrado' }))
+        .setMimeType(ContentService.MimeType.JSON);
+
+    } catch (err) {
+      return ContentService
+        .createTextOutput(JSON.stringify({ ok: false, error: err.toString() }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+  }
+
+  if (e && e.parameter && e.parameter.action === 'archivos') {
+    try {
+      var folderId = e.parameter.folderId || '';
+      if (!folderId) throw new Error('folderId requerido');
+
+      var folder = DriveApp.getFolderById(folderId);
+      var files  = folder.getFiles();
+      var pdfs   = [];
+
+      while (files.hasNext()) {
+        var file = files.next();
+        if (file.getMimeType() !== 'application/pdf') continue;
+        pdfs.push({
+          id    : file.getId(),
+          nombre: file.getName().replace(/\.pdf$/i, '')
+        });
+      }
+
+      pdfs.sort(function(a, b) { return a.nombre.localeCompare(b.nombre, 'es'); });
+
+      return ContentService
+        .createTextOutput(JSON.stringify(pdfs))
         .setMimeType(ContentService.MimeType.JSON);
 
     } catch (err) {
