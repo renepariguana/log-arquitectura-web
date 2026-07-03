@@ -228,6 +228,26 @@ function doGet(e) {
     }
   }
 
+  if (e && e.parameter && e.parameter.action === 'precios') {
+    try {
+      var sheet  = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Servicios');
+      var rango  = sheet.getRange('E10:F13').getValues();
+      var result = {};
+      for (var i = 0; i < rango.length; i++) {
+        var nombre = rango[i][0].toString().trim().toLowerCase();
+        var precio = Number(rango[i][1]);
+        if (nombre && precio) result[nombre] = precio;
+      }
+      return ContentService
+        .createTextOutput(JSON.stringify(result))
+        .setMimeType(ContentService.MimeType.JSON);
+    } catch(err) {
+      return ContentService
+        .createTextOutput(JSON.stringify({ error: err.toString() }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+  }
+
   return ContentService
     .createTextOutput('LOG arquitectura — Apps Script activo.')
     .setMimeType(ContentService.MimeType.TEXT);
@@ -239,6 +259,39 @@ function doPost(e) {
   try {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var p  = e.parameter;
+
+    if (p.action === 'procesar-pago') {
+      var ACCESS_TOKEN = PropertiesService.getScriptProperties().getProperty('MP_ACCESS_TOKEN');
+      var formData     = JSON.parse(p.formData || '{}');
+      var response     = UrlFetchApp.fetch('https://api.mercadopago.com/v1/payments', {
+        method: 'post',
+        contentType: 'application/json',
+        headers: {
+          'Authorization': 'Bearer ' + ACCESS_TOKEN,
+          'X-Idempotency-Key': Utilities.getUuid()
+        },
+        payload: JSON.stringify(formData),
+        muteHttpExceptions: true
+      });
+      var result = JSON.parse(response.getContentText());
+      // Actualizar estado en hoja Suscriptores si pago aprobado
+      if (result.status === 'approved' || result.status === 'in_process') {
+        var sheetSub = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Suscriptores');
+        if (sheetSub) {
+          var email = (result.payer && result.payer.email) ? result.payer.email.toLowerCase() : '';
+          var datos = sheetSub.getDataRange().getValues();
+          for (var r = 1; r < datos.length; r++) {
+            if (datos[r][5].toString().toLowerCase() === email && datos[r][9] === 'pendiente') {
+              sheetSub.getRange(r + 1, 10).setValue(result.status);
+              break;
+            }
+          }
+        }
+      }
+      return ContentService
+        .createTextOutput(JSON.stringify({ status: result.status, id: result.id }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
 
     if (p.action === 'suscripcion') {
       var sheetSub = ss.getSheetByName('Suscriptores');
@@ -385,6 +438,16 @@ function autoCrearCarpeta(e) {
   var carpetaPadre = DriveApp.getFolderById(CLIENTES_FOLDER_ID);
   var nuevaCarpeta = carpetaPadre.createFolder(nombre);
   sheet.getRange(row, 6).setValue(nuevaCarpeta.getUrl());
+}
+
+// ─── Configurar Access Token de MercadoPago (ejecutá una vez) ────────────────
+
+function configurarMPToken() {
+  PropertiesService.getScriptProperties().setProperty(
+    'MP_ACCESS_TOKEN',
+    'TEST-4519992620088034-070312-dcb30786a1159aa0285ab249a61f81fd-151587833'
+  );
+  Logger.log('MP Access Token guardado.');
 }
 
 function crearTriggerClientes() {

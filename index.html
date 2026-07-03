@@ -172,6 +172,7 @@
       padding: 10px 20px 38px;   /* bottom-extra crea el espacio para la cola */
     }
   </style>
+  <script src="https://sdk.mercadopago.com/js/v2"></script>
 </head>
 <body class="font-sans text-[#0D0D0D] bg-white overflow-x-hidden">
 
@@ -1375,20 +1376,16 @@
         <p style="font-size:10px; letter-spacing:0.18em; text-transform:uppercase; color:#888; margin:0 0 16px;">Elegí tu plan</p>
         <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:24px;">
           <button onclick="clSeleccionarPlan('1 mes')" style="display:flex; justify-content:space-between; align-items:center; border:1px solid #e0e0e0; padding:14px 18px; background:#fff; color:#0D0D0D; font-size:13px; font-family:'DM Sans',sans-serif; cursor:pointer; text-align:left;" onmouseover="this.style.borderColor='#0D0D0D'" onmouseout="this.style.borderColor='#e0e0e0'">
-            <span>1 mes</span>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0D0D0D" stroke-width="1.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            <span>1 mes</span><span id="cl-precio-1" style="font-size:12px; color:#888;"></span>
           </button>
           <button onclick="clSeleccionarPlan('3 meses')" style="display:flex; justify-content:space-between; align-items:center; border:1px solid #e0e0e0; padding:14px 18px; background:#fff; color:#0D0D0D; font-size:13px; font-family:'DM Sans',sans-serif; cursor:pointer; text-align:left;" onmouseover="this.style.borderColor='#0D0D0D'" onmouseout="this.style.borderColor='#e0e0e0'">
-            <span>3 meses</span>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0D0D0D" stroke-width="1.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            <span>3 meses</span><span id="cl-precio-3" style="font-size:12px; color:#888;"></span>
           </button>
           <button onclick="clSeleccionarPlan('6 meses')" style="display:flex; justify-content:space-between; align-items:center; border:1px solid #e0e0e0; padding:14px 18px; background:#fff; color:#0D0D0D; font-size:13px; font-family:'DM Sans',sans-serif; cursor:pointer; text-align:left;" onmouseover="this.style.borderColor='#0D0D0D'" onmouseout="this.style.borderColor='#e0e0e0'">
-            <span>6 meses</span>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0D0D0D" stroke-width="1.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            <span>6 meses</span><span id="cl-precio-6" style="font-size:12px; color:#888;"></span>
           </button>
           <button onclick="clSeleccionarPlan('12 meses')" style="display:flex; justify-content:space-between; align-items:center; border:1px solid #e0e0e0; padding:14px 18px; background:#fff; color:#0D0D0D; font-size:13px; font-family:'DM Sans',sans-serif; cursor:pointer; text-align:left;" onmouseover="this.style.borderColor='#0D0D0D'" onmouseout="this.style.borderColor='#e0e0e0'">
-            <span>12 meses</span>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0D0D0D" stroke-width="1.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            <span>12 meses</span><span id="cl-precio-12" style="font-size:12px; color:#888;"></span>
           </button>
         </div>
         <p style="font-size:11px; color:#888; text-align:center;">
@@ -1553,11 +1550,30 @@
       clMostrarLogin();
     }
 
-    var _clPlan = '';
+    var _clPlan   = '';
+    var _clMonto  = 0;
+    var _clPrecios = {};
+    var _mpBrick  = null;
+    var MP_PUBLIC_KEY = 'TEST-34f897eb-b681-46b7-ae0e-27816e78da52';
+
+    function clCargarPrecios() {
+      fetch(GSHEET_URL + '?action=precios')
+        .then(function(r){ return r.json(); })
+        .then(function(data) {
+          _clPrecios = data;
+          var fmt = function(v){ return '$' + Number(v).toLocaleString('es-AR'); };
+          if (data['1 mes'])    document.getElementById('cl-precio-1').textContent  = fmt(data['1 mes']);
+          if (data['3 meses'])  document.getElementById('cl-precio-3').textContent  = fmt(data['3 meses']);
+          if (data['6 meses'])  document.getElementById('cl-precio-6').textContent  = fmt(data['6 meses']);
+          if (data['12 meses']) document.getElementById('cl-precio-12').textContent = fmt(data['12 meses']);
+        })
+        .catch(function(){});
+    }
 
     function clMostrarSuscripcion() {
       ['cl-vista-login','cl-vista-datos','cl-vista-pago','cl-vista-confirmacion'].forEach(function(id){ document.getElementById(id).style.display='none'; });
       document.getElementById('cl-vista-suscripcion').style.display = 'block';
+      clCargarPrecios();
     }
 
     function clMostrarLogin() {
@@ -1571,8 +1587,9 @@
     }
 
     function clSeleccionarPlan(plan) {
-      _clPlan = plan;
-      document.getElementById('sub-plan-label').textContent = plan;
+      _clPlan  = plan;
+      _clMonto = _clPrecios[plan] || 0;
+      document.getElementById('sub-plan-label').textContent = plan + (_clMonto ? ' — $' + Number(_clMonto).toLocaleString('es-AR') : '');
       clMostrarDatos();
     }
 
@@ -1634,14 +1651,52 @@
       fetch(GSHEET_URL, { method: 'POST', body: params })
         .then(function(){
           btn.textContent = 'Continuar al pago'; btn.disabled = false;
-          // TODO: conectar MercadoPago aquí
-          ['cl-vista-login','cl-vista-suscripcion','cl-vista-datos','cl-vista-pago'].forEach(function(id){ document.getElementById(id).style.display='none'; });
-          document.getElementById('cl-vista-confirmacion').style.display = 'block';
+          clMostrarPago(campos.email);
         })
         .catch(function(){
           btn.textContent = 'Continuar al pago'; btn.disabled = false;
           err.textContent = 'Error al guardar. Intentá de nuevo.'; err.style.display = 'block';
         });
+    }
+
+    function clMostrarPago(email) {
+      ['cl-vista-login','cl-vista-suscripcion','cl-vista-datos','cl-vista-confirmacion'].forEach(function(id){ document.getElementById(id).style.display='none'; });
+      document.getElementById('cl-vista-pago').style.display = 'block';
+      document.getElementById('cl-mp-container').innerHTML = '<p style="font-size:13px;color:#888;text-align:center;">Cargando opciones de pago…</p>';
+
+      if (_mpBrick) { try { _mpBrick.unmount(); } catch(e){} _mpBrick = null; }
+
+      var mp = new MercadoPago(MP_PUBLIC_KEY, { locale: 'es-AR' });
+      mp.bricks().create('payment', 'cl-mp-container', {
+        initialization: { amount: _clMonto || 1000, payer: { email: email } },
+        customization: {
+          paymentMethods: { creditCard: 'all', debitCard: 'all', ticket: 'all', bankTransfer: 'all', mercadoPago: 'all' },
+          visual: { style: { theme: 'default' } }
+        },
+        callbacks: {
+          onReady: function() {},
+          onSubmit: function(formData) {
+            return new Promise(function(resolve, reject) {
+              var p2 = new URLSearchParams();
+              p2.append('action', 'procesar-pago');
+              p2.append('formData', JSON.stringify(formData));
+              fetch(GSHEET_URL, { method: 'POST', body: p2 })
+                .then(function(r){ return r.json(); })
+                .then(function(result) {
+                  if (result.status === 'approved' || result.status === 'in_process') {
+                    ['cl-vista-login','cl-vista-suscripcion','cl-vista-datos','cl-vista-pago'].forEach(function(id){ document.getElementById(id).style.display='none'; });
+                    document.getElementById('cl-vista-confirmacion').style.display = 'block';
+                    resolve();
+                  } else {
+                    reject(new Error(result.status));
+                  }
+                })
+                .catch(reject);
+            });
+          },
+          onError: function(error) { console.error('MP:', error); }
+        }
+      }).then(function(brick){ _mpBrick = brick; });
     }
 
     function clientesLogin() {
