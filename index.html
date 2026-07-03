@@ -1365,6 +1365,40 @@
     </div>
   </div>
 
+  <!-- ─── PORTAL CLIENTES ──────────────────────────────────────── -->
+  <div id="portal-clientes" style="display:none; position:fixed; inset:0; z-index:80; background:#F7F5F2; overflow-y:auto; font-family:'DM Sans',sans-serif;">
+    <!-- Header -->
+    <div style="background:#0D0D0D; padding:20px 32px; display:flex; justify-content:space-between; align-items:center;">
+      <div>
+        <p style="font-size:10px; letter-spacing:0.22em; text-transform:uppercase; color:#888; margin:0 0 4px;">LOG arquitectura</p>
+        <h2 id="portal-saludo" style="font-size:18px; font-weight:300; color:#fff; margin:0;">Hola, Cliente</h2>
+      </div>
+      <button onclick="clientesCerrarSesion()"
+        style="background:none; border:1px solid #555; color:#aaa; padding:8px 18px; font-size:10px; letter-spacing:0.15em; text-transform:uppercase; cursor:pointer; font-family:'DM Sans',sans-serif;">
+        Cerrar sesión
+      </button>
+    </div>
+
+    <!-- Contenido -->
+    <div style="max-width:900px; margin:0 auto; padding:40px 24px;">
+      <p style="font-size:10px; letter-spacing:0.2em; text-transform:uppercase; color:#888; margin-bottom:24px;">Tus proyectos</p>
+      <div id="portal-archivos" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap:16px;">
+        <!-- Se llena dinámicamente -->
+      </div>
+      <p id="portal-vacio" style="display:none; color:#888; font-size:14px;">No hay archivos disponibles por el momento.</p>
+      <p id="portal-cargando" style="color:#888; font-size:13px;">Cargando archivos...</p>
+    </div>
+  </div>
+
+  <!-- ─── VISOR PDF ─────────────────────────────────────────────── -->
+  <div id="modal-pdf" style="display:none; position:fixed; inset:0; z-index:90; background:rgba(0,0,0,0.9); flex-direction:column;">
+    <div style="display:flex; justify-content:space-between; align-items:center; padding:14px 24px; background:#0D0D0D;">
+      <p id="pdf-titulo" style="color:#fff; font-size:13px; margin:0; font-family:'DM Sans',sans-serif;"></p>
+      <button onclick="cerrarPdf()" style="background:none; border:none; color:#fff; font-size:24px; cursor:pointer; font-family:'DM Sans',sans-serif;">&times;</button>
+    </div>
+    <iframe id="pdf-frame" src="" style="flex:1; border:none; width:100%;"></iframe>
+  </div>
+
   <script>
     function openClientesLogin() {
       var m = document.getElementById('modal-clientes-login');
@@ -1392,6 +1426,14 @@
       }
 
       // TODO: Task 5 - authenticate and fetch client area
+    }
+    function clientesCerrarSesion() {
+      // Placeholder for Task 5 implementation
+      // Close portal, clear session, return to login
+    }
+    function cerrarPdf() {
+      // Placeholder for Task 5 implementation
+      // Close PDF viewer modal
     }
   </script>
 
