@@ -1438,15 +1438,9 @@
           </select>
         </div>
 
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px;">
-          <div>
-            <label style="display:block; font-size:10px; letter-spacing:0.15em; text-transform:uppercase; color:#888; margin-bottom:5px;">Email <span style="color:#c0392b;">*</span></label>
-            <input id="sub-email" type="email" style="width:100%; border:none; border-bottom:1px solid #ddd; padding:8px 0; font-size:13px; font-family:'DM Sans',sans-serif; outline:none; box-sizing:border-box;">
-          </div>
-          <div>
-            <label style="display:block; font-size:10px; letter-spacing:0.15em; text-transform:uppercase; color:#888; margin-bottom:5px;">Confirmar Email <span style="color:#c0392b;">*</span></label>
-            <input id="sub-email2" type="email" placeholder="nombre@ejemplo.com" style="width:100%; border:none; border-bottom:1px solid #ddd; padding:8px 0; font-size:13px; font-family:'DM Sans',sans-serif; outline:none; box-sizing:border-box;">
-          </div>
+        <div style="margin-bottom:14px;">
+          <label style="display:block; font-size:10px; letter-spacing:0.15em; text-transform:uppercase; color:#888; margin-bottom:5px;">Email <span style="color:#c0392b;">*</span></label>
+          <input id="sub-email" type="email" style="width:100%; border:none; border-bottom:1px solid #ddd; padding:8px 0; font-size:13px; font-family:'DM Sans',sans-serif; outline:none; box-sizing:border-box;">
         </div>
 
         <div style="margin-bottom:14px;">
@@ -1617,7 +1611,6 @@
         pais:      document.getElementById('sub-pais').value,
         provincia: document.getElementById('sub-provincia').value,
         email:     document.getElementById('sub-email').value.trim().toLowerCase(),
-        email2:    document.getElementById('sub-email2').value.trim().toLowerCase(),
         usuario:   document.getElementById('sub-usuario').value.trim(),
         pass:      document.getElementById('sub-pass').value
       };
@@ -1626,9 +1619,6 @@
 
       if (!campos.nombre || !campos.apellidos || !campos.pais || !campos.provincia || !campos.email || !campos.email2 || !campos.usuario || !campos.pass) {
         err.textContent = 'Completá todos los campos obligatorios.'; err.style.display = 'block'; return;
-      }
-      if (campos.email !== campos.email2) {
-        err.textContent = 'Los emails no coinciden.'; err.style.display = 'block'; return;
       }
       if (campos.pass.length < 6) {
         err.textContent = 'La contraseña debe tener al menos 6 caracteres.'; err.style.display = 'block'; return;
