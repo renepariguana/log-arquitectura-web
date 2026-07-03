@@ -1637,25 +1637,32 @@
 
       fetch(GSHEET_URL, { method: 'POST', body: params })
         .then(function(){
+          // Crear preferencia de pago dinámica
+          var p2 = new URLSearchParams();
+          p2.append('action', 'crear-preferencia');
+          p2.append('plan',  _clPlan);
+          p2.append('email', campos.email);
+          return fetch(GSHEET_URL, { method: 'POST', body: p2 });
+        })
+        .then(function(r){ return r.json(); })
+        .then(function(result){
           btn.textContent = 'Continuar al pago'; btn.disabled = false;
+          _mpPayUrl = result.url || 'https://link.mercadopago.com.ar/logarquitectura';
+          if (result.monto) _clMonto = result.monto;
           clMostrarPago(campos.email);
         })
         .catch(function(){
           btn.textContent = 'Continuar al pago'; btn.disabled = false;
-          err.textContent = 'Error al guardar. Intentá de nuevo.'; err.style.display = 'block';
+          err.textContent = 'Error al procesar. Intentá de nuevo.'; err.style.display = 'block';
         });
     }
+
+    var _mpPayUrl = '';
 
     function clMostrarPago(email) {
       ['cl-vista-login','cl-vista-suscripcion','cl-vista-datos','cl-vista-confirmacion'].forEach(function(id){ document.getElementById(id).style.display='none'; });
       document.getElementById('cl-pago-plan').textContent = _clPlan + (_clMonto ? ' — $' + Number(_clMonto).toLocaleString('es-AR') : '');
-      var links = {
-        '1 mes':   'https://mpago.la/1hM6DQh',
-        '3 meses': 'https://mpago.la/2L3X9eB',
-        '6 meses': 'https://mpago.la/1ojuWv4',
-        '12 meses':'https://mpago.la/1X5DnYM'
-      };
-      document.getElementById('cl-mp-link').href = links[_clPlan] || 'https://link.mercadopago.com.ar/logarquitectura';
+      document.getElementById('cl-mp-link').href = _mpPayUrl || 'https://link.mercadopago.com.ar/logarquitectura';
       document.getElementById('cl-vista-pago').style.display = 'block';
     }
 

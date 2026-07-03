@@ -260,6 +260,45 @@ function doPost(e) {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var p  = e.parameter;
 
+    if (p.action === 'crear-preferencia') {
+      var ACCESS_TOKEN = PropertiesService.getScriptProperties().getProperty('MP_ACCESS_TOKEN');
+      var plan  = p.plan  || '';
+      var email = p.email || '';
+
+      // Leer precio desde hoja Servicios E10:F13
+      var sheetServ = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Servicios');
+      var rango = sheetServ.getRange('E10:F13').getValues();
+      var monto = 0;
+      for (var ri = 0; ri < rango.length; ri++) {
+        if (rango[ri][0].toString().trim().toLowerCase() === plan.toLowerCase()) {
+          monto = Number(rango[ri][1]);
+          break;
+        }
+      }
+
+      var preference = {
+        items: [{ title: 'Suscripción LOG arquitectura — ' + plan, quantity: 1, unit_price: monto, currency_id: 'ARS' }],
+        payer: { email: email },
+        back_urls: { success: 'https://logarquitectura.com.ar', failure: 'https://logarquitectura.com.ar', pending: 'https://logarquitectura.com.ar' },
+        auto_return: 'approved'
+      };
+
+      var mpRes = UrlFetchApp.fetch('https://api.mercadopago.com/checkout/preferences', {
+        method: 'post',
+        contentType: 'application/json',
+        headers: { 'Authorization': 'Bearer ' + ACCESS_TOKEN },
+        payload: JSON.stringify(preference),
+        muteHttpExceptions: true
+      });
+
+      var mpData = JSON.parse(mpRes.getContentText());
+      var url = mpData.sandbox_init_point || mpData.init_point || '';
+
+      return ContentService
+        .createTextOutput(JSON.stringify({ url: url, monto: monto }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
     if (p.action === 'procesar-pago') {
       var ACCESS_TOKEN = PropertiesService.getScriptProperties().getProperty('MP_ACCESS_TOKEN');
       var formData     = JSON.parse(p.formData || '{}');
