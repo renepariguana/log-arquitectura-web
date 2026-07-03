@@ -17,6 +17,7 @@
 var SHEET_NAME          = 'Solicitudes';
 var PROYECTOS_FOLDER_ID = '1ZRTrI0wXUfZgctGbdPeVHWhi2pcQ4ck1';
 var VIDEOS_FOLDER_ID    = '13lIAjEn1qt_DQ0-ABJavZkRC0gJQekQL';
+var CLIENTES_FOLDER_ID  = '1SqXMjyeBs4uHa7E0dpwe408oQKL45545';
 var COSTO_URL           = 'https://arquitecturayconstrucciondigital.com/';
 
 // ─── GET: proyectos desde Drive ──────────────────────────────────────────────
@@ -145,10 +146,10 @@ function doGet(e) {
       // Fila 0 = encabezados, buscar desde fila 1
       for (var i = 1; i < datos.length; i++) {
         var nombre   = (datos[i][0] || '').toString().trim();
-        var email    = (datos[i][2] || '').toString().trim().toLowerCase();
-        var dni      = (datos[i][3] || '').toString().trim();
-        var linkDrive = (datos[i][4] || '').toString().trim();
-        var estado   = (datos[i][5] || '').toString().trim().toLowerCase();
+        var email    = (datos[i][1] || '').toString().trim().toLowerCase();
+        var dni      = (datos[i][2] || '').toString().trim();
+        var estado    = (datos[i][4] || '').toString().trim().toLowerCase();
+        var linkDrive = (datos[i][5] || '').toString().trim();
 
         if (email !== (e.parameter.email || '').toLowerCase().trim()) continue;
         if (estado === 'inactivo') {
@@ -187,23 +188,37 @@ function doGet(e) {
       var folderId = e.parameter.folderId || '';
       if (!folderId) throw new Error('folderId requerido');
 
-      var folder = DriveApp.getFolderById(folderId);
-      var files  = folder.getFiles();
-      var pdfs   = [];
+      var clienteFolder = DriveApp.getFolderById(folderId);
+      var subFolders    = clienteFolder.getFolders();
+      var proyectos     = [];
 
-      while (files.hasNext()) {
-        var file = files.next();
-        if (file.getMimeType() !== 'application/pdf') continue;
-        pdfs.push({
-          id    : file.getId(),
-          nombre: file.getName().replace(/\.pdf$/i, '')
-        });
+      while (subFolders.hasNext()) {
+        var sub     = subFolders.next();
+        var fils    = sub.getFiles();
+        var pdfs    = [];
+        var coverId = '';
+        while (fils.hasNext()) {
+          var file = fils.next();
+          var mime = file.getMimeType();
+          if (mime === 'application/pdf') {
+            var nombreCompleto = file.getName().replace(/\.pdf$/i, '');
+            var prefijo = sub.getName() + '_';
+            var nombreMostrar = nombreCompleto.indexOf(prefijo) === 0
+              ? nombreCompleto.slice(prefijo.length)
+              : nombreCompleto;
+            pdfs.push({ id: file.getId(), nombre: nombreMostrar });
+          } else if (!coverId && mime.match(/^image\//)) {
+            coverId = file.getId();
+          }
+        }
+        pdfs.sort(function(a, b) { return a.nombre.localeCompare(b.nombre, 'es'); });
+        proyectos.push({ proyecto: sub.getName(), coverId: coverId, pdfs: pdfs });
       }
 
-      pdfs.sort(function(a, b) { return a.nombre.localeCompare(b.nombre, 'es'); });
+      proyectos.sort(function(a, b) { return a.proyecto.localeCompare(b.proyecto, 'es'); });
 
       return ContentService
-        .createTextOutput(JSON.stringify(pdfs))
+        .createTextOutput(JSON.stringify(proyectos))
         .setMimeType(ContentService.MimeType.JSON);
 
     } catch (err) {
@@ -325,6 +340,39 @@ function actualizarCostoM2() {
   } catch (err) {
     Logger.log('Error: ' + err.toString());
   }
+}
+
+// ─── Trigger diario (ejecutá una vez) ────────────────────────────────────────
+
+// ─── Auto-crear carpeta Drive al agregar cliente ──────────────────────────────
+
+function autoCrearCarpeta(e) {
+  var sheet = e.range.getSheet();
+  if (sheet.getName() !== 'Clientes') return;
+
+  var row = e.range.getRow();
+  if (row < 2) return;
+
+  var nombre     = sheet.getRange(row, 1).getValue().toString().trim(); // col A: Nombre
+  var linkActual = sheet.getRange(row, 6).getValue().toString().trim(); // col F: LINK
+
+  if (!nombre || linkActual) return;
+
+  var carpetaPadre = DriveApp.getFolderById(CLIENTES_FOLDER_ID);
+  var nuevaCarpeta = carpetaPadre.createFolder(nombre);
+  sheet.getRange(row, 6).setValue(nuevaCarpeta.getUrl());
+}
+
+function crearTriggerClientes() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  ScriptApp.getProjectTriggers().forEach(function(t) {
+    if (t.getHandlerFunction() === 'autoCrearCarpeta') ScriptApp.deleteTrigger(t);
+  });
+  ScriptApp.newTrigger('autoCrearCarpeta')
+    .forSpreadsheet(ss)
+    .onEdit()
+    .create();
+  Logger.log('Trigger autoCrearCarpeta instalado.');
 }
 
 // ─── Trigger diario (ejecutá una vez) ────────────────────────────────────────
