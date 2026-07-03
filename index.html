@@ -1329,8 +1329,70 @@
       if (e.key === 'Escape') {
         closeFormulario();
         closePresupuesto();
+        closeClientesLogin();
       }
     });
+  </script>
+
+  <!-- ─── MODAL LOGIN CLIENTES ─────────────────────────────────── -->
+  <div id="modal-clientes-login" style="display:none; position:fixed; inset:0; z-index:80; background:rgba(0,0,0,0.7); align-items:center; justify-content:center;">
+    <div style="background:#fff; width:100%; max-width:420px; margin:16px; padding:40px 32px 36px; font-family:'DM Sans',sans-serif;">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:28px;">
+        <div>
+          <p style="font-size:10px; letter-spacing:0.22em; text-transform:uppercase; color:#888; margin:0 0 6px;">LOG arquitectura</p>
+          <h2 style="font-size:22px; font-weight:300; color:#0D0D0D; margin:0;">Área de Clientes</h2>
+        </div>
+        <button onclick="closeClientesLogin()" style="background:none; border:none; cursor:pointer; font-size:22px; color:#888; line-height:1; padding:0;">&times;</button>
+      </div>
+
+      <div style="margin-bottom:18px;">
+        <label style="display:block; font-size:10px; letter-spacing:0.18em; text-transform:uppercase; color:#888; margin-bottom:6px;">Email</label>
+        <input id="cl-email" type="email" placeholder="tu@email.com"
+          style="width:100%; border:none; border-bottom:1px solid #ddd; padding:8px 0; font-size:14px; font-family:'DM Sans',sans-serif; outline:none; box-sizing:border-box;">
+      </div>
+      <div style="margin-bottom:28px;">
+        <label style="display:block; font-size:10px; letter-spacing:0.18em; text-transform:uppercase; color:#888; margin-bottom:6px;">DNI</label>
+        <input id="cl-dni" type="text" placeholder="Sin puntos ni espacios"
+          style="width:100%; border:none; border-bottom:1px solid #ddd; padding:8px 0; font-size:14px; font-family:'DM Sans',sans-serif; outline:none; box-sizing:border-box;">
+      </div>
+
+      <p id="cl-error" style="display:none; color:#c0392b; font-size:12px; margin-bottom:16px;"></p>
+
+      <button id="cl-btn" onclick="clientesLogin()"
+        style="width:100%; background:#0D0D0D; color:#fff; border:none; padding:14px; font-size:11px; letter-spacing:0.18em; text-transform:uppercase; cursor:pointer; font-family:'DM Sans',sans-serif;">
+        Ingresar
+      </button>
+    </div>
+  </div>
+
+  <script>
+    function openClientesLogin() {
+      var m = document.getElementById('modal-clientes-login');
+      m.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+      document.getElementById('cl-error').style.display = 'none';
+      document.getElementById('cl-email').value = '';
+      document.getElementById('cl-dni').value = '';
+    }
+    function closeClientesLogin() {
+      var m = document.getElementById('modal-clientes-login');
+      m.style.display = 'none';
+      document.body.style.overflow = '';
+    }
+    function clientesLogin() {
+      // Placeholder for Task 5 implementation
+      var email = document.getElementById('cl-email').value.trim();
+      var dni = document.getElementById('cl-dni').value.trim();
+      var errorEl = document.getElementById('cl-error');
+
+      if (!email || !dni) {
+        errorEl.textContent = 'Por favor completá todos los campos.';
+        errorEl.style.display = 'block';
+        return;
+      }
+
+      // TODO: Task 5 - authenticate and fetch client area
+    }
   </script>
 
 </body>
