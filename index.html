@@ -1337,6 +1337,8 @@
   <!-- ─── MODAL LOGIN CLIENTES ─────────────────────────────────── -->
   <div id="modal-clientes-login" style="display:none; position:fixed; inset:0; z-index:80; background:rgba(0,0,0,0.7); align-items:center; justify-content:center;">
     <div style="background:#fff; width:100%; max-width:420px; margin:16px; padding:40px 32px 36px; font-family:'DM Sans',sans-serif;">
+
+      <!-- Header común -->
       <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:28px;">
         <div>
           <p style="font-size:10px; letter-spacing:0.22em; text-transform:uppercase; color:#888; margin:0 0 6px;">LOG arquitectura</p>
@@ -1345,28 +1347,59 @@
         <button onclick="closeClientesLogin()" style="background:none; border:none; cursor:pointer; font-size:22px; color:#888; line-height:1; padding:0;">&times;</button>
       </div>
 
-      <div style="margin-bottom:18px;">
-        <label style="display:block; font-size:10px; letter-spacing:0.18em; text-transform:uppercase; color:#888; margin-bottom:6px;">Email</label>
-        <input id="cl-email" type="email" placeholder="tu@email.com"
-          style="width:100%; border:none; border-bottom:1px solid #ddd; padding:8px 0; font-size:14px; font-family:'DM Sans',sans-serif; outline:none; box-sizing:border-box;">
+      <!-- Vista: Login -->
+      <div id="cl-vista-login">
+        <div style="margin-bottom:18px;">
+          <label style="display:block; font-size:10px; letter-spacing:0.18em; text-transform:uppercase; color:#888; margin-bottom:6px;">Email</label>
+          <input id="cl-email" type="email" placeholder="tu@email.com"
+            style="width:100%; border:none; border-bottom:1px solid #ddd; padding:8px 0; font-size:14px; font-family:'DM Sans',sans-serif; outline:none; box-sizing:border-box;">
+        </div>
+        <div style="margin-bottom:28px;">
+          <label style="display:block; font-size:10px; letter-spacing:0.18em; text-transform:uppercase; color:#888; margin-bottom:6px;">Contraseña</label>
+          <input id="cl-dni" type="password" placeholder="Tu contraseña"
+            style="width:100%; border:none; border-bottom:1px solid #ddd; padding:8px 0; font-size:14px; font-family:'DM Sans',sans-serif; outline:none; box-sizing:border-box;">
+        </div>
+
+        <p id="cl-error" style="display:none; color:#c0392b; font-size:12px; margin-bottom:16px;"></p>
+
+        <button id="cl-btn" onclick="clientesLogin()"
+          style="width:100%; background:#0D0D0D; color:#fff; border:none; padding:14px; font-size:11px; letter-spacing:0.18em; text-transform:uppercase; cursor:pointer; font-family:'DM Sans',sans-serif;">
+          Ingresar
+        </button>
+
+        <p style="margin-top:20px; font-size:11px; color:#888; text-align:center;">
+          ¿Aún no tenés suscripción?
+          <a href="#" onclick="clMostrarSuscripcion(); return false;" style="color:#0D0D0D; font-weight:600; text-decoration:none; letter-spacing:0.05em;">SUSCRIBIRME</a>
+        </p>
       </div>
-      <div style="margin-bottom:28px;">
-        <label style="display:block; font-size:10px; letter-spacing:0.18em; text-transform:uppercase; color:#888; margin-bottom:6px;">Contraseña</label>
-        <input id="cl-dni" type="password" placeholder="Tu contraseña"
-          style="width:100%; border:none; border-bottom:1px solid #ddd; padding:8px 0; font-size:14px; font-family:'DM Sans',sans-serif; outline:none; box-sizing:border-box;">
+
+      <!-- Vista: Suscripción -->
+      <div id="cl-vista-suscripcion" style="display:none;">
+        <p style="font-size:10px; letter-spacing:0.18em; text-transform:uppercase; color:#888; margin:0 0 20px;">Elegí tu plan</p>
+        <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:28px;">
+          <a id="cl-plan-1" href="#" style="display:flex; justify-content:space-between; align-items:center; border:1px solid #e0e0e0; padding:14px 18px; text-decoration:none; color:#0D0D0D; font-size:13px; transition:border-color 0.2s;" onmouseover="this.style.borderColor='#0D0D0D'" onmouseout="this.style.borderColor='#e0e0e0'">
+            <span>1 mes</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0D0D0D" stroke-width="1.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </a>
+          <a id="cl-plan-3" href="#" style="display:flex; justify-content:space-between; align-items:center; border:1px solid #e0e0e0; padding:14px 18px; text-decoration:none; color:#0D0D0D; font-size:13px; transition:border-color 0.2s;" onmouseover="this.style.borderColor='#0D0D0D'" onmouseout="this.style.borderColor='#e0e0e0'">
+            <span>3 meses</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0D0D0D" stroke-width="1.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </a>
+          <a id="cl-plan-6" href="#" style="display:flex; justify-content:space-between; align-items:center; border:1px solid #e0e0e0; padding:14px 18px; text-decoration:none; color:#0D0D0D; font-size:13px; transition:border-color 0.2s;" onmouseover="this.style.borderColor='#0D0D0D'" onmouseout="this.style.borderColor='#e0e0e0'">
+            <span>6 meses</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0D0D0D" stroke-width="1.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </a>
+          <a id="cl-plan-12" href="#" style="display:flex; justify-content:space-between; align-items:center; border:1px solid #e0e0e0; padding:14px 18px; text-decoration:none; color:#0D0D0D; font-size:13px; transition:border-color 0.2s;" onmouseover="this.style.borderColor='#0D0D0D'" onmouseout="this.style.borderColor='#e0e0e0'">
+            <span>12 meses</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0D0D0D" stroke-width="1.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </a>
+        </div>
+        <p style="font-size:11px; color:#888; text-align:center;">
+          ¿Ya tenés cuenta?
+          <a href="#" onclick="clMostrarLogin(); return false;" style="color:#0D0D0D; font-weight:600; text-decoration:none;">INGRESAR</a>
+        </p>
       </div>
 
-      <p id="cl-error" style="display:none; color:#c0392b; font-size:12px; margin-bottom:16px;"></p>
-
-      <button id="cl-btn" onclick="clientesLogin()"
-        style="width:100%; background:#0D0D0D; color:#fff; border:none; padding:14px; font-size:11px; letter-spacing:0.18em; text-transform:uppercase; cursor:pointer; font-family:'DM Sans',sans-serif;">
-        Ingresar
-      </button>
-
-      <p style="margin-top:20px; font-size:11px; color:#888; text-align:center;">
-        ¿Aún no tenés suscripción?
-        <a id="cl-suscribir" href="#" style="color:#0D0D0D; font-weight:600; text-decoration:none; letter-spacing:0.05em;">SUSCRIBIRME</a>
-      </p>
     </div>
   </div>
 
@@ -1425,6 +1458,17 @@
 
     function closeClientesLogin() {
       document.getElementById('modal-clientes-login').style.display = 'none';
+      clMostrarLogin();
+    }
+
+    function clMostrarSuscripcion() {
+      document.getElementById('cl-vista-login').style.display = 'none';
+      document.getElementById('cl-vista-suscripcion').style.display = 'block';
+    }
+
+    function clMostrarLogin() {
+      document.getElementById('cl-vista-suscripcion').style.display = 'none';
+      document.getElementById('cl-vista-login').style.display = 'block';
     }
 
     function clientesLogin() {
