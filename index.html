@@ -1400,40 +1400,120 @@
   </div>
 
   <script>
+    // ── PORTAL CLIENTES ──────────────────────────────────────────────
+
     function openClientesLogin() {
+      // Si ya hay sesión activa, ir directo al portal
+      var sesion = sessionStorage.getItem('cl_sesion');
+      if (sesion) {
+        var datos = JSON.parse(sesion);
+        mostrarPortal(datos.nombre, datos.folderId);
+        return;
+      }
       var m = document.getElementById('modal-clientes-login');
       m.style.display = 'flex';
-      document.body.style.overflow = 'hidden';
-      document.getElementById('cl-error').style.display = 'none';
       document.getElementById('cl-email').value = '';
-      document.getElementById('cl-dni').value = '';
+      document.getElementById('cl-dni').value   = '';
+      document.getElementById('cl-error').style.display = 'none';
+      setTimeout(function(){ document.getElementById('cl-email').focus(); }, 100);
     }
+
     function closeClientesLogin() {
-      var m = document.getElementById('modal-clientes-login');
-      m.style.display = 'none';
-      document.body.style.overflow = '';
+      document.getElementById('modal-clientes-login').style.display = 'none';
     }
+
     function clientesLogin() {
-      // Placeholder for Task 5 implementation
       var email = document.getElementById('cl-email').value.trim();
-      var dni = document.getElementById('cl-dni').value.trim();
-      var errorEl = document.getElementById('cl-error');
+      var dni   = document.getElementById('cl-dni').value.trim();
+      var err   = document.getElementById('cl-error');
+      var btn   = document.getElementById('cl-btn');
 
       if (!email || !dni) {
-        errorEl.textContent = 'Por favor completá todos los campos.';
-        errorEl.style.display = 'block';
+        err.textContent = 'Completá todos los campos.';
+        err.style.display = 'block';
         return;
       }
 
-      // TODO: Task 5 - authenticate and fetch client area
+      btn.textContent = 'Verificando...';
+      btn.disabled = true;
+      err.style.display = 'none';
+
+      fetch(GSHEET_URL + '?action=login&email=' + encodeURIComponent(email) + '&dni=' + encodeURIComponent(dni))
+        .then(function(r){ return r.json(); })
+        .then(function(data) {
+          if (data.ok) {
+            sessionStorage.setItem('cl_sesion', JSON.stringify({ nombre: data.nombre, folderId: data.folderId }));
+            closeClientesLogin();
+            mostrarPortal(data.nombre, data.folderId);
+          } else {
+            err.textContent = data.error || 'Email o DNI incorrecto.';
+            err.style.display = 'block';
+          }
+        })
+        .catch(function() {
+          err.textContent = 'Error de conexión. Intentá de nuevo.';
+          err.style.display = 'block';
+        })
+        .finally(function() {
+          btn.textContent = 'Ingresar';
+          btn.disabled = false;
+        });
     }
+
+    function mostrarPortal(nombre, folderId) {
+      document.getElementById('portal-saludo').textContent = 'Hola, ' + nombre;
+      document.getElementById('portal-clientes').style.display = 'block';
+      document.getElementById('portal-archivos').innerHTML = '';
+      document.getElementById('portal-vacio').style.display = 'none';
+      document.getElementById('portal-cargando').style.display = 'block';
+
+      fetch(GSHEET_URL + '?action=archivos&folderId=' + encodeURIComponent(folderId))
+        .then(function(r){ return r.json(); })
+        .then(function(pdfs) {
+          document.getElementById('portal-cargando').style.display = 'none';
+          if (!Array.isArray(pdfs) || pdfs.length === 0) {
+            document.getElementById('portal-vacio').style.display = 'block';
+            return;
+          }
+          var grid = document.getElementById('portal-archivos');
+          pdfs.forEach(function(pdf) {
+            var card = document.createElement('div');
+            card.style.cssText = 'background:#fff; padding:20px; display:flex; flex-direction:column; gap:14px;';
+            card.innerHTML =
+              '<div style="display:flex; align-items:center; gap:10px;">' +
+                '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0D0D0D" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>' +
+                '<span style="font-size:13px; color:#0D0D0D; font-weight:400; flex:1; line-height:1.3;">' + pdf.nombre + '</span>' +
+              '</div>' +
+              '<div style="display:flex; gap:8px;">' +
+                '<button onclick="verPdf(\'' + pdf.id + '\',\'' + pdf.nombre.replace(/'/g, "\\'") + '\')" ' +
+                  'style="flex:1; background:#0D0D0D; color:#fff; border:none; padding:10px; font-size:10px; letter-spacing:0.15em; text-transform:uppercase; cursor:pointer; font-family:\'DM Sans\',sans-serif;">Ver</button>' +
+                '<a href="https://drive.google.com/uc?export=download&id=' + pdf.id + '" target="_blank" ' +
+                  'style="flex:1; background:#fff; color:#0D0D0D; border:1px solid #0D0D0D; padding:10px; font-size:10px; letter-spacing:0.15em; text-transform:uppercase; cursor:pointer; font-family:\'DM Sans\',sans-serif; text-decoration:none; text-align:center; display:flex; align-items:center; justify-content:center;">Descargar</a>' +
+              '</div>';
+            grid.appendChild(card);
+          });
+        })
+        .catch(function() {
+          document.getElementById('portal-cargando').style.display = 'none';
+          document.getElementById('portal-vacio').style.display = 'block';
+          document.getElementById('portal-vacio').textContent = 'Error al cargar archivos.';
+        });
+    }
+
     function clientesCerrarSesion() {
-      // Placeholder for Task 5 implementation
-      // Close portal, clear session, return to login
+      sessionStorage.removeItem('cl_sesion');
+      document.getElementById('portal-clientes').style.display = 'none';
     }
+
+    function verPdf(id, nombre) {
+      document.getElementById('pdf-titulo').textContent = nombre;
+      document.getElementById('pdf-frame').src = 'https://drive.google.com/file/d/' + id + '/preview';
+      document.getElementById('modal-pdf').style.display = 'flex';
+    }
+
     function cerrarPdf() {
-      // Placeholder for Task 5 implementation
-      // Close PDF viewer modal
+      document.getElementById('pdf-frame').src = '';
+      document.getElementById('modal-pdf').style.display = 'none';
     }
   </script>
 
