@@ -1443,10 +1443,6 @@
           <input id="sub-email" type="email" style="width:100%; border:none; border-bottom:1px solid #ddd; padding:8px 0; font-size:13px; font-family:'DM Sans',sans-serif; outline:none; box-sizing:border-box;">
         </div>
 
-        <div style="margin-bottom:14px;">
-          <label style="display:block; font-size:10px; letter-spacing:0.15em; text-transform:uppercase; color:#888; margin-bottom:5px;">Nombre de usuario <span style="color:#c0392b;">*</span></label>
-          <input id="sub-usuario" type="text" placeholder="Nombre de usuario" style="width:100%; border:none; border-bottom:1px solid #ddd; padding:8px 0; font-size:13px; font-family:'DM Sans',sans-serif; outline:none; box-sizing:border-box;">
-        </div>
 
         <div style="margin-bottom:22px; position:relative;">
           <label style="display:block; font-size:10px; letter-spacing:0.15em; text-transform:uppercase; color:#888; margin-bottom:5px;">Crear una contraseña <span style="color:#c0392b;">*</span></label>
@@ -1611,13 +1607,13 @@
         pais:      document.getElementById('sub-pais').value,
         provincia: document.getElementById('sub-provincia').value,
         email:     document.getElementById('sub-email').value.trim().toLowerCase(),
-        usuario:   document.getElementById('sub-usuario').value.trim(),
+        usuario:   document.getElementById('sub-email').value.trim().toLowerCase(),
         pass:      document.getElementById('sub-pass').value
       };
       var err = document.getElementById('sub-error');
       err.style.display = 'none';
 
-      if (!campos.nombre || !campos.apellidos || !campos.pais || !campos.provincia || !campos.email || !campos.email2 || !campos.usuario || !campos.pass) {
+      if (!campos.nombre || !campos.apellidos || !campos.pais || !campos.provincia || !campos.email || !campos.pass) {
         err.textContent = 'Completá todos los campos obligatorios.'; err.style.display = 'block'; return;
       }
       if (campos.pass.length < 6) {
