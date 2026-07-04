@@ -1758,6 +1758,7 @@
       var ctrlPres   = document.getElementById('portal-ctrl-presupuesto');
       var ctrlPdf    = document.getElementById('portal-ctrl-pdf');
       var ctrlVacio  = document.getElementById('portal-ctrl-vacio');
+      var panelDer   = document.getElementById('portal-panel-derecho');
 
       // Ocultar siempre el visor PDF al cambiar de sección
       var visor = document.getElementById('portal-visor-pdf');
@@ -1772,12 +1773,15 @@
         if (ctrlPres) ctrlPres.style.display = 'flex';
         if (ctrlPdf)  ctrlPdf.style.display  = 'none';
         if (ctrlVacio) ctrlVacio.style.display = 'none';
+        if (panelDer) panelDer.style.display  = 'none';
       } else {
         if (normalWrap) normalWrap.style.display = 'flex';
         if (presupWrap) presupWrap.style.display = 'none';
         if (ctrlPres) ctrlPres.style.display = 'none';
         if (ctrlPdf)  ctrlPdf.style.display  = 'none';
         if (ctrlVacio) ctrlVacio.style.display = 'block';
+        // Panel derecho: visible solo en proyectos
+        if (panelDer) panelDer.style.display = (seccion === 'proyectos') ? 'block' : 'none';
         // Mostrar sección correcta dentro del contenido normal
         ['proyectos', 'promo'].forEach(function(s) {
           var el = document.getElementById('portal-seccion-' + s);
