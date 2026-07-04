@@ -4,10 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Presupuesto — LOG arquitectura</title>
+  <script>if(new URLSearchParams(location.search).get('embedded')==='1')document.documentElement.setAttribute('data-embedded','1');</script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://accounts.google.com/gsi/client" async></script>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
   <style>
+    [data-embedded="1"] #app-header,
+    [data-embedded="1"] #sidebar { display: none !important; }
     * { font-family: 'DM Sans', sans-serif; }
 
     input[type=number]::-webkit-inner-spin-button,
