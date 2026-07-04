@@ -113,9 +113,8 @@ function doGet(e) {
     try {
       var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Servicios');
       var costo = sheet.getRange('C3').getValue().toString().trim();
-      var fecha = sheet.getRange('C2').getValue().toString().trim();
       return ContentService
-        .createTextOutput(JSON.stringify({ costo: costo, fecha: fecha }))
+        .createTextOutput(JSON.stringify({ costo: costo }))
         .setMimeType(ContentService.MimeType.JSON);
     } catch (err) {
       return ContentService
@@ -565,10 +564,8 @@ function actualizarCostoM2() {
 
     var costo = '$' + match[1];
     var fecha = new Date().toLocaleDateString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' });
-    var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Servicios');
 
-    sheet.getRange('A2').setValue('Costo m² construcción');
-    sheet.getRange('C2').setValue('Actualizado: ' + fecha);
     sheet.getRange('C3').setValue(costo);
 
     Logger.log('Costo actualizado: ' + costo + ' (' + fecha + ')');
