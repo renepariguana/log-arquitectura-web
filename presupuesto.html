@@ -33,7 +33,7 @@
 <body class="bg-neutral-100 min-h-screen text-neutral-900">
 
   <!-- HEADER -->
-  <header id="app-header" class="bg-neutral-950 text-white px-8 py-4 flex items-center justify-between sticky top-0 z-20 shadow-lg">
+  <header id="app-header" style="display:none" class="bg-neutral-950 text-white px-8 py-4 flex items-center justify-between sticky top-0 z-20 shadow-lg">
     <div class="flex items-center gap-4">
       <span class="tracking-[0.2em] text-sm font-medium uppercase">LOG arquitectura</span>
       <span class="text-neutral-600">·</span>
@@ -62,7 +62,7 @@
   <div class="flex" style="min-height:calc(100vh - 57px)">
 
   <!-- SIDEBAR -->
-  <aside id="sidebar" class="no-print w-56 bg-neutral-100 flex-shrink-0 flex flex-col border-r border-neutral-200">
+  <aside id="sidebar" style="display:none" class="no-print w-56 bg-neutral-100 flex-shrink-0 flex flex-col border-r border-neutral-200">
     <div class="px-4 py-3 border-b border-neutral-200">
       <span class="text-xs font-semibold tracking-widest text-neutral-400 uppercase">Presupuestos</span>
     </div>
@@ -411,15 +411,16 @@
       return new Date().toLocaleDateString('es-AR', { day: '2-digit', month: 'long', year: 'numeric' });
     }
 
-    // Modo embebido: ocultar header propio, comunicar con portal padre
+    // Modo embebido: header y sidebar arrancan ocultos (style="display:none" en el HTML)
+    // Solo se muestran si NO es embedded
     var isEmbedded = new URLSearchParams(window.location.search).get('embedded') === '1';
+    if (!isEmbedded) {
+      var _hdr = document.getElementById('app-header');
+      var _sdb = document.getElementById('sidebar');
+      if (_hdr) _hdr.style.display = 'flex';
+      if (_sdb) _sdb.style.display = 'flex';
+    }
     if (isEmbedded) {
-      document.addEventListener('DOMContentLoaded', function() {
-        var h = document.getElementById('app-header');
-        if (h) h.style.display = 'none';
-        var s = document.getElementById('sidebar');
-        if (s) s.style.display = 'none';
-      });
       // Escuchar acciones del portal padre
       window.addEventListener('message', function(e) {
         if (!e.data) return;

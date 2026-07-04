@@ -1861,7 +1861,7 @@
         if (presupWrap) presupWrap.style.display = 'flex';
         var iframe = document.getElementById('presupuesto-frame');
         var esPrimera = iframe && !iframe.getAttribute('src');
-        if (esPrimera) iframe.src = iframe.getAttribute('data-src');
+        if (esPrimera) iframe.src = iframe.getAttribute('data-src') + '&_v=' + Date.now();
         if (ctrlPres) ctrlPres.style.display = 'flex';
         if (ctrlPdf)  ctrlPdf.style.display  = 'none';
         if (ctrlVacio) ctrlVacio.style.display = 'none';
