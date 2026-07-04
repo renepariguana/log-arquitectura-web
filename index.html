@@ -1518,7 +1518,7 @@
 
       <!-- Presupuestador embebido (reemplaza contenido + panel derecho) -->
       <div id="portal-seccion-presupuestador" style="display:none; flex:1; overflow:hidden;">
-        <iframe id="presupuesto-frame" src="" style="width:100%; height:100%; border:none;"></iframe>
+        <iframe id="presupuesto-frame" data-src="presupuesto.html?embedded=1" style="width:100%; height:100%; border:none;"></iframe>
       </div>
 
       <!-- Panel derecho (próximamente) -->
@@ -1764,7 +1764,7 @@
         if (presupWrap) presupWrap.style.display = 'flex';
         // Cargar iframe solo la primera vez
         var iframe = document.getElementById('presupuesto-frame');
-        if (iframe && !iframe.src) iframe.src = 'presupuesto.html?embedded=1';
+        if (iframe && !iframe.getAttribute('src')) iframe.src = iframe.getAttribute('data-src');
         if (ctrlPres) ctrlPres.style.display = 'flex';
         if (ctrlVacio) ctrlVacio.style.display = 'none';
       } else {
