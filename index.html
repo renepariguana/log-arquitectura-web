@@ -1832,7 +1832,7 @@
         if (ctrlPres) ctrlPres.style.display = 'flex';
         if (ctrlPdf)  ctrlPdf.style.display  = 'none';
         if (ctrlVacio) ctrlVacio.style.display = 'none';
-        if (panelDer) panelDer.style.display  = 'none';
+        if (panelDer) panelDer.style.display  = 'block';
         // Poblar árbol: si ya cargó el iframe, pedir lista; si no, leer localStorage directamente
         if (!esPrimera) {
           iframe.contentWindow.postMessage({ type: 'pedir-pptos' }, '*');
