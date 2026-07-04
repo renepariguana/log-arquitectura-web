@@ -1907,7 +1907,7 @@
       var ctrlPdf    = document.getElementById('portal-ctrl-pdf');
       var ctrlVacio  = document.getElementById('portal-ctrl-vacio');
       var nombreEl   = document.getElementById('portal-pdf-nombre-ctrl');
-      if (visor) { visor.src = 'https://drive.google.com/file/d/' + pdfId + '/preview'; visor.style.display = 'block'; }
+      if (visor) { visor.src = 'https://docs.google.com/viewer?srcid=' + pdfId + '&pid=explorer&a=v&chrome=false&embedded=true'; visor.style.display = 'block'; }
       if (grid)  grid.style.display = 'none';
       if (ctrlPdf)   ctrlPdf.style.display   = 'flex';
       if (ctrlVacio) ctrlVacio.style.display  = 'none';
