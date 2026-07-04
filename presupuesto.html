@@ -422,6 +422,7 @@
         if (e.data.type === 'imprimir')   window.print();
         if (e.data.type === 'cargar-ppto') cargarPresupuesto(e.data.id);
         if (e.data.type === 'pedir-pptos') pptosSave(pptosList()); // reenvía la lista actualizada
+        if (e.data.type === 'borrar-ppto') borrarPresupuestoPorId(e.data.id);
       });
     }
 
@@ -686,6 +687,10 @@
 
     function borrarPresupuesto(id, e) {
       e.stopPropagation();
+      borrarPresupuestoPorId(id);
+    }
+
+    function borrarPresupuestoPorId(id) {
       var lista = pptosList();
       var d = lista.find(function(p) { return p.id === id; });
       var nombre = (d && d.obra && d.obra.nombre) ? d.obra.nombre : 'Sin nombre';
@@ -693,7 +698,6 @@
       lista = lista.filter(function(p) { return p.id !== id; });
       pptosSave(lista);
       if (id === pptoActivo) {
-        // pasar al último o crear uno nuevo
         if (lista.length) {
           cargarPresupuesto(lista[lista.length - 1].id);
         } else {

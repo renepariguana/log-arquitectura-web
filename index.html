@@ -1948,11 +1948,15 @@
       lista.forEach(function(p) {
         var nombre = (p.obra && p.obra.nombre && p.obra.nombre.trim()) ? p.obra.nombre.trim() : 'Sin nombre';
         var esActivo = (p.id === activoId);
-        html += '<button onclick="portalCargarPpto(\'' + p.id + '\')"' +
-          ' style="display:flex; align-items:center; width:100%; text-align:left; padding:7px 16px 7px 24px; font-size:11px; color:' + (esActivo ? '#0D0D0D' : '#737373') + '; font-weight:' + (esActivo ? '600' : '400') + '; cursor:pointer; font-family:\'DM Sans\',sans-serif; background:' + (esActivo ? '#e8e8e8' : 'none') + '; border:none; box-sizing:border-box; gap:6px;">' +
+        html += '<div style="display:flex; align-items:center; background:' + (esActivo ? '#e8e8e8' : 'none') + ';">' +
+          '<button onclick="portalCargarPpto(\'' + p.id + '\')"' +
+          ' style="display:flex; align-items:center; flex:1; min-width:0; text-align:left; padding:7px 4px 7px 24px; font-size:11px; color:' + (esActivo ? '#0D0D0D' : '#737373') + '; font-weight:' + (esActivo ? '600' : '400') + '; cursor:pointer; font-family:\'DM Sans\',sans-serif; background:none; border:none; box-sizing:border-box; gap:6px;">' +
           '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="' + (esActivo ? '#404040' : '#ccc') + '" stroke-width="2" style="flex-shrink:0;"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>' +
           '<span style="flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">' + nombre + '</span>' +
-          '</button>';
+          '</button>' +
+          '<button onclick="portalBorrarPpto(\'' + p.id + '\')" title="Eliminar"' +
+          ' style="background:none; border:none; padding:0 10px 0 4px; font-size:14px; color:#ccc; cursor:pointer; font-family:sans-serif; line-height:1; flex-shrink:0;" onmouseover="this.style.color=\'#e74c3c\'" onmouseout="this.style.color=\'#ccc\'">&times;</button>' +
+          '</div>';
       });
       tree.innerHTML = html;
     }
@@ -1960,6 +1964,11 @@
     function portalCargarPpto(id) {
       var iframe = document.getElementById('presupuesto-frame');
       if (iframe && iframe.contentWindow) iframe.contentWindow.postMessage({ type: 'cargar-ppto', id: id }, '*');
+    }
+
+    function portalBorrarPpto(id) {
+      var iframe = document.getElementById('presupuesto-frame');
+      if (iframe && iframe.contentWindow) iframe.contentWindow.postMessage({ type: 'borrar-ppto', id: id }, '*');
     }
 
     function portalRefrescarArbolPptos() {
