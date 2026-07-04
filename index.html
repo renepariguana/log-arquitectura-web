@@ -1669,7 +1669,6 @@
           sessionStorage.setItem('cl_sesion', JSON.stringify(sesion));
           closeClientesLogin();
           mostrarPortal(nombre, data.folderId || '', data.suscripcion, data.esCliente, data.nroSuscriptor || '', payload.picture || '');
-          if (_driveTC && !_driveTok) _driveTC.requestAccessToken({ prompt: 'none' });
         })
         .catch(function() {
           clearTimeout(timer);
@@ -1866,7 +1865,7 @@
         if (ctrlPres) ctrlPres.style.display = 'flex';
         if (ctrlPdf)  ctrlPdf.style.display  = 'none';
         if (ctrlVacio) ctrlVacio.style.display = 'none';
-        if (panelDer) panelDer.style.display  = 'none';
+        if (panelDer) panelDer.style.display  = 'block';
         // Poblar árbol: si ya cargó el iframe, pedir lista; si no, leer localStorage directamente
         if (!esPrimera) {
           iframe.contentWindow.postMessage({ type: 'pedir-pptos' }, '*');
@@ -2007,15 +2006,7 @@
       if (nombreEl)  nombreEl.textContent     = nombre;
       if (!visor) return;
       var blobUrl = await _driveBlob(pdfId);
-      if (blobUrl) {
-        visor.src = blobUrl;
-      } else {
-        visor.src = 'https://drive.google.com/file/d/' + pdfId + '/preview';
-        if (_driveTC && !_driveTok) {
-          _pendingPdf = { id: pdfId, nombre: nombre, descUrl: descUrl };
-          _driveTC.requestAccessToken({ prompt: 'none' });
-        }
-      }
+      visor.src = blobUrl || ('https://drive.google.com/file/d/' + pdfId + '/preview');
     }
 
     // Vuelve a la grilla de proyectos desde el visor PDF
