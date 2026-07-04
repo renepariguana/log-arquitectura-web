@@ -260,13 +260,7 @@
       display:inline-flex; align-items:center; gap:0;
     }
     .ticker-track::before {
-      content:
-        "Costo m² de construcción: $2.074.886 (Tucumán)\00a0\00a0\00a0\00a0\00a0\00a0·\00a0\00a0\00a0\00a0\00a0\00a0"
-        "Presupuestos por m²\00a0\00a0\00a0\00a0\00a0\00a0·\00a0\00a0\00a0\00a0\00a0\00a0"
-        "Costo m² de construcción: $2.074.886 (Tucumán)\00a0\00a0\00a0\00a0\00a0\00a0·\00a0\00a0\00a0\00a0\00a0\00a0"
-        "Presupuestos por m²\00a0\00a0\00a0\00a0\00a0\00a0·\00a0\00a0\00a0\00a0\00a0\00a0"
-        "Costo m² de construcción: $2.074.886 (Tucumán)\00a0\00a0\00a0\00a0\00a0\00a0·\00a0\00a0\00a0\00a0\00a0\00a0"
-        "Presupuestos por m²\00a0\00a0\00a0\00a0\00a0\00a0·\00a0\00a0\00a0\00a0\00a0\00a0";
+      content: var(--ticker-content, "Costo m² de construcción  ·      Presupuestos por m²      ·      Costo m² de construcción  ·      Presupuestos por m²      ·      Costo m² de construcción  ·      Presupuestos por m²      ·  ");
       font-family: 'DM Sans', sans-serif;
       font-size: 10px;
       font-weight: 300;
@@ -1212,6 +1206,20 @@
   <script>
     /* ── Google Apps Script URL ── reemplazá con tu URL al publicar el script */
     var GSHEET_URL = 'https://script.google.com/macros/s/AKfycbz_vTRyYCjKrAmWJ636VfHs6U5SyvcODoLqPb5rZaoP2R1RRpUSuo_-Djxyv99lUxCmBA/exec';
+
+    // Actualiza el ticker con el costo m² desde la hoja Servicios
+    (function() {
+      fetch(GSHEET_URL + '?action=costo')
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (!data.costo) return;
+          var sep = '      ·      ';
+          var bloque = 'COSTO M² DE CONSTRUCCIÓN: ' + data.costo + ' (Tucumán)' + sep + 'PRESUPUESTOS POR M²' + sep;
+          var contenido = '"' + bloque + bloque + bloque + '"';
+          document.documentElement.style.setProperty('--ticker-content', contenido);
+        })
+        .catch(function() {});
+    })();
 
     function solicitarServicio(servicio) {
       openFormulario(servicio);

@@ -109,6 +109,21 @@ function doGet(e) {
     }
   }
 
+  if (e && e.parameter && e.parameter.action === 'costo') {
+    try {
+      var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Servicios');
+      var costo = sheet.getRange('C3').getValue().toString().trim();
+      var fecha = sheet.getRange('C2').getValue().toString().trim();
+      return ContentService
+        .createTextOutput(JSON.stringify({ costo: costo, fecha: fecha }))
+        .setMimeType(ContentService.MimeType.JSON);
+    } catch (err) {
+      return ContentService
+        .createTextOutput(JSON.stringify({ error: err.toString() }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+  }
+
   if (e && e.parameter && e.parameter.action === 'videos') {
     try {
       var folder = DriveApp.getFolderById(VIDEOS_FOLDER_ID);
@@ -553,8 +568,8 @@ function actualizarCostoM2() {
     var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
 
     sheet.getRange('A2').setValue('Costo m² construcción');
-    sheet.getRange('B2').setValue(costo);
     sheet.getRange('C2').setValue('Actualizado: ' + fecha);
+    sheet.getRange('C3').setValue(costo);
 
     Logger.log('Costo actualizado: ' + costo + ' (' + fecha + ')');
   } catch (err) {
