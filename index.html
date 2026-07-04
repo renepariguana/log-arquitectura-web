@@ -1459,8 +1459,8 @@
     </div>
 
     <!-- Nav blanca — igual que la página principal -->
-    <div style="background:rgba(255,255,255,0.97); border-bottom:1px solid #f0f0f0; height:68px; padding:0 40px; display:flex; align-items:center; justify-content:space-between; flex-shrink:0; backdrop-filter:blur(8px); position:relative;">
-      <div onclick="document.getElementById('portal-clientes').style.display='none';" style="display:flex; align-items:center; gap:12px; cursor:pointer;">
+    <div style="background:rgba(255,255,255,0.97); border-bottom:1px solid #f0f0f0; height:68px; padding:0 40px 0 0; display:flex; align-items:center; justify-content:space-between; flex-shrink:0; backdrop-filter:blur(8px); position:relative;">
+      <div onclick="document.getElementById('portal-clientes').style.display='none';" style="width:300px; flex-shrink:0; box-sizing:border-box; padding:0 16px; display:flex; align-items:center; gap:12px; cursor:pointer;">
         <img src="https://lh3.googleusercontent.com/d/1oT79ZpldR-UwMVNijHdIJTuN8oPKvzrg" alt="LOG" style="height:54px; width:auto; filter:invert(1);">
         <span style="font-size:10px; font-weight:300; letter-spacing:0.28em; text-transform:uppercase; color:#888;">arquitectura</span>
       </div>
@@ -1484,7 +1484,7 @@
     <div style="display:flex; flex:1; overflow:hidden;">
 
       <!-- Sidebar izquierda -->
-      <div style="width:224px; background:#f5f5f5; border-right:1px solid #e5e5e5; display:flex; flex-direction:column; flex-shrink:0;">
+      <div style="width:300px; background:#f5f5f5; border-right:1px solid #e5e5e5; display:flex; flex-direction:column; flex-shrink:0;">
         <div style="padding:12px 16px; border-bottom:1px solid #e5e5e5;">
           <span style="font-size:12px; font-weight:600; letter-spacing:0.1em; color:#a3a3a3; text-transform:uppercase;">Portal</span>
         </div>
@@ -1496,9 +1496,11 @@
           </button>
           <div id="nav-proyectos-tree" style="display:block; overflow:hidden;"></div>
           <button id="nav-btn-presupuestador" onclick="portalTogglePresupuestador()"
-            style="display:none; align-items:center; justify-content:space-between; width:100%; text-align:left; padding:10px 16px; font-size:12px; font-weight:500; color:#737373; cursor:pointer; font-family:'DM Sans',sans-serif; background:none; border:none; border-left:2px solid transparent; box-sizing:border-box;">
-            <span>Presupuestador</span>
-            <span id="nav-presu-arrow" style="font-size:10px; color:#a3a3a3; flex-shrink:0; display:inline-block; transform:rotate(-90deg); transition:transform 0.18s;">▾</span>
+            style="display:none; width:100%; text-align:left; padding:10px 16px; font-size:12px; font-weight:500; color:#737373; cursor:pointer; font-family:'DM Sans',sans-serif; background:none; border:none; border-left:2px solid transparent; box-sizing:border-box;">
+            <div style="display:flex; align-items:center; justify-content:space-between;">
+              <span>Presupuestador</span>
+              <span id="nav-presu-arrow" style="font-size:10px; color:#a3a3a3; display:inline-block; transform:rotate(-90deg); transition:transform 0.18s;">▾</span>
+            </div>
           </button>
           <div id="nav-presupuestador-tree" style="display:none; overflow:hidden;"></div>
           <button id="nav-btn-presupuestador-lock" onclick="portalMostrarSeccion('promo')"
@@ -1546,7 +1548,7 @@
       </div>
 
       <!-- Panel derecho (próximamente) -->
-      <div id="portal-panel-derecho" style="display:none; width:280px; border-left:1px solid #E8E6E2; background:#FAFAFA; flex-shrink:0; overflow-y:auto;"></div>
+      <div id="portal-panel-derecho" style="display:none; width:300px; border-left:1px solid #E8E6E2; background:#FAFAFA; flex-shrink:0; overflow-y:auto;"></div>
 
     </div>
   </div>
@@ -1585,16 +1587,47 @@
     }
 
     function onGoogleLoginPortal(response) {
-      var payload = JSON.parse(atob(response.credential.split('.')[1]));
-      var emailGoogle  = payload.email;
-      var nombreGoogle = payload.name;
-      var errEl = document.getElementById('cl-google-error');
+      var payload, emailGoogle, nombreGoogle;
+      try {
+        payload      = JSON.parse(atob(response.credential.split('.')[1]));
+        emailGoogle  = payload.email;
+        nombreGoogle = payload.name;
+      } catch(e) {
+        alert('Error al leer las credenciales de Google. Intentá de nuevo.');
+        return;
+      }
+
+      // Cerrar overlay de Google One Tap
+      if (window.google && google.accounts && google.accounts.id) google.accounts.id.cancel();
+
+      var errEl   = document.getElementById('cl-google-error');
+      var btnWrap = document.getElementById('cl-google-btn');
       if (errEl) errEl.style.display = 'none';
+      if (btnWrap) btnWrap.innerHTML = '<p style="font-size:12px; color:#888; text-align:center; margin:0;">Verificando cuenta, aguardá un momento...</p>';
+
+      function restaurarBtn() {
+        if (!btnWrap) return;
+        btnWrap.innerHTML = '';
+        if (window.google && google.accounts && google.accounts.id) {
+          google.accounts.id.renderButton(btnWrap, { theme: 'outline', size: 'large', text: 'signin_with', locale: 'es', width: 300 });
+        }
+      }
+
+      // Timeout de 40 segundos por si el servidor tarda demasiado
+      var timedOut = false;
+      var timer = setTimeout(function() {
+        timedOut = true;
+        restaurarBtn();
+        if (errEl) { errEl.textContent = 'El servidor está tardando. Intentá de nuevo en un momento.'; errEl.style.display = 'block'; }
+      }, 40000);
 
       fetch(GSHEET_URL + '?action=loginGoogle&email=' + encodeURIComponent(emailGoogle) + '&nombre=' + encodeURIComponent(nombreGoogle))
         .then(function(r) { return r.json(); })
         .then(function(data) {
+          clearTimeout(timer);
+          if (timedOut) return;
           if (!data.ok) {
+            restaurarBtn();
             if (errEl) { errEl.textContent = data.error || 'Error al verificar cuenta.'; errEl.style.display = 'block'; }
             return;
           }
@@ -1605,6 +1638,9 @@
           mostrarPortal(nombre, data.folderId || '', data.suscripcion, data.esCliente, data.nroSuscriptor || '', payload.picture || '');
         })
         .catch(function() {
+          clearTimeout(timer);
+          if (timedOut) return;
+          restaurarBtn();
           if (errEl) { errEl.textContent = 'Error de conexión. Intentá de nuevo.'; errEl.style.display = 'block'; }
         });
     }
@@ -1780,10 +1816,12 @@
       if (visorWrap) visorWrap.style.display = 'none';
       _portalPdfActual = null;
 
-      // Árbol presupuestador: visible (y flecha abierta) solo en esa sección
+      // Árbol presupuestador: ocultar al salir de esa sección; al entrar, el toggle ya lo manejó
       var arrowPresu = document.getElementById('nav-presu-arrow');
-      if (treePresu) treePresu.style.display = (seccion === 'presupuestador') ? 'block' : 'none';
-      if (arrowPresu) arrowPresu.style.transform = (seccion === 'presupuestador') ? 'rotate(0deg)' : 'rotate(-90deg)';
+      if (seccion !== 'presupuestador') {
+        if (treePresu) treePresu.style.display = 'none';
+        if (arrowPresu) arrowPresu.style.transform = 'rotate(-90deg)';
+      }
 
       if (esPresupuestador) {
         if (normalWrap) normalWrap.style.display = 'none';
