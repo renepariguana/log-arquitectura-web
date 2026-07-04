@@ -1527,7 +1527,9 @@
           </div>
         </div>
         <!-- Visor PDF embebido (reemplaza la grilla cuando se selecciona un archivo) -->
-        <iframe id="portal-visor-pdf" src="" style="display:none; flex:1; min-height:0; border:none; width:100%;"></iframe>
+        <div id="portal-visor-pdf-wrap" style="display:none; flex:1; min-height:0; background:#fff; overflow:hidden;">
+          <iframe id="portal-visor-pdf" src="" style="width:100%; height:100%; border:none; display:block;"></iframe>
+        </div>
         <!-- Promo presupuestador -->
         <div id="portal-seccion-promo" style="display:none; flex:1; overflow-y:auto; padding:40px 48px;">
           <p style="font-size:10px; letter-spacing:0.2em; text-transform:uppercase; color:#aaa; margin:0 0 8px;">Disponible con suscripción</p>
@@ -1772,7 +1774,9 @@
 
       // Ocultar siempre el visor PDF al cambiar de sección
       var visor = document.getElementById('portal-visor-pdf');
-      if (visor) { visor.src = ''; visor.style.display = 'none'; }
+      var visorWrap = document.getElementById('portal-visor-pdf-wrap');
+      if (visor) visor.src = '';
+      if (visorWrap) visorWrap.style.display = 'none';
       _portalPdfActual = null;
 
       // Árbol presupuestador: visible solo en esa sección
@@ -1905,14 +1909,16 @@
       portalMostrarSeccion('proyectos');
 
       _portalPdfActual = { id: pdfId, nombre: nombre, descUrl: descUrl };
-      var visor  = document.getElementById('portal-visor-pdf');
-      var grid   = document.getElementById('portal-seccion-proyectos');
-      var ctrlPdf    = document.getElementById('portal-ctrl-pdf');
-      var ctrlPres   = document.getElementById('portal-ctrl-presupuesto');
-      var ctrlVacio  = document.getElementById('portal-ctrl-vacio');
-      var nombreEl   = document.getElementById('portal-pdf-nombre-ctrl');
-      if (visor) { visor.src = 'https://docs.google.com/viewer?srcid=' + pdfId + '&pid=explorer&a=v&chrome=false&embedded=true'; visor.style.display = 'block'; }
-      if (grid)  grid.style.display = 'none';
+      var visor     = document.getElementById('portal-visor-pdf');
+      var visorWrap = document.getElementById('portal-visor-pdf-wrap');
+      var grid      = document.getElementById('portal-seccion-proyectos');
+      var ctrlPdf   = document.getElementById('portal-ctrl-pdf');
+      var ctrlPres  = document.getElementById('portal-ctrl-presupuesto');
+      var ctrlVacio = document.getElementById('portal-ctrl-vacio');
+      var nombreEl  = document.getElementById('portal-pdf-nombre-ctrl');
+      if (visor)    visor.src = 'https://drive.google.com/file/d/' + pdfId + '/preview';
+      if (visorWrap) { visorWrap.style.display = 'flex'; visorWrap.style.flex = '1'; }
+      if (grid)      grid.style.display = 'none';
       if (ctrlPdf)   ctrlPdf.style.display   = 'flex';
       if (ctrlPres)  ctrlPres.style.display   = 'none';
       if (ctrlVacio) ctrlVacio.style.display  = 'none';
@@ -1921,11 +1927,13 @@
 
     // Vuelve a la grilla de proyectos desde el visor PDF
     function portalVolverAGrid() {
-      var visor = document.getElementById('portal-visor-pdf');
-      var grid  = document.getElementById('portal-seccion-proyectos');
+      var visor     = document.getElementById('portal-visor-pdf');
+      var visorWrap = document.getElementById('portal-visor-pdf-wrap');
+      var grid      = document.getElementById('portal-seccion-proyectos');
       var ctrlPdf   = document.getElementById('portal-ctrl-pdf');
       var ctrlVacio = document.getElementById('portal-ctrl-vacio');
-      if (visor) { visor.src = ''; visor.style.display = 'none'; }
+      if (visor)     visor.src = '';
+      if (visorWrap) visorWrap.style.display = 'none';
       if (grid)  { grid.style.display = 'flex'; grid.style.flexDirection = 'column'; }
       if (ctrlPdf)   ctrlPdf.style.display   = 'none';
       if (ctrlVacio) ctrlVacio.style.display  = 'block';
