@@ -1527,7 +1527,7 @@
           </div>
         </div>
         <!-- Visor PDF embebido (reemplaza la grilla cuando se selecciona un archivo) -->
-        <iframe id="portal-visor-pdf" src="" style="display:none; flex:1; border:none; width:100%; height:100%;"></iframe>
+        <iframe id="portal-visor-pdf" src="" style="display:none; flex:1; min-height:0; border:none; width:100%;"></iframe>
         <!-- Promo presupuestador -->
         <div id="portal-seccion-promo" style="display:none; flex:1; overflow-y:auto; padding:40px 48px;">
           <p style="font-size:10px; letter-spacing:0.2em; text-transform:uppercase; color:#aaa; margin:0 0 8px;">Disponible con suscripción</p>
@@ -1907,7 +1907,7 @@
       var ctrlPdf    = document.getElementById('portal-ctrl-pdf');
       var ctrlVacio  = document.getElementById('portal-ctrl-vacio');
       var nombreEl   = document.getElementById('portal-pdf-nombre-ctrl');
-      if (visor) { visor.src = 'https://drive.google.com/file/d/' + pdfId + '/preview'; visor.style.display = 'block'; visor.style.flex = '1'; }
+      if (visor) { visor.src = 'https://drive.google.com/file/d/' + pdfId + '/preview'; visor.style.display = 'block'; }
       if (grid)  grid.style.display = 'none';
       if (ctrlPdf)   ctrlPdf.style.display   = 'flex';
       if (ctrlVacio) ctrlVacio.style.display  = 'none';
