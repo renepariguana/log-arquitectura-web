@@ -1463,6 +1463,12 @@
         <button onclick="portalPresupuestoNuevo()" style="background:none; border:none; padding:4px 12px; font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:#737373; cursor:pointer; font-family:'DM Sans',sans-serif;">Nuevo</button>
         <button onclick="portalPresupuestoImprimir()" style="background:#0D0D0D; color:#fff; border:none; padding:6px 16px; font-size:11px; letter-spacing:0.1em; text-transform:uppercase; cursor:pointer; font-family:'DM Sans',sans-serif; border-radius:2px;">Imprimir / PDF</button>
       </div>
+      <!-- Controles PDF (visibles cuando se visualiza un archivo) -->
+      <div id="portal-ctrl-pdf" style="display:none; align-items:center; gap:12px;">
+        <span id="portal-pdf-nombre-ctrl" style="font-size:11px; color:#a3a3a3; max-width:220px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"></span>
+        <button onclick="portalPdfVer()" style="background:none; border:none; padding:4px 12px; font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:#737373; cursor:pointer; font-family:'DM Sans',sans-serif;">Ver</button>
+        <button onclick="portalPdfDescargar()" style="background:#0D0D0D; color:#fff; border:none; padding:6px 16px; font-size:11px; letter-spacing:0.1em; text-transform:uppercase; cursor:pointer; font-family:'DM Sans',sans-serif; border-radius:2px;">Descargar</button>
+      </div>
       <div id="portal-ctrl-vacio" style="width:120px;"></div>
     </div>
 
@@ -1475,10 +1481,12 @@
           <span style="font-size:12px; font-weight:600; letter-spacing:0.1em; color:#a3a3a3; text-transform:uppercase;">Portal</span>
         </div>
         <div style="flex:1; overflow-y:auto; padding:8px 0;">
-          <button id="nav-btn-proyectos" onclick="portalMostrarSeccion('proyectos')"
-            style="display:flex; align-items:center; width:100%; text-align:left; padding:10px 16px; font-size:12px; font-weight:500; color:#262626; cursor:pointer; font-family:'DM Sans',sans-serif; background:#fff; border:none; border-left:2px solid #404040; box-sizing:border-box;">
-            Mis proyectos
+          <button id="nav-btn-proyectos" onclick="portalToggleProyectos()"
+            style="display:flex; align-items:center; justify-content:space-between; width:100%; text-align:left; padding:10px 16px; font-size:12px; font-weight:500; color:#262626; cursor:pointer; font-family:'DM Sans',sans-serif; background:#fff; border:none; border-left:2px solid #404040; box-sizing:border-box;">
+            <span>Mis proyectos</span>
+            <span id="nav-proy-arrow" style="font-size:10px; color:#a3a3a3; flex-shrink:0; display:inline-block; transform:rotate(0deg); transition:transform 0.18s;">▾</span>
           </button>
+          <div id="nav-proyectos-tree" style="display:block; overflow:hidden;"></div>
           <button id="nav-btn-presupuestador" onclick="portalMostrarSeccion('presupuestador')"
             style="display:none; align-items:center; width:100%; text-align:left; padding:10px 16px; font-size:12px; font-weight:500; color:#737373; cursor:pointer; font-family:'DM Sans',sans-serif; background:none; border:none; border-left:2px solid transparent; box-sizing:border-box;">
             Presupuestador
@@ -1499,16 +1507,20 @@
       </div>
 
       <!-- Contenido central (proyectos / promo) -->
-      <div id="portal-content-normal" style="flex:1; overflow-y:auto; background:#f5f5f5;">
-        <!-- Mis proyectos -->
-        <div id="portal-seccion-proyectos" style="padding:40px 48px;">
-          <p style="font-size:10px; letter-spacing:0.2em; text-transform:uppercase; color:#888; margin-bottom:24px;">Tus proyectos</p>
-          <div id="portal-archivos" style="display:none;"></div>
-          <p id="portal-vacio" style="display:none; color:#888; font-size:14px;">No hay archivos disponibles por el momento.</p>
-          <p id="portal-cargando" style="color:#888; font-size:13px;">Cargando archivos...</p>
+      <div id="portal-content-normal" style="flex:1; overflow:hidden; background:#f5f5f5; display:flex; flex-direction:column;">
+        <!-- Mis proyectos: grilla de proyectos -->
+        <div id="portal-seccion-proyectos" style="flex:1; overflow-y:auto; display:flex; flex-direction:column;">
+          <div style="padding:40px 48px;">
+            <p style="font-size:10px; letter-spacing:0.2em; text-transform:uppercase; color:#888; margin-bottom:24px;">Tus proyectos</p>
+            <div id="portal-archivos" style="display:none;"></div>
+            <p id="portal-vacio" style="display:none; color:#888; font-size:14px;">No hay archivos disponibles por el momento.</p>
+            <p id="portal-cargando" style="color:#888; font-size:13px;">Cargando archivos...</p>
+          </div>
         </div>
+        <!-- Visor PDF embebido (reemplaza la grilla cuando se selecciona un archivo) -->
+        <iframe id="portal-visor-pdf" src="" style="display:none; flex:1; border:none; width:100%; height:100%;"></iframe>
         <!-- Promo presupuestador -->
-        <div id="portal-seccion-promo" style="display:none; padding:40px 48px;">
+        <div id="portal-seccion-promo" style="display:none; flex:1; overflow-y:auto; padding:40px 48px;">
           <p style="font-size:10px; letter-spacing:0.2em; text-transform:uppercase; color:#aaa; margin:0 0 8px;">Disponible con suscripción</p>
           <p style="font-size:22px; font-weight:300; color:#0D0D0D; margin:0 0 16px;">Presupuestador de obras</p>
           <p style="font-size:13px; color:#888; margin:0 0 28px; max-width:420px;">Creá presupuestos de construcción con análisis de precios actualizados, múltiples rubros y exportación a PDF.</p>
@@ -1525,15 +1537,6 @@
       <div id="portal-panel-derecho" style="display:none; width:280px; border-left:1px solid #E8E6E2; background:#FAFAFA; flex-shrink:0; overflow-y:auto;"></div>
 
     </div>
-  </div>
-
-  <!-- ─── VISOR PDF ─────────────────────────────────────────────── -->
-  <div id="modal-pdf" style="display:none; position:fixed; inset:0; z-index:90; background:rgba(0,0,0,0.9); flex-direction:column;">
-    <div style="display:flex; justify-content:space-between; align-items:center; padding:14px 24px; background:#0D0D0D;">
-      <p id="pdf-titulo" style="color:#fff; font-size:13px; margin:0; font-family:'DM Sans',sans-serif;"></p>
-      <button onclick="cerrarPdf()" style="background:none; border:none; color:#fff; font-size:24px; cursor:pointer; font-family:'DM Sans',sans-serif;">&times;</button>
-    </div>
-    <iframe id="pdf-frame" src="" style="flex:1; border:none; width:100%;"></iframe>
   </div>
 
   <script>
@@ -1746,41 +1749,52 @@
     }
 
 
-    function portalMostrarSeccion(seccion) {
-      // Secciones en el contenido normal
-      ['proyectos', 'promo'].forEach(function(s) {
-        var el = document.getElementById('portal-seccion-' + s);
-        if (el) el.style.display = 'none';
-      });
+    var _portalPdfActual = null;
 
+    function portalMostrarSeccion(seccion) {
       var esPresupuestador = (seccion === 'presupuestador');
       var normalWrap = document.getElementById('portal-content-normal');
       var presupWrap = document.getElementById('portal-seccion-presupuestador');
       var ctrlPres   = document.getElementById('portal-ctrl-presupuesto');
+      var ctrlPdf    = document.getElementById('portal-ctrl-pdf');
       var ctrlVacio  = document.getElementById('portal-ctrl-vacio');
+
+      // Ocultar siempre el visor PDF al cambiar de sección
+      var visor = document.getElementById('portal-visor-pdf');
+      if (visor) { visor.src = ''; visor.style.display = 'none'; }
+      _portalPdfActual = null;
 
       if (esPresupuestador) {
         if (normalWrap) normalWrap.style.display = 'none';
         if (presupWrap) presupWrap.style.display = 'flex';
-        // Cargar iframe solo la primera vez
         var iframe = document.getElementById('presupuesto-frame');
         if (iframe && !iframe.getAttribute('src')) iframe.src = iframe.getAttribute('data-src');
         if (ctrlPres) ctrlPres.style.display = 'flex';
+        if (ctrlPdf)  ctrlPdf.style.display  = 'none';
         if (ctrlVacio) ctrlVacio.style.display = 'none';
       } else {
         if (normalWrap) normalWrap.style.display = 'flex';
         if (presupWrap) presupWrap.style.display = 'none';
         if (ctrlPres) ctrlPres.style.display = 'none';
+        if (ctrlPdf)  ctrlPdf.style.display  = 'none';
         if (ctrlVacio) ctrlVacio.style.display = 'block';
-        var target = document.getElementById('portal-seccion-' + seccion);
-        if (target) target.style.display = 'block';
+        // Mostrar sección correcta dentro del contenido normal
+        ['proyectos', 'promo'].forEach(function(s) {
+          var el = document.getElementById('portal-seccion-' + s);
+          if (!el) return;
+          if (s === seccion) {
+            el.style.display = 'flex';
+            el.style.flexDirection = 'column';
+          } else {
+            el.style.display = 'none';
+          }
+        });
       }
 
       var titulos = { proyectos: 'Mis proyectos', promo: 'Presupuestador', presupuestador: 'Presupuestador' };
       var tituloEl = document.getElementById('portal-seccion-titulo');
       if (tituloEl) tituloEl.textContent = titulos[seccion] || '';
 
-      // Estilos activo/inactivo en sidebar
       var btns = {
         proyectos      : document.getElementById('nav-btn-proyectos'),
         presupuestador : document.getElementById('nav-btn-presupuestador'),
@@ -1788,11 +1802,112 @@
       };
       Object.keys(btns).forEach(function(k) {
         var b = btns[k]; if (!b) return;
-        var activo = (k === seccion);
+        var activo = (k === seccion || (k === 'proyectos' && seccion === 'proyectos'));
         b.style.background      = activo ? '#fff' : 'none';
         b.style.borderLeftColor = activo ? '#404040' : 'transparent';
         b.style.color           = activo ? '#262626' : '#737373';
       });
+    }
+
+    // Toggle del árbol de proyectos en el sidebar
+    function portalToggleProyectos() {
+      var tree  = document.getElementById('nav-proyectos-tree');
+      var arrow = document.getElementById('nav-proy-arrow');
+      var abierto = tree.style.display !== 'none';
+      tree.style.display = abierto ? 'none' : 'block';
+      if (arrow) arrow.style.transform = abierto ? 'rotate(-90deg)' : 'rotate(0deg)';
+      // Cambiar a sección proyectos (y volver a la grilla si había PDF abierto)
+      portalMostrarSeccion('proyectos');
+    }
+
+    // Popula el árbol lateral con los proyectos y sus archivos
+    function portalPopularArbol(proyectos) {
+      var tree = document.getElementById('nav-proyectos-tree');
+      if (!tree) return;
+      var html = '';
+      proyectos.forEach(function(proy, idx) {
+        html += '<div>';
+        html += '<button id="nav-proy-btn-' + idx + '" onclick="portalSeleccionarProyecto(' + idx + ')"' +
+          ' style="display:flex; align-items:center; width:100%; text-align:left; padding:8px 16px 8px 24px; font-size:11.5px; color:#404040; cursor:pointer; font-family:\'DM Sans\',sans-serif; background:none; border:none; box-sizing:border-box; gap:6px;">' +
+          '<span class="nav-proy-arrow-item" style="font-size:9px; color:#bbb; flex-shrink:0; display:inline-block; transform:rotate(-90deg); transition:transform 0.15s;">▾</span>' +
+          '<span style="flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">' + proy.proyecto + '</span>' +
+          '</button>';
+        html += '<div id="nav-proy-files-' + idx + '" style="display:none;">';
+        if (proy.pdfs && proy.pdfs.length > 0) {
+          proy.pdfs.forEach(function(pdf) {
+            var nom = pdf.nombre.replace(/'/g, "\\'");
+            var desc = 'https://drive.google.com/uc?export=download&id=' + pdf.id;
+            html += '<button onclick="portalVerPdfEnPortal(\'' + pdf.id + '\',\'' + nom + '\',\'' + desc + '\')"' +
+              ' style="display:flex; align-items:center; width:100%; text-align:left; padding:7px 16px 7px 38px; font-size:11px; color:#737373; cursor:pointer; font-family:\'DM Sans\',sans-serif; background:none; border:none; box-sizing:border-box; gap:6px;">' +
+              '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#bbb" stroke-width="2" style="flex-shrink:0;"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>' +
+              '<span style="flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">' + pdf.nombre + '</span>' +
+              '</button>';
+          });
+        } else {
+          html += '<p style="padding:6px 16px 6px 38px; font-size:11px; color:#ccc; margin:0; font-family:\'DM Sans\',sans-serif;">Sin archivos</p>';
+        }
+        html += '</div></div>';
+      });
+      tree.innerHTML = html;
+    }
+
+    // Expande/colapsa los archivos de un proyecto en el árbol lateral
+    function portalSeleccionarProyecto(idx) {
+      var proyectos = window._portalProyectos || [];
+      var filesDiv = document.getElementById('nav-proy-files-' + idx);
+      var btn      = document.getElementById('nav-proy-btn-' + idx);
+      if (!filesDiv) return;
+      var abierto = filesDiv.style.display !== 'none';
+      // Colapsar todos los demás
+      proyectos.forEach(function(_, i) {
+        if (i === idx) return;
+        var fd = document.getElementById('nav-proy-files-' + i);
+        var b  = document.getElementById('nav-proy-btn-' + i);
+        if (fd) fd.style.display = 'none';
+        if (b) { var arr = b.querySelector('.nav-proy-arrow-item'); if (arr) arr.style.transform = 'rotate(-90deg)'; }
+      });
+      filesDiv.style.display = abierto ? 'none' : 'block';
+      if (btn) {
+        var arrow = btn.querySelector('.nav-proy-arrow-item');
+        if (arrow) arrow.style.transform = abierto ? 'rotate(-90deg)' : 'rotate(0deg)';
+      }
+      // Volver a la grilla si había PDF abierto
+      if (!abierto) portalVolverAGrid();
+    }
+
+    // Muestra el PDF en el visor central y los controles en la barra superior
+    function portalVerPdfEnPortal(pdfId, nombre, descUrl) {
+      _portalPdfActual = { id: pdfId, nombre: nombre, descUrl: descUrl };
+      var visor  = document.getElementById('portal-visor-pdf');
+      var grid   = document.getElementById('portal-seccion-proyectos');
+      var ctrlPdf    = document.getElementById('portal-ctrl-pdf');
+      var ctrlVacio  = document.getElementById('portal-ctrl-vacio');
+      var nombreEl   = document.getElementById('portal-pdf-nombre-ctrl');
+      if (visor) { visor.src = 'https://drive.google.com/file/d/' + pdfId + '/preview'; visor.style.display = 'block'; visor.style.flex = '1'; }
+      if (grid)  grid.style.display = 'none';
+      if (ctrlPdf)   ctrlPdf.style.display   = 'flex';
+      if (ctrlVacio) ctrlVacio.style.display  = 'none';
+      if (nombreEl)  nombreEl.textContent     = nombre;
+    }
+
+    // Vuelve a la grilla de proyectos desde el visor PDF
+    function portalVolverAGrid() {
+      var visor = document.getElementById('portal-visor-pdf');
+      var grid  = document.getElementById('portal-seccion-proyectos');
+      var ctrlPdf   = document.getElementById('portal-ctrl-pdf');
+      var ctrlVacio = document.getElementById('portal-ctrl-vacio');
+      if (visor) { visor.src = ''; visor.style.display = 'none'; }
+      if (grid)  { grid.style.display = 'flex'; grid.style.flexDirection = 'column'; }
+      if (ctrlPdf)   ctrlPdf.style.display   = 'none';
+      if (ctrlVacio) ctrlVacio.style.display  = 'block';
+      _portalPdfActual = null;
+    }
+
+    function portalPdfVer() {
+      if (_portalPdfActual) window.open('https://drive.google.com/file/d/' + _portalPdfActual.id + '/view', '_blank');
+    }
+    function portalPdfDescargar() {
+      if (_portalPdfActual) window.open(_portalPdfActual.descUrl, '_blank');
     }
 
     // Comunicación con el iframe del presupuestador
@@ -1851,18 +1966,13 @@
           contenedor.style.display = 'block';
 
           function portalCard(proy, idx, imgH) {
-            var num = (idx + 1) < 10 ? '0' + (idx + 1) : String(idx + 1);
             var imgSrc = proy.coverId
               ? 'https://lh3.googleusercontent.com/d/' + proy.coverId
               : 'https://placehold.co/800x520/E8E6E2/C0BCB8?text=Sin+imagen';
-            return '<div class="group cursor-pointer" onclick="abrirProyectoPortal(' + idx + ')">' +
-              '<img src="' + imgSrc + '" class="w-full object-cover" style="height:' + imgH + '">' +
-              '<div class="mt-2.5 flex justify-between items-start">' +
-                '<div>' +
-                  '<p class="text-[13px] font-medium leading-snug">' + proy.proyecto + '</p>' +
-                  '<p class="text-[11px] text-gray-400 mt-0.5">' + proy.pdfs.length + ' archivo' + (proy.pdfs.length !== 1 ? 's' : '') + '</p>' +
-                '</div>' +
-                '<span class="text-[10px] text-gray-300 mt-0.5">' + num + '</span>' +
+            return '<div class="cursor-pointer" onclick="portalSeleccionarProyecto(' + idx + ')">' +
+              '<img src="' + imgSrc + '" class="w-full object-cover" style="height:' + imgH + '; object-fit:cover;">' +
+              '<div class="mt-2.5">' +
+                '<p class="text-[13px] font-medium leading-snug">' + proy.proyecto + '</p>' +
               '</div>' +
             '</div>';
           }
@@ -1881,46 +1991,16 @@
             for (var c = 0; c < fila.length; c++) html += portalCard(fila[c], 2 + r + c, '190px');
             html += '</div>';
           }
-          html += '<div id="portal-pdf-panel" style="display:none;"></div>';
           contenedor.innerHTML = html;
+
+          // Poblar árbol lateral
+          portalPopularArbol(proyectos);
         })
         .catch(function() {
           document.getElementById('portal-cargando').style.display = 'none';
           document.getElementById('portal-vacio').style.display = 'block';
           document.getElementById('portal-vacio').textContent = 'Error al cargar archivos.';
         });
-    }
-
-    function abrirProyectoPortal(idx) {
-      var proy  = window._portalProyectos[idx];
-      var panel = document.getElementById('portal-pdf-panel');
-      panel.style.display = 'block';
-      panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
-
-      var pdfsHtml = '';
-      if (proy.pdfs && proy.pdfs.length > 0) {
-        proy.pdfs.forEach(function(pdf) {
-          var nombreEsc = pdf.nombre.replace(/'/g, "\\'");
-          pdfsHtml +=
-            '<div style="display:flex; align-items:center; gap:12px; padding:14px 0; border-bottom:1px solid #f0f0f0;">' +
-              '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>' +
-              '<span style="font-size:13px; color:#0D0D0D; flex:1;">' + pdf.nombre + '</span>' +
-              '<button onclick="verPdf(\'' + pdf.id + '\',\'' + nombreEsc + '\')" style="background:#0D0D0D; color:#fff; border:none; padding:9px 18px; font-size:10px; letter-spacing:0.12em; text-transform:uppercase; cursor:pointer; font-family:\'DM Sans\',sans-serif;">Ver</button>' +
-              '<a href="https://drive.google.com/uc?export=download&id=' + pdf.id + '" target="_blank" style="background:#fff; color:#0D0D0D; border:1px solid #ccc; padding:9px 18px; font-size:10px; letter-spacing:0.12em; text-transform:uppercase; text-decoration:none; font-family:\'DM Sans\',sans-serif;">Descargar</a>' +
-            '</div>';
-        });
-      } else {
-        pdfsHtml = '<p style="font-size:13px; color:#aaa; padding:16px 0;">Sin archivos aún.</p>';
-      }
-
-      panel.innerHTML =
-        '<div style="border-top:1px solid #e0e0e0; padding-top:32px;">' +
-          '<div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;">' +
-            '<h3 style="font-size:11px; letter-spacing:0.2em; text-transform:uppercase; color:#0D0D0D; margin:0;">' + proy.proyecto + '</h3>' +
-            '<button onclick="document.getElementById(\'portal-pdf-panel\').style.display=\'none\'" style="background:none; border:none; cursor:pointer; font-size:20px; color:#888; line-height:1;">&times;</button>' +
-          '</div>' +
-          pdfsHtml +
-        '</div>';
     }
 
     function clientesCerrarSesion() {
@@ -1932,16 +2012,6 @@
       }
     }
 
-    function verPdf(id, nombre) {
-      document.getElementById('pdf-titulo').textContent = nombre;
-      document.getElementById('pdf-frame').src = 'https://drive.google.com/file/d/' + id + '/preview';
-      document.getElementById('modal-pdf').style.display = 'flex';
-    }
-
-    function cerrarPdf() {
-      document.getElementById('pdf-frame').src = '';
-      document.getElementById('modal-pdf').style.display = 'none';
-    }
   </script>
 
 </body>
