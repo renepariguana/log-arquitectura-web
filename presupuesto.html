@@ -329,6 +329,21 @@
     var usuarioActual = null;
 
     function initLogin() {
+      // Primero: leer sesión del portal (cl_sesion en sessionStorage)
+      var portalSesion = sessionStorage.getItem('cl_sesion');
+      if (portalSesion) {
+        try {
+          var datos = JSON.parse(portalSesion);
+          if (datos.suscripcion && datos.email) {
+            usuarioActual = { email: datos.email, nombre: datos.nombre, foto: datos.picture || '' };
+            localStorage.setItem('log_usuario', JSON.stringify(usuarioActual));
+            mostrarUsuario();
+            document.getElementById('login-overlay').classList.add('hidden');
+            return;
+          }
+        } catch(e) {}
+      }
+      // Segundo: sesión propia guardada
       var guardado = localStorage.getItem('log_usuario');
       if (guardado) {
         usuarioActual = JSON.parse(guardado);
@@ -336,7 +351,7 @@
         document.getElementById('login-overlay').classList.add('hidden');
         return;
       }
-      // Inicializar Google Sign-In
+      // Sin sesión: mostrar botón Google
       google.accounts.id.initialize({
         client_id: GOOGLE_CLIENT_ID,
         callback: onGoogleLogin,
