@@ -406,6 +406,21 @@
       return new Date().toLocaleDateString('es-AR', { day: '2-digit', month: 'long', year: 'numeric' });
     }
 
+    // Modo embebido: ocultar header propio, comunicar con portal padre
+    var isEmbedded = new URLSearchParams(window.location.search).get('embedded') === '1';
+    if (isEmbedded) {
+      document.addEventListener('DOMContentLoaded', function() {
+        var h = document.getElementById('app-header');
+        if (h) h.style.display = 'none';
+      });
+      // Escuchar acciones del portal padre
+      window.addEventListener('message', function(e) {
+        if (!e.data) return;
+        if (e.data.type === 'nuevo')    nuevoPresupuesto();
+        if (e.data.type === 'imprimir') window.print();
+      });
+    }
+
     window.onload = function() {
       initLogin();
       document.getElementById('obra-fecha').value = hoyFormateado();
@@ -416,7 +431,6 @@
       fetch(SCRIPT_URL + '?action=cascada')
         .then(function(r) { return r.json(); })
         .then(function(d) { cnCascada = d; });
-      // Actualizar fecha cada vez que se abre la página
       setInterval(function() {
         document.getElementById('obra-fecha').value = hoyFormateado();
       }, 60000);
@@ -434,6 +448,7 @@
           todosRubros = data.rubros || [];
           todosItems  = data.items  || [];
           document.getElementById('estado-sync').textContent = todosItems.length + ' ítems disponibles';
+          if (isEmbedded) window.parent.postMessage({ type: 'items-count', count: todosItems.length }, '*');
           poblarRubrosCrear();
           if (presupuesto.length) renderPresupuesto();
         })

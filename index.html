@@ -1457,7 +1457,13 @@
         <span style="font-size:10px; font-weight:300; letter-spacing:0.28em; text-transform:uppercase; color:#888;">arquitectura</span>
       </div>
       <span id="portal-seccion-titulo" style="font-size:11px; letter-spacing:0.15em; text-transform:uppercase; color:#a3a3a3; position:absolute; left:50%; transform:translateX(-50%);">Mis proyectos</span>
-      <div style="width:120px;"></div>
+      <!-- Controles presupuestador (visibles solo cuando esa sección está activa) -->
+      <div id="portal-ctrl-presupuesto" style="display:none; align-items:center; gap:12px;">
+        <span id="portal-items-count" style="font-size:11px; color:#a3a3a3;">Cargando ítems...</span>
+        <button onclick="portalPresupuestoNuevo()" style="background:none; border:none; padding:4px 12px; font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:#737373; cursor:pointer; font-family:'DM Sans',sans-serif;">Nuevo</button>
+        <button onclick="portalPresupuestoImprimir()" style="background:#0D0D0D; color:#fff; border:none; padding:6px 16px; font-size:11px; letter-spacing:0.1em; text-transform:uppercase; cursor:pointer; font-family:'DM Sans',sans-serif; border-radius:2px;">Imprimir / PDF</button>
+      </div>
+      <div id="portal-ctrl-vacio" style="width:120px;"></div>
     </div>
 
     <!-- Body -->
@@ -1473,10 +1479,10 @@
             style="display:flex; align-items:center; width:100%; text-align:left; padding:10px 16px; font-size:12px; font-weight:500; color:#262626; cursor:pointer; font-family:'DM Sans',sans-serif; background:#fff; border:none; border-left:2px solid #404040; box-sizing:border-box;">
             Mis proyectos
           </button>
-          <a id="nav-btn-presupuestador" href="presupuesto.html"
-            style="display:none; align-items:center; width:100%; text-align:left; padding:10px 16px; font-size:12px; font-weight:500; color:#737373; font-family:'DM Sans',sans-serif; text-decoration:none; border-left:2px solid transparent; box-sizing:border-box;">
+          <button id="nav-btn-presupuestador" onclick="portalMostrarSeccion('presupuestador')"
+            style="display:none; align-items:center; width:100%; text-align:left; padding:10px 16px; font-size:12px; font-weight:500; color:#737373; cursor:pointer; font-family:'DM Sans',sans-serif; background:none; border:none; border-left:2px solid transparent; box-sizing:border-box;">
             Presupuestador
-          </a>
+          </button>
           <button id="nav-btn-presupuestador-lock" onclick="portalMostrarSeccion('promo')"
             style="display:none; align-items:center; justify-content:space-between; width:100%; text-align:left; padding:10px 16px; font-size:12px; font-weight:500; color:#737373; cursor:pointer; font-family:'DM Sans',sans-serif; background:none; border:none; border-left:2px solid transparent; box-sizing:border-box;">
             Presupuestador<span style="font-size:9px; background:#e5e5e5; color:#a3a3a3; padding:1px 5px; margin-left:6px; border-radius:2px;">PRO</span>
@@ -1492,8 +1498,8 @@
         </div>
       </div>
 
-      <!-- Contenido central -->
-      <div style="flex:1; overflow-y:auto; background:#f5f5f5;">
+      <!-- Contenido central (proyectos / promo) -->
+      <div id="portal-content-normal" style="flex:1; overflow-y:auto; background:#f5f5f5;">
         <!-- Mis proyectos -->
         <div id="portal-seccion-proyectos" style="padding:40px 48px;">
           <p style="font-size:10px; letter-spacing:0.2em; text-transform:uppercase; color:#888; margin-bottom:24px;">Tus proyectos</p>
@@ -1508,6 +1514,11 @@
           <p style="font-size:13px; color:#888; margin:0 0 28px; max-width:420px;">Creá presupuestos de construcción con análisis de precios actualizados, múltiples rubros y exportación a PDF.</p>
           <button onclick="clMostrarSuscripcionDesdePortal()" style="background:#0D0D0D; color:#fff; border:none; padding:12px 28px; font-size:10px; letter-spacing:0.15em; text-transform:uppercase; cursor:pointer; font-family:'DM Sans',sans-serif;">Suscribirme</button>
         </div>
+      </div>
+
+      <!-- Presupuestador embebido (reemplaza contenido + panel derecho) -->
+      <div id="portal-seccion-presupuestador" style="display:none; flex:1; overflow:hidden;">
+        <iframe id="presupuesto-frame" src="" style="width:100%; height:100%; border:none;"></iframe>
       </div>
 
       <!-- Panel derecho (próximamente) -->
@@ -1736,31 +1747,69 @@
 
 
     function portalMostrarSeccion(seccion) {
+      // Secciones en el contenido normal
       ['proyectos', 'promo'].forEach(function(s) {
         var el = document.getElementById('portal-seccion-' + s);
         if (el) el.style.display = 'none';
       });
-      var target = document.getElementById('portal-seccion-' + seccion);
-      if (target) target.style.display = 'block';
 
-      var titulos = { proyectos: 'Mis proyectos', promo: 'Presupuestador' };
+      var esPresupuestador = (seccion === 'presupuestador');
+      var normalWrap = document.getElementById('portal-content-normal');
+      var presupWrap = document.getElementById('portal-seccion-presupuestador');
+      var ctrlPres   = document.getElementById('portal-ctrl-presupuesto');
+      var ctrlVacio  = document.getElementById('portal-ctrl-vacio');
+
+      if (esPresupuestador) {
+        if (normalWrap) normalWrap.style.display = 'none';
+        if (presupWrap) presupWrap.style.display = 'flex';
+        // Cargar iframe solo la primera vez
+        var iframe = document.getElementById('presupuesto-frame');
+        if (iframe && !iframe.src) iframe.src = 'presupuesto.html?embedded=1';
+        if (ctrlPres) ctrlPres.style.display = 'flex';
+        if (ctrlVacio) ctrlVacio.style.display = 'none';
+      } else {
+        if (normalWrap) normalWrap.style.display = 'flex';
+        if (presupWrap) presupWrap.style.display = 'none';
+        if (ctrlPres) ctrlPres.style.display = 'none';
+        if (ctrlVacio) ctrlVacio.style.display = 'block';
+        var target = document.getElementById('portal-seccion-' + seccion);
+        if (target) target.style.display = 'block';
+      }
+
+      var titulos = { proyectos: 'Mis proyectos', promo: 'Presupuestador', presupuestador: 'Presupuestador' };
       var tituloEl = document.getElementById('portal-seccion-titulo');
       if (tituloEl) tituloEl.textContent = titulos[seccion] || '';
 
-      // Estilo activo/inactivo igual que presupuesto.html
-      var btnProy = document.getElementById('nav-btn-proyectos');
-      if (btnProy) {
-        btnProy.style.background      = (seccion === 'proyectos') ? '#fff' : 'none';
-        btnProy.style.borderLeftColor = (seccion === 'proyectos') ? '#404040' : 'transparent';
-        btnProy.style.color           = (seccion === 'proyectos') ? '#262626' : '#737373';
-      }
-      var btnPromo = document.getElementById('nav-btn-presupuestador-lock');
-      if (btnPromo) {
-        btnPromo.style.background      = (seccion === 'promo') ? '#fff' : 'none';
-        btnPromo.style.borderLeftColor = (seccion === 'promo') ? '#404040' : 'transparent';
-        btnPromo.style.color           = (seccion === 'promo') ? '#262626' : '#737373';
-      }
+      // Estilos activo/inactivo en sidebar
+      var btns = {
+        proyectos      : document.getElementById('nav-btn-proyectos'),
+        presupuestador : document.getElementById('nav-btn-presupuestador'),
+        promo          : document.getElementById('nav-btn-presupuestador-lock')
+      };
+      Object.keys(btns).forEach(function(k) {
+        var b = btns[k]; if (!b) return;
+        var activo = (k === seccion);
+        b.style.background      = activo ? '#fff' : 'none';
+        b.style.borderLeftColor = activo ? '#404040' : 'transparent';
+        b.style.color           = activo ? '#262626' : '#737373';
+      });
     }
+
+    // Comunicación con el iframe del presupuestador
+    function portalPresupuestoNuevo() {
+      var iframe = document.getElementById('presupuesto-frame');
+      if (iframe && iframe.contentWindow) iframe.contentWindow.postMessage({ type: 'nuevo' }, '*');
+    }
+    function portalPresupuestoImprimir() {
+      var iframe = document.getElementById('presupuesto-frame');
+      if (iframe && iframe.contentWindow) iframe.contentWindow.postMessage({ type: 'imprimir' }, '*');
+    }
+    window.addEventListener('message', function(e) {
+      if (e.data && e.data.type === 'items-count') {
+        var el = document.getElementById('portal-items-count');
+        if (el) el.textContent = e.data.count + ' ítems disponibles';
+      }
+    });
 
     function mostrarPortal(nombre, folderId, suscripcion, esCliente, nroSuscriptor, picture) {
       document.getElementById('portal-saludo').textContent = nombre;
