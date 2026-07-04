@@ -1453,37 +1453,38 @@
     <!-- Body -->
     <div style="display:flex; flex:1; overflow:hidden;">
 
-      <!-- Sidebar izquierda -->
-      <div style="width:220px; background:#FAFAFA; border-right:1px solid #E8E6E2; display:flex; flex-direction:column; flex-shrink:0;">
-        <nav style="flex:1; padding:28px 0; overflow-y:auto;">
+      <!-- Sidebar izquierda — mismo estilo que presupuesto.html -->
+      <div style="width:224px; background:#f5f5f5; border-right:1px solid #e5e5e5; display:flex; flex-direction:column; flex-shrink:0;">
+        <div style="padding:12px 16px; border-bottom:1px solid #e5e5e5;">
+          <span style="font-size:12px; font-weight:600; letter-spacing:0.1em; color:#a3a3a3; text-transform:uppercase;">Portal</span>
+        </div>
+        <div style="flex:1; overflow-y:auto; padding:8px 0;">
           <button id="nav-btn-proyectos" onclick="portalMostrarSeccion('proyectos')"
-            style="display:block; width:100%; text-align:left; background:none; border:none; border-left:2px solid #0D0D0D; padding:11px 20px; font-size:10px; letter-spacing:0.15em; text-transform:uppercase; color:#0D0D0D; cursor:pointer; font-family:'DM Sans',sans-serif;">
+            style="display:flex; align-items:center; width:100%; text-align:left; padding:10px 16px; font-size:12px; font-weight:500; color:#262626; cursor:pointer; font-family:'DM Sans',sans-serif; background:#fff; border:none; border-left:2px solid #404040; box-sizing:border-box;">
             Mis proyectos
           </button>
-          <!-- Presupuestador: con suscripción -->
           <a id="nav-btn-presupuestador" href="presupuesto.html"
-            style="display:none; width:100%; text-align:left; background:none; border:none; border-left:2px solid transparent; padding:11px 20px; font-size:10px; letter-spacing:0.15em; text-transform:uppercase; color:#0D0D0D; cursor:pointer; font-family:'DM Sans',sans-serif; text-decoration:none; box-sizing:border-box;">
+            style="display:none; align-items:center; width:100%; text-align:left; padding:10px 16px; font-size:12px; font-weight:500; color:#737373; font-family:'DM Sans',sans-serif; text-decoration:none; border-left:2px solid transparent; box-sizing:border-box;">
             Presupuestador
           </a>
-          <!-- Presupuestador: sin suscripción -->
           <button id="nav-btn-presupuestador-lock" onclick="portalMostrarSeccion('promo')"
-            style="display:none; width:100%; text-align:left; background:none; border:none; border-left:2px solid transparent; padding:11px 20px; font-size:10px; letter-spacing:0.15em; text-transform:uppercase; color:#bbb; cursor:pointer; font-family:'DM Sans',sans-serif;">
-            Presupuestador&nbsp;<span style="font-size:8px; background:#eee; color:#aaa; padding:2px 5px; vertical-align:middle;">PRO</span>
+            style="display:none; align-items:center; justify-content:space-between; width:100%; text-align:left; padding:10px 16px; font-size:12px; font-weight:500; color:#737373; cursor:pointer; font-family:'DM Sans',sans-serif; background:none; border:none; border-left:2px solid transparent; box-sizing:border-box;">
+            Presupuestador<span style="font-size:9px; background:#e5e5e5; color:#a3a3a3; padding:1px 5px; margin-left:6px; border-radius:2px;">PRO</span>
           </button>
-        </nav>
-        <!-- Usuario -->
-        <div style="padding:14px 20px; border-top:1px solid #E8E6E2; display:flex; align-items:center; gap:10px;">
-          <img id="portal-avatar" src="" alt="" style="width:32px; height:32px; border-radius:50%; object-fit:cover; display:none; flex-shrink:0;">
-          <div style="min-width:0;">
-            <p id="portal-saludo" style="font-size:13px; font-weight:400; color:#0D0D0D; margin:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Cliente</p>
-            <p id="portal-nro-suscriptor" style="display:none; font-size:10px; letter-spacing:0.12em; text-transform:uppercase; color:#aaa; margin:2px 0 0;">Suscriptor #<span id="portal-nro-val"></span></p>
-            <button onclick="clientesCerrarSesion()" style="background:none; border:none; padding:0; font-size:11px; color:#aaa; cursor:pointer; font-family:'DM Sans',sans-serif; margin-top:2px;">Cerrar sesión</button>
+        </div>
+        <!-- Usuario — igual a presupuesto.html -->
+        <div style="border-top:1px solid #e5e5e5; padding:12px 16px; display:flex; align-items:center; gap:10px;">
+          <img id="portal-avatar" src="" alt="" style="width:28px; height:28px; border-radius:50%; object-fit:cover; display:none; flex-shrink:0;">
+          <div style="flex:1; min-width:0;">
+            <p id="portal-saludo" style="font-size:12px; font-weight:500; color:#404040; margin:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Cliente</p>
+            <p id="portal-nro-suscriptor" style="display:none; font-size:10px; color:#a3a3a3; margin:1px 0 0;">Suscriptor #<span id="portal-nro-val"></span></p>
+            <button onclick="clientesCerrarSesion()" style="background:none; border:none; padding:0; font-size:12px; color:#a3a3a3; cursor:pointer; font-family:'DM Sans',sans-serif;">Cerrar sesión</button>
           </div>
         </div>
       </div>
 
       <!-- Contenido central -->
-      <div style="flex:1; overflow-y:auto; background:#F7F5F2;">
+      <div style="flex:1; overflow-y:auto; background:#f5f5f5;">
         <!-- Mis proyectos -->
         <div id="portal-seccion-proyectos" style="padding:40px 48px;">
           <p style="font-size:10px; letter-spacing:0.2em; text-transform:uppercase; color:#888; margin-bottom:24px;">Tus proyectos</p>
@@ -1726,8 +1727,7 @@
 
 
     function portalMostrarSeccion(seccion) {
-      var secciones = ['proyectos', 'promo'];
-      secciones.forEach(function(s) {
+      ['proyectos', 'promo'].forEach(function(s) {
         var el = document.getElementById('portal-seccion-' + s);
         if (el) el.style.display = 'none';
       });
@@ -1738,8 +1738,19 @@
       var tituloEl = document.getElementById('portal-seccion-titulo');
       if (tituloEl) tituloEl.textContent = titulos[seccion] || '';
 
-      var navProyectos = document.getElementById('nav-btn-proyectos');
-      if (navProyectos) navProyectos.style.borderLeftColor = (seccion === 'proyectos') ? '#0D0D0D' : 'transparent';
+      // Estilo activo/inactivo igual que presupuesto.html
+      var btnProy = document.getElementById('nav-btn-proyectos');
+      if (btnProy) {
+        btnProy.style.background      = (seccion === 'proyectos') ? '#fff' : 'none';
+        btnProy.style.borderLeftColor = (seccion === 'proyectos') ? '#404040' : 'transparent';
+        btnProy.style.color           = (seccion === 'proyectos') ? '#262626' : '#737373';
+      }
+      var btnPromo = document.getElementById('nav-btn-presupuestador-lock');
+      if (btnPromo) {
+        btnPromo.style.background      = (seccion === 'promo') ? '#fff' : 'none';
+        btnPromo.style.borderLeftColor = (seccion === 'promo') ? '#404040' : 'transparent';
+        btnPromo.style.color           = (seccion === 'promo') ? '#262626' : '#737373';
+      }
     }
 
     function mostrarPortal(nombre, folderId, suscripcion, esCliente, nroSuscriptor, picture) {
