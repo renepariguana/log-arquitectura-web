@@ -1491,6 +1491,7 @@
             style="display:none; align-items:center; width:100%; text-align:left; padding:10px 16px; font-size:12px; font-weight:500; color:#737373; cursor:pointer; font-family:'DM Sans',sans-serif; background:none; border:none; border-left:2px solid transparent; box-sizing:border-box;">
             Presupuestador
           </button>
+          <div id="nav-presupuestador-tree" style="display:none; overflow:hidden;"></div>
           <button id="nav-btn-presupuestador-lock" onclick="portalMostrarSeccion('promo')"
             style="display:none; align-items:center; justify-content:space-between; width:100%; text-align:left; padding:10px 16px; font-size:12px; font-weight:500; color:#737373; cursor:pointer; font-family:'DM Sans',sans-serif; background:none; border:none; border-left:2px solid transparent; box-sizing:border-box;">
             Presupuestador<span style="font-size:9px; background:#e5e5e5; color:#a3a3a3; padding:1px 5px; margin-left:6px; border-radius:2px;">PRO</span>
@@ -1759,21 +1760,32 @@
       var ctrlPdf    = document.getElementById('portal-ctrl-pdf');
       var ctrlVacio  = document.getElementById('portal-ctrl-vacio');
       var panelDer   = document.getElementById('portal-panel-derecho');
+      var treePresu  = document.getElementById('nav-presupuestador-tree');
 
       // Ocultar siempre el visor PDF al cambiar de sección
       var visor = document.getElementById('portal-visor-pdf');
       if (visor) { visor.src = ''; visor.style.display = 'none'; }
       _portalPdfActual = null;
 
+      // Árbol presupuestador: visible solo en esa sección
+      if (treePresu) treePresu.style.display = (seccion === 'presupuestador') ? 'block' : 'none';
+
       if (esPresupuestador) {
         if (normalWrap) normalWrap.style.display = 'none';
         if (presupWrap) presupWrap.style.display = 'flex';
         var iframe = document.getElementById('presupuesto-frame');
-        if (iframe && !iframe.getAttribute('src')) iframe.src = iframe.getAttribute('data-src');
+        var esPrimera = iframe && !iframe.getAttribute('src');
+        if (esPrimera) iframe.src = iframe.getAttribute('data-src');
         if (ctrlPres) ctrlPres.style.display = 'flex';
         if (ctrlPdf)  ctrlPdf.style.display  = 'none';
         if (ctrlVacio) ctrlVacio.style.display = 'none';
         if (panelDer) panelDer.style.display  = 'none';
+        // Poblar árbol: si ya cargó el iframe, pedir lista; si no, leer localStorage directamente
+        if (!esPrimera) {
+          iframe.contentWindow.postMessage({ type: 'pedir-pptos' }, '*');
+        } else {
+          portalRefrescarArbolPptos();
+        }
       } else {
         if (normalWrap) normalWrap.style.display = 'flex';
         if (presupWrap) presupWrap.style.display = 'none';
@@ -1923,10 +1935,49 @@
       var iframe = document.getElementById('presupuesto-frame');
       if (iframe && iframe.contentWindow) iframe.contentWindow.postMessage({ type: 'imprimir' }, '*');
     }
+
+    // Árbol lateral de presupuestos
+    function portalPopularArbolPptos(lista, activoId) {
+      var tree = document.getElementById('nav-presupuestador-tree');
+      if (!tree) return;
+      if (!lista || !lista.length) {
+        tree.innerHTML = '<p style="padding:6px 16px 6px 24px; font-size:11px; color:#ccc; margin:0; font-family:\'DM Sans\',sans-serif;">Sin presupuestos</p>';
+        return;
+      }
+      var html = '';
+      lista.forEach(function(p) {
+        var nombre = (p.obra && p.obra.nombre && p.obra.nombre.trim()) ? p.obra.nombre.trim() : 'Sin nombre';
+        var esActivo = (p.id === activoId);
+        html += '<button onclick="portalCargarPpto(\'' + p.id + '\')"' +
+          ' style="display:flex; align-items:center; width:100%; text-align:left; padding:7px 16px 7px 24px; font-size:11px; color:' + (esActivo ? '#0D0D0D' : '#737373') + '; font-weight:' + (esActivo ? '600' : '400') + '; cursor:pointer; font-family:\'DM Sans\',sans-serif; background:' + (esActivo ? '#e8e8e8' : 'none') + '; border:none; box-sizing:border-box; gap:6px;">' +
+          '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="' + (esActivo ? '#404040' : '#ccc') + '" stroke-width="2" style="flex-shrink:0;"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>' +
+          '<span style="flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">' + nombre + '</span>' +
+          '</button>';
+      });
+      tree.innerHTML = html;
+    }
+
+    function portalCargarPpto(id) {
+      var iframe = document.getElementById('presupuesto-frame');
+      if (iframe && iframe.contentWindow) iframe.contentWindow.postMessage({ type: 'cargar-ppto', id: id }, '*');
+    }
+
+    function portalRefrescarArbolPptos() {
+      try {
+        var lista = JSON.parse(localStorage.getItem('log_pptos') || '[]');
+        var activo = localStorage.getItem('log_ppto_activo') || (lista.length ? lista[lista.length - 1].id : '');
+        portalPopularArbolPptos(lista, activo);
+      } catch(e) {}
+    }
+
     window.addEventListener('message', function(e) {
-      if (e.data && e.data.type === 'items-count') {
+      if (!e.data) return;
+      if (e.data.type === 'items-count') {
         var el = document.getElementById('portal-items-count');
         if (el) el.textContent = e.data.count + ' ítems disponibles';
+      }
+      if (e.data.type === 'pptos-updated') {
+        portalPopularArbolPptos(e.data.lista, e.data.activo);
       }
     });
 

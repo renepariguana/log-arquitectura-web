@@ -418,8 +418,10 @@
       // Escuchar acciones del portal padre
       window.addEventListener('message', function(e) {
         if (!e.data) return;
-        if (e.data.type === 'nuevo')    nuevoPresupuesto();
-        if (e.data.type === 'imprimir') window.print();
+        if (e.data.type === 'nuevo')      nuevoPresupuesto();
+        if (e.data.type === 'imprimir')   window.print();
+        if (e.data.type === 'cargar-ppto') cargarPresupuesto(e.data.id);
+        if (e.data.type === 'pedir-pptos') pptosSave(pptosList()); // reenvía la lista actualizada
       });
     }
 
@@ -616,6 +618,7 @@
 
     function pptosSave(lista) {
       localStorage.setItem('log_pptos', JSON.stringify(lista));
+      if (isEmbedded) window.parent.postMessage({ type: 'pptos-updated', lista: lista, activo: pptoActivo }, '*');
     }
 
     function guardarLocal() {
