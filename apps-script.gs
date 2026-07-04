@@ -183,6 +183,56 @@ function doGet(e) {
     }
   }
 
+  if (e && e.parameter && e.parameter.action === 'loginGoogle') {
+    try {
+      var email = (e.parameter.email || '').toLowerCase().trim();
+      if (!email) throw new Error('Email requerido');
+      var ss = SpreadsheetApp.getActiveSpreadsheet();
+
+      var hojaClientes = ss.getSheetByName('Clientes');
+      var nombre = '', folderId = '', esCliente = false;
+      if (hojaClientes) {
+        var datosC = hojaClientes.getDataRange().getValues();
+        for (var i = 1; i < datosC.length; i++) {
+          var emailC  = (datosC[i][1] || '').toString().trim().toLowerCase();
+          var estadoC = (datosC[i][4] || '').toString().trim().toLowerCase();
+          if (emailC === email && estadoC !== 'inactivo') {
+            nombre = (datosC[i][0] || '').toString().trim();
+            var link = (datosC[i][5] || '').toString().trim();
+            var fm = link.match(/[-\w]{25,}/);
+            folderId  = fm ? fm[0] : '';
+            esCliente = true;
+            break;
+          }
+        }
+      }
+
+      var hojaSub = ss.getSheetByName('Suscriptores');
+      var suscripcion = false;
+      if (hojaSub) {
+        var datosS = hojaSub.getDataRange().getValues();
+        for (var j = 1; j < datosS.length; j++) {
+          var emailS  = (datosS[j][5] || '').toString().trim().toLowerCase();
+          var estadoS = (datosS[j][9] || '').toString().trim().toLowerCase();
+          if (emailS === email && (estadoS === 'approved' || estadoS === 'activo' || estadoS === 'active')) {
+            suscripcion = true;
+            if (!nombre) nombre = ((datosS[j][1] || '') + ' ' + (datosS[j][2] || '')).trim();
+            break;
+          }
+        }
+      }
+
+      return ContentService
+        .createTextOutput(JSON.stringify({ ok: true, nombre: nombre, folderId: folderId, esCliente: esCliente, suscripcion: suscripcion }))
+        .setMimeType(ContentService.MimeType.JSON);
+
+    } catch (err) {
+      return ContentService
+        .createTextOutput(JSON.stringify({ ok: false, error: err.toString() }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+  }
+
   if (e && e.parameter && e.parameter.action === 'archivos') {
     try {
       var folderId = e.parameter.folderId || '';

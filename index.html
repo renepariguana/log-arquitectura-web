@@ -7,6 +7,7 @@
   <link rel="icon" type="image/png" href="https://logarquitectura.com.ar/logo-pagina.png">
   <link rel="apple-touch-icon" href="https://logarquitectura.com.ar/logo-pagina.png">
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://accounts.google.com/gsi/client" async></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,200;0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
@@ -1315,25 +1316,9 @@
 
       <!-- Vista: Login -->
       <div id="cl-vista-login">
-        <div style="margin-bottom:18px;">
-          <label style="display:block; font-size:10px; letter-spacing:0.18em; text-transform:uppercase; color:#888; margin-bottom:6px;">Email</label>
-          <input id="cl-email" type="email" placeholder="tu@email.com"
-            style="width:100%; border:none; border-bottom:1px solid #ddd; padding:8px 0; font-size:14px; font-family:'DM Sans',sans-serif; outline:none; box-sizing:border-box;">
-        </div>
-        <div style="margin-bottom:28px;">
-          <label style="display:block; font-size:10px; letter-spacing:0.18em; text-transform:uppercase; color:#888; margin-bottom:6px;">Contraseña</label>
-          <input id="cl-dni" type="password" placeholder="Tu contraseña"
-            style="width:100%; border:none; border-bottom:1px solid #ddd; padding:8px 0; font-size:14px; font-family:'DM Sans',sans-serif; outline:none; box-sizing:border-box;">
-        </div>
-        <p id="cl-error" style="display:none; color:#c0392b; font-size:12px; margin-bottom:16px;"></p>
-        <button id="cl-btn" onclick="clientesLogin()"
-          style="width:100%; background:#0D0D0D; color:#fff; border:none; padding:14px; font-size:11px; letter-spacing:0.18em; text-transform:uppercase; cursor:pointer; font-family:'DM Sans',sans-serif;">
-          Ingresar
-        </button>
-        <p style="margin-top:20px; font-size:11px; color:#888; text-align:center;">
-          ¿Aún no tenés suscripción?
-          <a href="#" onclick="clMostrarSuscripcion(); return false;" style="color:#0D0D0D; font-weight:600; text-decoration:none; letter-spacing:0.05em;">SUSCRIBIRME</a>
-        </p>
+        <p style="font-size:12px; color:#888; text-align:center; margin:0 0 24px;">Iniciá sesión para ver tus proyectos o acceder al Presupuestador.</p>
+        <div id="cl-google-btn" style="display:flex; justify-content:center; margin-bottom:16px;"></div>
+        <p id="cl-google-error" style="display:none; color:#c0392b; font-size:12px; text-align:center; margin-top:8px;"></p>
       </div>
 
       <!-- Vista: Elegir plan -->
@@ -1470,12 +1455,35 @@
 
     <!-- Contenido -->
     <div style="max-width:900px; margin:0 auto; padding:40px 24px;">
-      <p style="font-size:10px; letter-spacing:0.2em; text-transform:uppercase; color:#888; margin-bottom:24px;">Tus proyectos</p>
-      <div id="portal-archivos" style="display:none;">
-        <!-- Se llena dinámicamente -->
+      <!-- Presupuestador: visible con suscripción -->
+      <div id="portal-presupuestador-btn" style="display:none; margin-bottom:32px;">
+        <div style="background:#0D0D0D; padding:24px 28px; display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <p style="font-size:10px; letter-spacing:0.2em; text-transform:uppercase; color:#888; margin:0 0 4px;">Herramienta profesional</p>
+            <p style="font-size:15px; font-weight:300; color:#fff; margin:0;">Presupuestador de obras</p>
+          </div>
+          <a href="presupuesto.html" style="background:#fff; color:#0D0D0D; text-decoration:none; padding:10px 24px; font-size:10px; letter-spacing:0.15em; text-transform:uppercase; font-family:'DM Sans',sans-serif; font-weight:600;">Abrir</a>
+        </div>
       </div>
-      <p id="portal-vacio" style="display:none; color:#888; font-size:14px;">No hay archivos disponibles por el momento.</p>
-      <p id="portal-cargando" style="color:#888; font-size:13px;">Cargando archivos...</p>
+      <!-- Presupuestador promo: visible sin suscripción -->
+      <div id="portal-presupuestador-promo" style="display:none; margin-bottom:32px;">
+        <div style="border:1px solid #e0e0e0; padding:24px 28px; display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <p style="font-size:10px; letter-spacing:0.2em; text-transform:uppercase; color:#aaa; margin:0 0 4px;">Disponible con suscripción</p>
+            <p style="font-size:15px; font-weight:300; color:#0D0D0D; margin:0;">Presupuestador de obras</p>
+          </div>
+          <button onclick="clMostrarSuscripcionDesdePortal()" style="background:#0D0D0D; color:#fff; border:none; padding:10px 24px; font-size:10px; letter-spacing:0.15em; text-transform:uppercase; cursor:pointer; font-family:'DM Sans',sans-serif;">Suscribirme</button>
+        </div>
+      </div>
+      <!-- Proyectos del cliente -->
+      <div id="portal-proyectos-section">
+        <p style="font-size:10px; letter-spacing:0.2em; text-transform:uppercase; color:#888; margin-bottom:24px;">Tus proyectos</p>
+        <div id="portal-archivos" style="display:none;">
+          <!-- Se llena dinámicamente -->
+        </div>
+        <p id="portal-vacio" style="display:none; color:#888; font-size:14px;">No hay archivos disponibles por el momento.</p>
+        <p id="portal-cargando" style="color:#888; font-size:13px;">Cargando archivos...</p>
+      </div>
     </div>
   </div>
 
@@ -1492,19 +1500,75 @@
     // ── PORTAL CLIENTES ──────────────────────────────────────────────
 
     function openClientesLogin() {
-      // Si ya hay sesión activa, ir directo al portal
       var sesion = sessionStorage.getItem('cl_sesion');
       if (sesion) {
         var datos = JSON.parse(sesion);
-        mostrarPortal(datos.nombre, datos.folderId);
+        mostrarPortal(datos.nombre, datos.folderId, datos.suscripcion, datos.esCliente);
         return;
       }
       var m = document.getElementById('modal-clientes-login');
       m.style.display = 'flex';
-      document.getElementById('cl-email').value = '';
-      document.getElementById('cl-dni').value   = '';
-      document.getElementById('cl-error').style.display = 'none';
-      setTimeout(function(){ document.getElementById('cl-email').focus(); }, 100);
+      clMostrarLogin();
+      renderGoogleBtn();
+    }
+
+    function renderGoogleBtn() {
+      if (!window.google || !window.google.accounts || !window.google.accounts.id) {
+        setTimeout(renderGoogleBtn, 200);
+        return;
+      }
+      google.accounts.id.initialize({
+        client_id: '234264899285-3rnoku76f2ge7prvonktsr601cs959c3.apps.googleusercontent.com',
+        callback: onGoogleLoginPortal,
+        auto_select: false
+      });
+      var container = document.getElementById('cl-google-btn');
+      if (container) {
+        container.innerHTML = '';
+        google.accounts.id.renderButton(container, { theme: 'outline', size: 'large', text: 'signin_with', locale: 'es', width: 280 });
+      }
+    }
+
+    function onGoogleLoginPortal(response) {
+      var payload = JSON.parse(atob(response.credential.split('.')[1]));
+      var emailGoogle  = payload.email;
+      var nombreGoogle = payload.name;
+      var errEl = document.getElementById('cl-google-error');
+      if (errEl) errEl.style.display = 'none';
+
+      fetch(GSHEET_URL + '?action=loginGoogle&email=' + encodeURIComponent(emailGoogle))
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (!data.ok) {
+            if (errEl) { errEl.textContent = data.error || 'Error al verificar cuenta.'; errEl.style.display = 'block'; }
+            return;
+          }
+          var nombre = data.nombre || nombreGoogle;
+          var sesion = { nombre: nombre, folderId: data.folderId || '', esCliente: !!data.esCliente, suscripcion: !!data.suscripcion, email: emailGoogle };
+          sessionStorage.setItem('cl_sesion', JSON.stringify(sesion));
+          closeClientesLogin();
+          mostrarPortal(nombre, data.folderId || '', data.suscripcion, data.esCliente);
+        })
+        .catch(function() {
+          if (errEl) { errEl.textContent = 'Error de conexión. Intentá de nuevo.'; errEl.style.display = 'block'; }
+        });
+    }
+
+    function clMostrarSuscripcionDesdePortal() {
+      var sesion = sessionStorage.getItem('cl_sesion');
+      var emailSesion = sesion ? JSON.parse(sesion).email : '';
+      document.getElementById('portal-clientes').style.display = 'none';
+      var m = document.getElementById('modal-clientes-login');
+      m.style.display = 'flex';
+      clMostrarSuscripcion();
+      if (emailSesion) {
+        setTimeout(function() {
+          var e1 = document.getElementById('sub-email');
+          var e2 = document.getElementById('sub-email2');
+          if (e1) e1.value = emailSesion;
+          if (e2) e2.value = emailSesion;
+        }, 50);
+      }
     }
 
     function closeClientesLogin() {
@@ -1641,47 +1705,22 @@
       document.getElementById('cl-vista-pago').style.display = 'block';
     }
 
-    function clientesLogin() {
-      var email = document.getElementById('cl-email').value.trim();
-      var dni   = document.getElementById('cl-dni').value.trim();
-      var err   = document.getElementById('cl-error');
-      var btn   = document.getElementById('cl-btn');
 
-      if (!email || !dni) {
-        err.textContent = 'Completá todos los campos.';
-        err.style.display = 'block';
-        return;
-      }
-
-      btn.textContent = 'Verificando...';
-      btn.disabled = true;
-      err.style.display = 'none';
-
-      fetch(GSHEET_URL + '?action=login&email=' + encodeURIComponent(email) + '&dni=' + encodeURIComponent(dni))
-        .then(function(r){ return r.json(); })
-        .then(function(data) {
-          if (data.ok) {
-            sessionStorage.setItem('cl_sesion', JSON.stringify({ nombre: data.nombre, folderId: data.folderId }));
-            closeClientesLogin();
-            mostrarPortal(data.nombre, data.folderId);
-          } else {
-            err.textContent = data.error || 'Email o DNI incorrecto.';
-            err.style.display = 'block';
-          }
-        })
-        .catch(function() {
-          err.textContent = 'Error de conexión. Intentá de nuevo.';
-          err.style.display = 'block';
-        })
-        .finally(function() {
-          btn.textContent = 'Ingresar';
-          btn.disabled = false;
-        });
-    }
-
-    function mostrarPortal(nombre, folderId) {
+    function mostrarPortal(nombre, folderId, suscripcion, esCliente) {
       document.getElementById('portal-saludo').textContent = 'Hola, ' + nombre;
       document.getElementById('portal-clientes').style.display = 'block';
+
+      var btnPre   = document.getElementById('portal-presupuestador-btn');
+      var promoPre = document.getElementById('portal-presupuestador-promo');
+      if (btnPre)   btnPre.style.display   = suscripcion ? 'block' : 'none';
+      if (promoPre) promoPre.style.display = suscripcion ? 'none'  : 'block';
+
+      var secProy = document.getElementById('portal-proyectos-section');
+      if (!esCliente) {
+        if (secProy) secProy.style.display = 'none';
+        return;
+      }
+      if (secProy) secProy.style.display = 'block';
       document.getElementById('portal-archivos').innerHTML = '';
       document.getElementById('portal-vacio').style.display = 'none';
       document.getElementById('portal-cargando').style.display = 'block';
@@ -1774,6 +1813,9 @@
     function clientesCerrarSesion() {
       sessionStorage.removeItem('cl_sesion');
       document.getElementById('portal-clientes').style.display = 'none';
+      if (window.google && window.google.accounts && window.google.accounts.id) {
+        google.accounts.id.disableAutoSelect();
+      }
     }
 
     function verPdf(id, nombre) {
