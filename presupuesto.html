@@ -1,0 +1,1321 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Presupuesto — LOG arquitectura</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://accounts.google.com/gsi/client" async></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+  <style>
+    * { font-family: 'DM Sans', sans-serif; }
+
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
+    input[type=number] { -moz-appearance: textfield; }
+
+    @media print {
+      #app-header, #agregar-section, .no-print, #sidebar, #panel-derecho { display: none !important; }
+      #print-header { display: block !important; }
+      body { background: white !important; }
+      main { padding: 0 !important; max-width: 100% !important; }
+      section { box-shadow: none !important; border-radius: 0 !important; margin-bottom: 0.5rem !important; }
+      #obra-section { display: none !important; }
+      table { border-collapse: collapse; }
+      tr { page-break-inside: avoid; }
+      @page { margin: 1.5cm; size: A4; }
+    }
+  </style>
+</head>
+<body class="bg-neutral-100 min-h-screen text-neutral-900">
+
+  <!-- HEADER -->
+  <header id="app-header" class="bg-neutral-950 text-white px-8 py-4 flex items-center justify-between sticky top-0 z-20 shadow-lg">
+    <div class="flex items-center gap-4">
+      <span class="tracking-[0.2em] text-sm font-medium uppercase">LOG arquitectura</span>
+      <span class="text-neutral-600">·</span>
+      <span class="text-neutral-400 text-sm">Presupuesto</span>
+    </div>
+    <div class="flex items-center gap-3">
+      <span id="estado-sync" class="text-xs text-neutral-500">Cargando ítems...</span>
+      <button onclick="nuevoPresupuesto()" class="px-4 py-1.5 text-sm text-neutral-400 hover:text-white transition">Nuevo</button>
+      <button onclick="window.print()" class="px-4 py-1.5 text-sm bg-white text-black rounded font-medium hover:bg-neutral-200 transition">Imprimir / PDF</button>
+    </div>
+  </header>
+
+  <!-- LOGIN OVERLAY -->
+  <div id="login-overlay" class="fixed inset-0 z-50 flex items-center justify-center bg-neutral-950/90">
+    <div class="bg-white rounded-2xl shadow-2xl p-10 flex flex-col items-center gap-6 max-w-xs w-full mx-4">
+      <div>
+        <p class="tracking-[0.2em] text-xs font-semibold uppercase text-neutral-400 text-center mb-1">LOG arquitectura</p>
+        <h2 class="text-lg font-semibold text-neutral-800 text-center">Presupuesto</h2>
+      </div>
+      <div id="google-btn-container"></div>
+      <p class="text-xs text-neutral-400 text-center">Iniciá sesión con tu cuenta de Google para continuar.</p>
+    </div>
+  </div>
+
+  <!-- LAYOUT: sidebar + contenido -->
+  <div class="flex" style="min-height:calc(100vh - 57px)">
+
+  <!-- SIDEBAR -->
+  <aside id="sidebar" class="no-print w-56 bg-neutral-100 flex-shrink-0 flex flex-col border-r border-neutral-200">
+    <div class="px-4 py-3 border-b border-neutral-200">
+      <span class="text-xs font-semibold tracking-widest text-neutral-400 uppercase">Presupuestos</span>
+    </div>
+    <div id="sidebar-lista" class="flex-1 overflow-y-auto py-2"></div>
+    <!-- Usuario -->
+    <div class="border-t border-neutral-200 px-4 py-3 flex items-center gap-3">
+      <img id="user-foto" src="" alt="" class="w-7 h-7 rounded-full object-cover hidden">
+      <div class="flex-1 min-w-0">
+        <p id="user-nombre" class="text-xs font-medium text-neutral-700 truncate"></p>
+        <button onclick="cerrarSesion()" class="text-xs text-neutral-400 hover:text-red-400 transition">Cerrar sesión</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <div class="flex-1 overflow-y-auto">
+
+  <!-- ENCABEZADO SOLO PARA IMPRESIÓN -->
+  <div id="print-header" class="hidden p-8 pb-4">
+    <div class="flex justify-between items-start mb-6">
+      <div>
+        <h1 class="text-2xl font-bold tracking-[0.15em] uppercase">LOG arquitectura</h1>
+        <p class="text-xs text-neutral-500 tracking-wider mt-1">Estudio de Diseño Arquitectónico · Tucumán, Argentina</p>
+      </div>
+      <div class="text-right">
+        <h2 class="text-base font-semibold uppercase tracking-wider">Presupuesto de Obra</h2>
+        <p class="text-xs text-neutral-500 mt-1" id="print-emision"></p>
+      </div>
+    </div>
+    <div class="grid grid-cols-3 gap-6 text-sm border-t border-neutral-200 pt-4">
+      <div><span class="text-neutral-400 text-xs uppercase tracking-wide">Obra</span><p class="font-semibold mt-0.5" id="print-obra"></p></div>
+      <div><span class="text-neutral-400 text-xs uppercase tracking-wide">Fecha</span><p class="font-semibold mt-0.5" id="print-fecha"></p></div>
+      <div><span class="text-neutral-400 text-xs uppercase tracking-wide">Superficie</span><p class="font-semibold mt-0.5"><span id="print-m2"></span></p></div>
+    </div>
+  </div>
+
+  <main class="max-w-5xl mx-auto px-4 py-8">
+
+    <!-- DATOS DE LA OBRA -->
+    <section id="obra-section" class="bg-white rounded-xl shadow-sm p-6 mb-6">
+      <h2 class="text-xs font-semibold tracking-widest text-neutral-400 uppercase mb-4">Datos de la Obra</h2>
+      <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <div class="col-span-2">
+          <label class="block text-xs text-neutral-500 mb-1">Nombre de la obra</label>
+          <input id="obra-nombre" type="text" placeholder="Ej: Casa García"
+            class="w-full border border-neutral-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-neutral-500"
+            oninput="actualizarPrint(); guardarLocal()">
+        </div>
+        <div>
+          <label class="block text-xs text-neutral-500 mb-1">Superficie (m²)</label>
+          <input id="obra-m2" type="number" placeholder="0"
+            class="w-full border border-neutral-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-neutral-500"
+            oninput="calcularTotales(); actualizarPrint()">
+        </div>
+        <div>
+          <label class="block text-xs text-neutral-500 mb-1">Costo m²</label>
+          <input id="obra-costo-m2" type="text" readonly placeholder="—"
+            class="w-full border border-neutral-100 rounded-lg px-3 py-2.5 text-sm bg-neutral-50 text-neutral-600 cursor-default select-none">
+        </div>
+        <div>
+          <label class="block text-xs text-neutral-500 mb-1">Fecha</label>
+          <input id="obra-fecha" type="text" readonly
+            class="w-full border border-neutral-100 rounded-lg px-3 py-2.5 text-sm bg-neutral-50 text-neutral-500 cursor-default select-none">
+        </div>
+      </div>
+    </section>
+
+    <!-- TABLA PRESUPUESTO -->
+    <section class="bg-white rounded-xl shadow-sm overflow-hidden mb-4">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="bg-neutral-900 text-white text-xs uppercase tracking-wider">
+            <th class="px-4 py-3 text-center font-medium w-16">Nº</th>
+            <th class="px-4 py-3 text-left font-medium">Descripción</th>
+            <th class="px-2 py-3 text-center font-medium w-44">Items</th>
+            <th class="px-2 py-3 text-center font-medium w-10">Unid.</th>
+            <th class="px-2 py-3 text-center font-medium w-14">Cant.</th>
+            <th class="px-2 py-3 text-center font-medium w-24">Precio Unit.</th>
+            <th class="px-2 py-3 text-center font-medium w-28">Total</th>
+            <th class="px-2 py-3 text-center font-medium w-12">Incid.</th>
+            <th class="px-2 py-3 w-8 no-print"></th>
+          </tr>
+        </thead>
+        <tbody id="tabla-body">
+          <tr>
+            <td colspan="8" class="px-6 py-16 text-center text-neutral-400 text-sm">
+              Seleccioná un rubro e ítem abajo para comenzar.
+            </td>
+          </tr>
+        </tbody>
+        <tfoot id="tabla-tfoot" class="hidden">
+          <tr>
+            <td colspan="6" class="px-4 py-4 text-right font-semibold text-xs uppercase tracking-widest border-t-2 border-neutral-800">Total Presupuesto</td>
+            <td class="px-4 py-4 text-right font-bold text-xl border-t-2 border-neutral-800" id="total-val">$ 0</td>
+            <td class="px-4 py-4 text-right text-xs font-semibold text-neutral-500 border-t-2 border-neutral-800">100 %</td>
+            <td class="border-t-2 border-neutral-800 no-print"></td>
+          </tr>
+        </tfoot>
+      </table>
+    </section>
+
+    <!-- ÍTEM — sección unificada -->
+    <section class="bg-neutral-100 rounded-xl mb-8 no-print overflow-hidden">
+      <div class="flex items-center justify-between px-5 py-4">
+        <button onclick="toggleCrear()" class="flex items-center gap-3 text-left hover:opacity-70 transition">
+          <span class="text-xs font-semibold tracking-widest text-neutral-400 uppercase">Agregar Ítem al Presupuesto</span>
+          <span id="crear-chevron" class="text-neutral-400 text-xs transition-transform">▼</span>
+        </button>
+        <div class="flex items-center gap-2">
+          <button onclick="cnLimpiar()" class="px-4 py-1.5 text-xs text-neutral-400 hover:text-neutral-600 transition">Limpiar</button>
+          <button id="cn-btn-borrar-item" onclick="cnBorrarItem()" style="display:none"
+            class="px-4 py-1.5 text-xs text-red-400 hover:text-red-600 transition">
+            Eliminar ítem
+          </button>
+          <button id="cn-btn-crear" onclick="cnGuardar()" style="display:none"
+            class="px-4 py-1.5 bg-neutral-400 text-white rounded-lg text-xs hover:bg-neutral-500 transition font-medium">
+            Crear y Agregar
+          </button>
+          <button id="cn-btn-agregar" onclick="cnAgregarExistente()"
+            class="px-4 py-1.5 bg-neutral-400 text-white rounded-lg text-xs hover:bg-neutral-500 transition font-medium">
+            + Agregar
+          </button>
+        </div>
+      </div>
+
+      <div id="crear-body" class="hidden border-t border-neutral-200 px-5 py-5">
+
+        <!-- Selectores -->
+        <div class="grid grid-cols-1 sm:grid-cols-7 gap-4 mb-6">
+          <div class="sm:col-span-2">
+            <div class="flex items-center justify-between mb-1">
+              <label class="text-xs text-neutral-400">Análisis de precios</label>
+              <div class="flex items-center gap-2">
+                <button id="cn-btn-borrar-ap" onclick="cnBorrarAnalisis()" style="display:none" class="text-xs text-red-300 hover:text-red-500 transition">Eliminar</button>
+                <button onclick="cnCrearAnalisis()" class="text-xs text-neutral-400 hover:text-neutral-600 transition">+ Crear</button>
+              </div>
+            </div>
+            <select id="sel-ap" onchange="cnOnApChange()" class="w-full border border-neutral-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-neutral-400 bg-neutral-50 text-neutral-600">
+              <option value="log">LOG arquitectura</option>
+            </select>
+          </div>
+          <div class="sm:col-span-2">
+            <label class="block text-xs text-neutral-400 mb-1">Rubro</label>
+            <select id="cn-rubro" onchange="cnOnRubroChange()" class="w-full border border-neutral-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-neutral-400 bg-neutral-50 text-neutral-600">
+              <option value="">Seleccioná...</option>
+            </select>
+          </div>
+          <div class="sm:col-span-2">
+            <label class="block text-xs text-neutral-400 mb-1">Nombre del ítem</label>
+            <div class="relative">
+              <input id="cn-nombre" type="text" placeholder="Buscá un ítem..."
+                oninput="cnFiltrarItems(this)" onblur="cnOcultar(this)"
+                onclick="if(this.readOnly) cnDesbloquearNombre(false)"
+                class="w-full border border-neutral-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-neutral-400 bg-neutral-50 text-neutral-600">
+              <div id="cn-nombre-sug" class="hidden absolute z-20 bg-white border border-neutral-200 rounded-lg shadow-lg max-h-52 overflow-y-auto w-full left-0 top-full mt-0.5"></div>
+            </div>
+          </div>
+          <div class="sm:col-span-1">
+            <label class="block text-xs text-neutral-400 mb-1">Unidad</label>
+            <input id="cn-unidad" type="text" placeholder="Ej: m3"
+              onclick="if(this.readOnly) cnDesbloquearNombre(false)"
+              class="w-full border border-neutral-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-neutral-400 bg-neutral-50 text-neutral-600">
+          </div>
+        </div>
+
+        <!-- MATERIALES -->
+        <div class="mb-5 rounded-xl overflow-hidden">
+          <table class="w-full text-sm">
+            <thead><tr class="bg-neutral-200 text-neutral-600 text-xs uppercase">
+              <th class="px-3 py-2 text-left font-medium">
+                <strong>Materiales</strong>
+                <button id="cn-btn-mat" onclick="cnAgregarFila('mat')" class="ml-2 normal-case font-normal text-xs px-2 py-0.5 bg-neutral-200 hover:bg-neutral-400 hover:text-white text-neutral-500 rounded transition">+ Agregar</button>
+              </th>
+              <th class="px-3 py-2 text-center font-medium w-12">Unidad</th>
+              <th class="px-3 py-2 text-right font-medium w-28">Cantidad</th>
+              <th class="px-3 py-2 text-right font-medium w-32">Precio Unitario</th>
+              <th class="px-3 py-2 text-right font-medium w-28">Subtotal</th>
+              <th class="px-3 py-2 w-8"></th>
+            </tr></thead>
+            <tbody id="cn-mat-body"></tbody>
+            <tfoot><tr class="border-t border-neutral-300">
+              <td colspan="4" class="px-3 py-2 text-right text-xs text-neutral-400 font-semibold uppercase tracking-wide">Subtotal I</td>
+              <td class="px-3 py-2 text-right font-bold text-sm text-neutral-600" id="cn-sub-mat">$ 0</td>
+              <td></td>
+            </tr></tfoot>
+          </table>
+        </div>
+
+        <!-- MANO DE OBRA -->
+        <div class="mb-5 rounded-xl overflow-hidden">
+          <table class="w-full text-sm">
+            <thead><tr class="bg-neutral-200 text-neutral-600 text-xs uppercase">
+              <th class="px-3 py-2 text-left font-medium">
+                <strong>Mano de Obra</strong>
+                <button id="cn-btn-mo" onclick="cnAgregarFila('mo')" class="ml-2 normal-case font-normal text-xs px-2 py-0.5 bg-neutral-200 hover:bg-neutral-400 hover:text-white text-neutral-500 rounded transition">+ Agregar</button>
+              </th>
+              <th class="px-3 py-2 text-center font-medium w-12">Unidad</th>
+              <th class="px-3 py-2 text-right font-medium w-28">Horas</th>
+              <th class="px-3 py-2 text-right font-medium w-32">Precio Unitario</th>
+              <th class="px-3 py-2 text-right font-medium w-28">Subtotal</th>
+              <th class="px-3 py-2 w-8"></th>
+            </tr></thead>
+            <tbody id="cn-mo-body"></tbody>
+            <tfoot><tr class="border-t border-neutral-300">
+              <td colspan="4" class="px-3 py-2 text-right text-xs text-neutral-400 font-semibold uppercase tracking-wide">Subtotal II</td>
+              <td class="px-3 py-2 text-right font-bold text-sm text-neutral-600" id="cn-sub-mo">$ 0</td>
+              <td></td>
+            </tr></tfoot>
+          </table>
+        </div>
+
+        <!-- EQUIPOS -->
+        <div class="mb-6 rounded-xl overflow-hidden">
+          <table class="w-full text-sm">
+            <thead><tr class="bg-neutral-200 text-neutral-600 text-xs uppercase">
+              <th class="px-3 py-2 text-left font-medium">
+                <strong>Equipos</strong>
+                <button id="cn-btn-eq" onclick="cnAgregarFila('eq')" class="ml-2 normal-case font-normal text-xs px-2 py-0.5 bg-neutral-200 hover:bg-neutral-400 hover:text-white text-neutral-500 rounded transition">+ Agregar</button>
+              </th>
+              <th class="px-3 py-2 text-center font-medium w-12">Unidad</th>
+              <th class="px-3 py-2 text-right font-medium w-28">Cantidad</th>
+              <th class="px-3 py-2 text-right font-medium w-32">Precio Unitario</th>
+              <th class="px-3 py-2 text-right font-medium w-28">Subtotal</th>
+              <th class="px-3 py-2 w-8"></th>
+            </tr></thead>
+            <tbody id="cn-eq-body"></tbody>
+            <tfoot><tr class="border-t border-neutral-300">
+              <td colspan="4" class="px-3 py-2 text-right text-xs text-neutral-400 font-semibold uppercase tracking-wide">Subtotal III</td>
+              <td class="px-3 py-2 text-right font-bold text-sm text-neutral-600" id="cn-sub-eq">$ 0</td>
+              <td></td>
+            </tr></tfoot>
+          </table>
+        </div>
+
+        <!-- RESUMEN COSTO DEL ÍTEM -->
+        <div class="bg-neutral-200 rounded-xl p-4 mb-5 grid grid-cols-2 gap-2 text-sm">
+          <span class="text-neutral-400 text-xs uppercase tracking-wider">Materiales</span>   <span class="text-right text-neutral-600" id="cn-res-mat">$ 0</span>
+          <span class="text-neutral-400 text-xs uppercase tracking-wider">Mano de Obra</span> <span class="text-right text-neutral-600" id="cn-res-mo">$ 0</span>
+          <span class="text-neutral-400 text-xs uppercase tracking-wider">Equipos</span>      <span class="text-right text-neutral-600" id="cn-res-eq">$ 0</span>
+          <span class="font-bold uppercase tracking-wider text-neutral-500 border-t border-neutral-300 pt-2">Costo del Ítem</span>
+          <span class="text-right font-bold text-lg text-neutral-700 border-t border-neutral-300 pt-2" id="cn-costo-total">$ 0</span>
+        </div>
+
+        <!-- CASCADA DE PRECIOS -->
+        <div id="cn-cascada" class="hidden mb-5 ml-auto" style="max-width:440px">
+          <div id="cn-cascada-inner"></div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+  </div><!-- /contenido principal -->
+
+  <!-- PANEL DERECHO (reservado para tercera sección) -->
+  <aside id="panel-derecho" class="no-print w-56 bg-neutral-100 flex-shrink-0 border-l border-neutral-200">
+  </aside>
+
+  </div><!-- /layout flex -->
+
+  <script>
+    // ─── CONFIG ───────────────────────────────────────────────────────────────
+    var SCRIPT_URL    = 'https://script.google.com/macros/s/AKfycbwyP241qqjfn_qWhIlFskrETqyK-BRBV_8QqEZaZMqdBd2zo_lrFdq82VuG5_1LhQ8L/exec';
+    var GOOGLE_CLIENT_ID = '234264899285-3rnoku76f2ge7prvonktsr601cs959c3.apps.googleusercontent.com';
+
+    // ─── AUTENTICACIÓN ────────────────────────────────────────────────────────
+    var usuarioActual = null;
+
+    function initLogin() {
+      var guardado = localStorage.getItem('log_usuario');
+      if (guardado) {
+        usuarioActual = JSON.parse(guardado);
+        mostrarUsuario();
+        document.getElementById('login-overlay').classList.add('hidden');
+        return;
+      }
+      // Inicializar Google Sign-In
+      google.accounts.id.initialize({
+        client_id: GOOGLE_CLIENT_ID,
+        callback: onGoogleLogin,
+        auto_select: false
+      });
+      google.accounts.id.renderButton(
+        document.getElementById('google-btn-container'),
+        { theme: 'outline', size: 'large', text: 'signin_with', locale: 'es' }
+      );
+    }
+
+    function onGoogleLogin(response) {
+      // Decodificar el JWT (payload en base64)
+      var payload = JSON.parse(atob(response.credential.split('.')[1]));
+      usuarioActual = {
+        email  : payload.email,
+        nombre : payload.name,
+        foto   : payload.picture
+      };
+      localStorage.setItem('log_usuario', JSON.stringify(usuarioActual));
+      mostrarUsuario();
+      document.getElementById('login-overlay').classList.add('hidden');
+      // Registrar en Google Sheets
+      fetch(SCRIPT_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'registrarusuario', email: usuarioActual.email, nombre: usuarioActual.nombre, foto: usuarioActual.foto })
+      }).catch(function() {});
+    }
+
+    function mostrarUsuario() {
+      if (!usuarioActual) return;
+      var nombre = document.getElementById('user-nombre');
+      var foto   = document.getElementById('user-foto');
+      if (nombre) nombre.textContent = usuarioActual.nombre;
+      if (foto && usuarioActual.foto) { foto.src = usuarioActual.foto; foto.classList.remove('hidden'); }
+    }
+
+    function cerrarSesion() {
+      if (!confirm('¿Cerrar sesión?')) return;
+      localStorage.removeItem('log_usuario');
+      usuarioActual = null;
+      location.reload();
+    }
+
+    // ─── ESTADO ───────────────────────────────────────────────────────────────
+    var todosRubros = [];
+    var todosItems  = [];
+    var presupuesto = [];  // [{ codigo, nombre, unidad, cantidad, precio, rubroId }]
+
+    // ─── INIT ─────────────────────────────────────────────────────────────────
+    function hoyFormateado() {
+      return new Date().toLocaleDateString('es-AR', { day: '2-digit', month: 'long', year: 'numeric' });
+    }
+
+    window.onload = function() {
+      initLogin();
+      document.getElementById('obra-fecha').value = hoyFormateado();
+      cargarLocal();
+      fetchItems();
+      cargarCatalogos();
+      cnCargarApSelector();
+      fetch(SCRIPT_URL + '?action=cascada')
+        .then(function(r) { return r.json(); })
+        .then(function(d) { cnCascada = d; });
+      // Actualizar fecha cada vez que se abre la página
+      setInterval(function() {
+        document.getElementById('obra-fecha').value = hoyFormateado();
+      }, 60000);
+    };
+
+    // ─── FETCH ────────────────────────────────────────────────────────────────
+    function fetchItems() {
+      fetch(SCRIPT_URL + '?action=items')
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (data.error) {
+            document.getElementById('estado-sync').textContent = '⚠️ Error: ' + data.error;
+            return;
+          }
+          todosRubros = data.rubros || [];
+          todosItems  = data.items  || [];
+          document.getElementById('estado-sync').textContent = todosItems.length + ' ítems disponibles';
+          poblarRubrosCrear();
+          if (presupuesto.length) renderPresupuesto();
+        })
+        .catch(function() {
+          document.getElementById('estado-sync').textContent = '⚠️ Sin conexión con el servidor';
+        });
+    }
+
+    // ─── AGREGAR / QUITAR ─────────────────────────────────────────────────────
+    function agregarItem(item) {
+      presupuesto.push({
+        uid         : Date.now() + '_' + Math.floor(Math.random() * 9999),
+        codigo      : item.codigo,
+        nombre      : item.nombre,
+        descripcion : '',
+        unidad      : item.unidad || 'unid',
+        cantidad    : 1,
+        precio      : item.precio || 0,
+        rubroId     : item.rubroId
+      });
+      presupuesto.sort(function(a, b) { return parseFloat(a.codigo) - parseFloat(b.codigo); });
+      renderPresupuesto();
+      guardarLocal();
+    }
+
+    function quitarItem(uid) {
+      presupuesto = presupuesto.filter(function(i) { return i.uid !== uid; });
+      renderPresupuesto();
+      guardarLocal();
+    }
+
+    // ─── RENDER TABLA ─────────────────────────────────────────────────────────
+    function renderPresupuesto() {
+      var tbody = document.getElementById('tabla-body');
+
+      if (!presupuesto.length) {
+        tbody.innerHTML = '<tr><td colspan="9" class="px-6 py-16 text-center text-neutral-400 text-sm">Seleccioná un rubro e ítem abajo para comenzar.</td></tr>';
+        document.getElementById('tabla-tfoot').classList.add('hidden');
+        return;
+      }
+
+      // Agrupar por rubro
+      var grupos = {}, orden = [];
+      presupuesto.forEach(function(item) {
+        if (!grupos[item.rubroId]) { grupos[item.rubroId] = []; orden.push(item.rubroId); }
+        grupos[item.rubroId].push(item);
+      });
+
+      // Calcular total general primero (para incidencia)
+      var totalGeneral = 0;
+      presupuesto.forEach(function(i) { totalGeneral += (parseFloat(i.cantidad) || 0) * (parseFloat(i.precio) || 0); });
+
+      // Pre-calcular subtotales por rubro
+      var subtotales = {};
+      orden.forEach(function(rubroId) {
+        subtotales[rubroId] = 0;
+        grupos[rubroId].forEach(function(item) {
+          subtotales[rubroId] += (parseFloat(item.cantidad) || 0) * (parseFloat(item.precio) || 0);
+        });
+      });
+
+      var html = '';
+      var rubroNum = 0;
+
+      orden.forEach(function(rubroId) {
+        rubroNum++;
+        var itemNum = 0;
+        var r        = todosRubros.find(function(x) { return x.codigo === rubroId; });
+        var rubroNom = (r ? rubroNum + '. ' + r.nombre : rubroNum + '. RUBRO ' + rubroId).toUpperCase();
+        var subtotal = subtotales[rubroId];
+        var incidRubro = totalGeneral > 0 ? (subtotal / totalGeneral * 100).toFixed(2).replace('.', ',') + ' %' : '—';
+
+        // Encabezado de rubro con subtotal e incidencia
+        html += '<tr class="bg-neutral-800 text-white">' +
+          '<td colspan="6" class="px-4 py-2.5 text-sm font-semibold tracking-wide">' + rubroNom + '</td>' +
+          '<td class="px-4 py-2.5 text-right font-semibold text-sm">' + $$(subtotal) + '</td>' +
+          '<td class="px-4 py-2.5 text-right text-xs font-semibold">' + incidRubro + '</td>' +
+          '<td class="no-print px-4 py-2.5"></td></tr>';
+
+        grupos[rubroId].forEach(function(item) {
+          itemNum++;
+          var nroDisplay = rubroNum + '.' + itemNum;
+          var total = (parseFloat(item.cantidad) || 0) * (parseFloat(item.precio) || 0);
+          var incid = totalGeneral > 0 ? (total / totalGeneral * 100).toFixed(2).replace('.', ',') + ' %' : '—';
+          html += '<tr class="border-b border-neutral-100 hover:bg-neutral-50">' +
+            '<td class="px-4 py-2.5 text-xs text-neutral-400 font-mono text-center">' + nroDisplay + '</td>' +
+            '<td class="px-2 py-2.5">' +
+              '<input type="text" value="' + (item.descripcion || '').replace(/"/g, '&quot;') + '" placeholder="Escribí una descripción..." ' +
+              'data-uid="' + item.uid + '" data-field="descripcion" ' +
+              'class="w-full border border-transparent hover:border-neutral-200 focus:border-neutral-400 rounded px-2 py-1 text-sm focus:outline-none bg-transparent text-neutral-600" ' +
+              'onchange="editarItem(this)">' +
+            '</td>' +
+            '<td class="px-2 py-2.5 text-xs text-center text-neutral-600 w-44">' + item.nombre + '</td>' +
+            '<td class="px-2 py-2.5 text-xs text-center text-neutral-500">' + (item.unidad || '') + '</td>' +
+            '<td class="px-1 py-2.5 text-right">' +
+              '<input type="number" value="' + (item.cantidad || 1) + '" min="0" ' +
+              'data-uid="' + item.uid + '" data-field="cantidad" ' +
+              'class="w-full text-right border border-transparent hover:border-neutral-200 focus:border-neutral-400 rounded px-1 py-1 text-sm focus:outline-none bg-transparent" ' +
+              'onchange="editarItem(this)">' +
+            '</td>' +
+            '<td class="px-1 py-2.5 text-right">' +
+              '<input type="text" value="' + (parseFloat(item.precio) || 0).toFixed(2).replace('.', ',') + '" ' +
+              'data-uid="' + item.uid + '" data-field="precio" ' +
+              'class="w-full text-right border border-transparent hover:border-neutral-200 focus:border-neutral-400 rounded px-1 py-1 text-sm focus:outline-none bg-transparent" ' +
+              'onchange="editarItem(this)">' +
+            '</td>' +
+            '<td class="px-2 py-2.5 text-right font-medium text-sm">' + $$(total) + '</td>' +
+            '<td class="px-2 py-2.5 text-right text-xs text-neutral-500">' + incid + '</td>' +
+            '<td class="px-1 py-2.5 text-center no-print">' +
+              '<button onclick="quitarItem(\'' + item.uid + '\')" ' +
+              'class="text-neutral-300 hover:text-red-500 transition text-xl leading-none" title="Quitar">×</button>' +
+            '</td></tr>';
+        });
+      });
+
+      tbody.innerHTML = html;
+      document.getElementById('tabla-tfoot').classList.remove('hidden');
+      calcularTotales();
+    }
+
+    // ─── EDICIÓN INLINE ───────────────────────────────────────────────────────
+    function editarItem(input) {
+      var item = presupuesto.find(function(i) { return i.uid === input.dataset.uid; });
+      if (!item) return;
+      var field = input.dataset.field;
+      if (field === 'descripcion') {
+        item[field] = input.value;
+      } else {
+        item[field] = parseFloat(input.value.replace(',', '.')) || 0;
+      }
+      renderPresupuesto();
+    }
+
+    // ─── TOTALES ──────────────────────────────────────────────────────────────
+    function calcularTotales() {
+      var total = 0;
+      presupuesto.forEach(function(i) { total += (parseFloat(i.cantidad) || 0) * (parseFloat(i.precio) || 0); });
+      document.getElementById('total-val').textContent = $$(total);
+
+      var m2 = parseFloat(document.getElementById('obra-m2').value) || 0;
+      var costoM2El = document.getElementById('obra-costo-m2');
+      if (costoM2El) {
+        costoM2El.value = (m2 > 0 && total > 0) ? $$(total / m2) + ' / m²' : '';
+      }
+      guardarLocal();
+    }
+
+    // ─── IMPRIMIR ────────────────────────────────────────────────────────────
+    function actualizarPrint() {
+      document.getElementById('print-obra').textContent = document.getElementById('obra-nombre').value || '—';
+      document.getElementById('print-m2').textContent   = (document.getElementById('obra-m2').value || '—') + ' m²';
+      document.getElementById('print-fecha').textContent = hoyFormateado();
+      document.getElementById('print-emision').textContent = 'Emitido el ' + hoyFormateado();
+    }
+
+    // ─── PERSISTENCIA ────────────────────────────────────────────────────────
+    // ── Multi-presupuesto ─────────────────────────────────────────────────────
+    var pptoActivo = null; // id del presupuesto activo
+
+    function pptosList() {
+      return JSON.parse(localStorage.getItem('log_pptos') || '[]');
+    }
+
+    function pptosSave(lista) {
+      localStorage.setItem('log_pptos', JSON.stringify(lista));
+    }
+
+    function guardarLocal() {
+      var lista = pptosList();
+      var data  = {
+        id    : pptoActivo,
+        obra  : { nombre: document.getElementById('obra-nombre').value, fecha: document.getElementById('obra-fecha').value, m2: document.getElementById('obra-m2').value },
+        items : presupuesto
+      };
+      var idx = lista.findIndex(function(p) { return p.id === pptoActivo; });
+      if (idx >= 0) lista[idx] = data; else lista.push(data);
+      pptosSave(lista);
+      renderSidebar();
+    }
+
+    function cargarLocal() {
+      try {
+        var lista = pptosList();
+        // migrar formato antiguo
+        var viejo = localStorage.getItem('log_ppto');
+        if (!lista.length && viejo) {
+          var v = JSON.parse(viejo);
+          v.id = 'ppto_' + Date.now();
+          lista = [v];
+          pptosSave(lista);
+          localStorage.removeItem('log_ppto');
+        }
+        if (!lista.length) { pptoActivo = 'ppto_' + Date.now(); renderSidebar(); return; }
+        // cargar el activo (último si no hay uno guardado)
+        var idActivo = localStorage.getItem('log_ppto_activo') || lista[lista.length - 1].id;
+        var d = lista.find(function(p) { return p.id === idActivo; }) || lista[lista.length - 1];
+        pptoActivo = d.id;
+        if (d.obra) {
+          document.getElementById('obra-nombre').value = d.obra.nombre || '';
+          document.getElementById('obra-m2').value     = d.obra.m2     || '';
+        }
+        if (d.items && d.items.length) {
+          presupuesto = d.items.map(function(i, idx) {
+            if (!i.uid) i.uid = Date.now() + '_' + idx;
+            return i;
+          });
+        }
+        actualizarPrint();
+        renderSidebar();
+      } catch(e) { pptoActivo = 'ppto_' + Date.now(); renderSidebar(); }
+    }
+
+    function cargarPresupuesto(id) {
+      guardarLocal(); // guardar el actual antes de cambiar
+      var lista = pptosList();
+      var d = lista.find(function(p) { return p.id === id; });
+      if (!d) return;
+      pptoActivo = id;
+      localStorage.setItem('log_ppto_activo', id);
+      presupuesto = (d.items || []).map(function(i, idx) {
+        if (!i.uid) i.uid = Date.now() + '_' + idx;
+        return i;
+      });
+      document.getElementById('obra-nombre').value = (d.obra && d.obra.nombre) || '';
+      document.getElementById('obra-m2').value     = (d.obra && d.obra.m2)     || '';
+      renderPresupuesto();
+      actualizarPrint();
+      renderSidebar();
+    }
+
+    function borrarPresupuesto(id, e) {
+      e.stopPropagation();
+      var lista = pptosList();
+      var d = lista.find(function(p) { return p.id === id; });
+      var nombre = (d && d.obra && d.obra.nombre) ? d.obra.nombre : 'Sin nombre';
+      if (!confirm('¿Eliminar el presupuesto "' + nombre + '"?')) return;
+      lista = lista.filter(function(p) { return p.id !== id; });
+      pptosSave(lista);
+      if (id === pptoActivo) {
+        // pasar al último o crear uno nuevo
+        if (lista.length) {
+          cargarPresupuesto(lista[lista.length - 1].id);
+        } else {
+          nuevoPresupuesto(true);
+        }
+      } else {
+        renderSidebar();
+      }
+    }
+
+    function renderSidebar() {
+      var lista  = pptosList();
+      var el     = document.getElementById('sidebar-lista');
+      if (!el) return;
+      if (!lista.length) {
+        el.innerHTML = '<p class="px-4 py-3 text-xs text-neutral-600 italic">Sin presupuestos guardados.</p>';
+        return;
+      }
+      el.innerHTML = lista.map(function(p) {
+        var nombre  = (p.obra && p.obra.nombre) ? p.obra.nombre : 'Sin nombre';
+        var fecha   = (p.obra && p.obra.fecha)  ? p.obra.fecha  : '';
+        var activo  = p.id === pptoActivo;
+        return '<div onclick="cargarPresupuesto(\'' + p.id + '\')" ' +
+          'class="group relative flex flex-col px-4 py-2.5 cursor-pointer transition ' +
+          (activo ? 'bg-white border-l-2 border-neutral-700 ' : 'hover:bg-neutral-200 ') + '">' +
+          '<span class="text-xs font-medium ' + (activo ? 'text-neutral-800' : 'text-neutral-500') + ' truncate pr-5">' + nombre + '</span>' +
+          (fecha ? '<span class="text-neutral-400 text-xs mt-0.5 truncate">' + fecha + '</span>' : '') +
+          '<button onclick="borrarPresupuesto(\'' + p.id + '\', event)" ' +
+          'class="absolute right-2 top-2.5 text-neutral-400 hover:text-red-400 text-xs opacity-0 group-hover:opacity-100 transition leading-none">✕</button>' +
+          '</div>';
+      }).join('');
+    }
+
+    function nuevoPresupuesto(forzar) {
+      if (!forzar && presupuesto.length && !confirm('¿Crear un nuevo presupuesto?')) return;
+      guardarLocal();
+      pptoActivo = 'ppto_' + Date.now();
+      localStorage.setItem('log_ppto_activo', pptoActivo);
+      presupuesto = [];
+      document.getElementById('obra-nombre').value = '';
+      document.getElementById('obra-m2').value     = '';
+      document.getElementById('obra-fecha').value  = hoyFormateado();
+      renderPresupuesto();
+      renderSidebar();
+    }
+
+    // ─── HELPERS ─────────────────────────────────────────────────────────────
+    function $$(n) { return '$ ' + Math.round(n).toLocaleString('es-AR'); }
+
+    // ═══════════════════════════════════════════════════════════
+    // CREAR NUEVO ÍTEM
+    // ═══════════════════════════════════════════════════════════
+    var cnCatalogo = [], cnManoObra = [], cnFilasMat = [], cnFilasMO = [], cnFilasEq = [], cnCargado = false, cnModoVer = false;
+    var cnCascada = null;
+    var cnCodigoActual = null;
+
+    var cnItemsRubro = [], cnNombreOriginal = '';
+
+    function cnItemsDelAp() {
+      if (cnEsModoLog()) return todosItems;
+      var apId = document.getElementById('sel-ap').value;
+      var ap = apUsuarios.find(function(a) { return a.id === apId; });
+      return ap ? ap.items : [];
+    }
+
+    function cnOnRubroChange() {
+      var rubroId = document.getElementById('cn-rubro').value;
+      cnItemsRubro = cnItemsDelAp().filter(function(i) {
+        return i.rubroId === rubroId;
+      });
+      var sug = document.getElementById('cn-nombre-sug');
+      var input = document.getElementById('cn-nombre');
+      input.value = '';
+      cnDesbloquearNombre();
+      cnMostrarSugerencias(sug, cnItemsRubro);
+      input.focus();
+    }
+
+    function cnFiltrarItems(input) {
+      var query = input.value.toLowerCase().trim();
+      var sug = document.getElementById('cn-nombre-sug');
+      var lista = query
+        ? cnItemsRubro.filter(function(i) { return i.nombre.toLowerCase().indexOf(query) !== -1; })
+        : cnItemsRubro;
+      cnMostrarSugerencias(sug, lista);
+    }
+
+    function cnMostrarSugerencias(sug, lista) {
+      if (!lista.length) { sug.classList.add('hidden'); sug.innerHTML = ''; return; }
+      sug.innerHTML = lista.map(function(i) {
+        return '<div class="px-3 py-2 text-sm hover:bg-neutral-100 cursor-pointer border-b border-neutral-100 last:border-0 flex justify-between items-center" ' +
+          'onmousedown="cnSeleccionarItem(this)" ' +
+          'data-nombre="' + i.nombre.replace(/"/g, '&quot;') + '" ' +
+          'data-unidad="' + (i.unidad||'').replace(/"/g, '&quot;') + '" ' +
+          'data-codigo="' + i.codigo + '">' +
+          '<span><span class="text-neutral-400 text-xs mr-2">' + i.codigo + '</span>' + i.nombre + '</span>' +
+          '<span class="text-neutral-400 text-xs ml-4 shrink-0">' + (i.unidad||'') + '</span>' +
+        '</div>';
+      }).join('');
+      sug.classList.remove('hidden');
+    }
+
+    function cnSeleccionarItem(div) {
+      var nombre = document.getElementById('cn-nombre');
+      var unidad = document.getElementById('cn-unidad');
+      cnNombreOriginal = div.dataset.nombre;
+      nombre.value = div.dataset.codigo + ' — ' + div.dataset.nombre;
+      unidad.value = div.dataset.unidad || '';
+      document.getElementById('cn-nombre-sug').classList.add('hidden');
+      var bloqueado = 'w-full border border-neutral-200 rounded-lg px-3 py-2.5 text-sm bg-neutral-100 text-neutral-500 cursor-default';
+      nombre.readOnly = true; nombre.className = bloqueado;
+      unidad.readOnly = true; unidad.className = bloqueado;
+
+      if (!cnEsModoLog()) {
+        // ítem del análisis propio → cargar desde localStorage
+        var apId = document.getElementById('sel-ap').value;
+        var ap = apUsuarios.find(function(a) { return a.id === apId; });
+        var item = ap && ap.items.find(function(i) { return i.codigo === div.dataset.codigo; });
+        cnCodigoActual = div.dataset.codigo;
+        cnFilasMat = (item && item.materiales) ? item.materiales.map(function(f) { return Object.assign({}, f); }) : [];
+        cnFilasMO  = (item && item.manoobra)   ? item.manoobra.map(function(f) { return Object.assign({}, f); })   : [];
+        cnFilasEq  = (item && item.equipos)    ? item.equipos.map(function(f) { return Object.assign({}, f); })    : [];
+        cnModoVer  = true;
+        cnActualizarModo();
+        cnRenderTablas();
+        cnRenderCascada();
+        // ítem existente del usuario → "+ Agregar" + "Eliminar ítem", ocultar "Crear y Agregar"
+        var btnCrear      = document.getElementById('cn-btn-crear');
+        var btnAgregar    = document.getElementById('cn-btn-agregar');
+        var btnBorrarItem = document.getElementById('cn-btn-borrar-item');
+        if (btnCrear)      btnCrear.style.display      = 'none';
+        if (btnAgregar)    btnAgregar.style.display     = '';
+        if (btnBorrarItem) btnBorrarItem.style.display  = '';
+      } else {
+        cargarAnalisisItem(div.dataset.codigo, div.dataset.nombre);
+      }
+    }
+
+    function cargarAnalisisItem(codigo, nombre) {
+      cnCodigoActual = codigo;
+      cnFilasMat = []; cnFilasMO = []; cnFilasEq = [];
+      var cargando = '<tr><td colspan="6" class="px-3 py-4 text-center text-neutral-400 text-xs">Cargando análisis...</td></tr>';
+      document.getElementById('cn-mat-body').innerHTML = cargando;
+      document.getElementById('cn-mo-body').innerHTML  = cargando;
+      document.getElementById('cn-eq-body').innerHTML  = cargando;
+
+      var urlAnalisis = SCRIPT_URL + '?action=analisisitem&codigo=' + encodeURIComponent(codigo) + '&nombre=' + encodeURIComponent(nombre);
+      var urlCascada  = SCRIPT_URL + '?action=cascada';
+
+      var promCascada = cnCascada
+        ? Promise.resolve(cnCascada)
+        : fetch(urlCascada).then(function(r) { return r.json(); }).then(function(d) { cnCascada = d; return d; });
+
+      Promise.all([
+        fetch(urlAnalisis).then(function(r) { return r.json(); }),
+        promCascada
+      ])
+        .then(function(results) {
+          var data = results[0];
+          if (data.error) {
+            var msg = '<tr><td colspan="6" class="px-3 py-4 text-center text-orange-400 text-xs">⚠️ ' + data.error + '</td></tr>';
+            document.getElementById('cn-mat-body').innerHTML = msg;
+            document.getElementById('cn-mo-body').innerHTML  = msg;
+            document.getElementById('cn-eq-body').innerHTML  = msg;
+            return;
+          }
+          cnFilasMat = (data.materiales || []).map(function(f) {
+            return { nombre: f.nombre, unidad: f.unidad || '', cantidad: parseFloat(f.cantidad) || 0, precio: parseFloat(f.precio) || 0 };
+          });
+          cnFilasMO = (data.manoobra || []).map(function(f) {
+            return { nombre: f.nombre, unidad: f.unidad || 'hs', cantidad: parseFloat(f.cantidad) || 0, precio: parseFloat(f.precio) || 0 };
+          });
+          cnFilasEq = (data.equipos || []).map(function(f) {
+            return { nombre: f.nombre, unidad: f.unidad || '', cantidad: parseFloat(f.cantidad) || 0, precio: parseFloat(f.precio) || 0 };
+          });
+          cnModoVer = true;
+          cnActualizarModo();
+          cnRenderTablas();
+        })
+        .catch(function() {
+          var msg = '<tr><td colspan="6" class="px-3 py-4 text-center text-red-400 text-xs">❌ Sin conexión o script sin publicar</td></tr>';
+          document.getElementById('cn-mat-body').innerHTML = msg;
+          document.getElementById('cn-mo-body').innerHTML  = msg;
+          document.getElementById('cn-eq-body').innerHTML  = msg;
+        });
+    }
+
+    function cnDesbloquearNombre(limpiar) {
+      var nombre = document.getElementById('cn-nombre');
+      var unidad = document.getElementById('cn-unidad');
+      var base = 'w-full border border-neutral-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-neutral-400 bg-neutral-50 text-neutral-600';
+      nombre.readOnly = false; nombre.className = base;
+      unidad.readOnly = false; unidad.className = base;
+      cnModoVer = false;
+      cnActualizarModo();
+      cnRenderTablas();
+      if (limpiar) {
+        nombre.value = ''; unidad.value = '';
+        cnMostrarSugerencias(document.getElementById('cn-nombre-sug'), cnItemsRubro);
+        nombre.focus();
+      } else if (cnNombreOriginal) {
+        nombre.value = cnNombreOriginal;
+      }
+    }
+
+    function poblarRubrosCrear() {
+      var sel = document.getElementById('cn-rubro');
+      if (!sel) return;
+      var valorActual = sel.value;
+      sel.innerHTML = '<option value="">Seleccioná...</option>';
+      todosRubros.forEach(function(r) {
+        var opt = document.createElement('option');
+        opt.value = r.codigo; opt.textContent = r.codigo + '. ' + r.nombre;
+        sel.appendChild(opt);
+      });
+      if (valorActual) sel.value = valorActual;
+    }
+
+    function toggleCrear() {
+      var body    = document.getElementById('crear-body');
+      var chevron = document.getElementById('crear-chevron');
+      var abierto = !body.classList.contains('hidden');
+      body.classList.toggle('hidden', abierto);
+      chevron.style.transform = abierto ? '' : 'rotate(180deg)';
+    }
+
+    function cargarCatalogos() {
+      fetch(SCRIPT_URL + '?action=catalogo')
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          cnCatalogo = data.materiales || [];
+          if (cnFilasMat.length) cnRenderTablas();
+          return fetch(SCRIPT_URL + '?action=manoobra');
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          cnManoObra = data.categorias || [];
+          if (cnFilasMO.length) cnRenderTablas();
+          cnCargado = true;
+        })
+        .catch(function() { cnCargado = true; });
+    }
+
+    function cnAgregarFila(tipo) {
+      if (tipo === 'mat') cnFilasMat.push({ nombre: '', unidad: '', cantidad: 1, precio: 0 });
+      else if (tipo === 'mo') {
+        var p = cnManoObra[0] || { nombre: '', unidad: '$/Hs', precio: 0 };
+        cnFilasMO.push({ nombre: p.nombre, unidad: p.unidad, cantidad: 0, precio: p.precio });
+      } else cnFilasEq.push({ nombre: '', unidad: '', cantidad: 1, precio: 0 });
+      cnRenderTablas();
+    }
+
+    function cnQuitarFila(tipo, idx) {
+      if (tipo === 'mat') cnFilasMat.splice(idx, 1);
+      else if (tipo === 'mo') cnFilasMO.splice(idx, 1);
+      else cnFilasEq.splice(idx, 1);
+      cnRenderTablas();
+    }
+
+    function cnRenderTablas() {
+      cnRenderTabla('mat', cnFilasMat, 'cn-mat-body', 'cn-sub-mat');
+      cnRenderTabla('mo',  cnFilasMO,  'cn-mo-body',  'cn-sub-mo');
+      cnRenderTabla('eq',  cnFilasEq,  'cn-eq-body',  'cn-sub-eq');
+      cnActualizarResumen();
+      cnRenderCascada();
+    }
+
+    function cnEsModoLog() {
+      var sel = document.getElementById('sel-ap');
+      return !sel || sel.value === 'log';
+    }
+
+    function cnOnApChange() {
+      var esLog = cnEsModoLog();
+      var inputNombre   = document.getElementById('cn-nombre');
+      var inputUnidad   = document.getElementById('cn-unidad');
+      var btnCrear      = document.getElementById('cn-btn-crear');
+      var btnAgregar    = document.getElementById('cn-btn-agregar');
+      var btnBorrarAp   = document.getElementById('cn-btn-borrar-ap');
+      var btnBorrarItem = document.getElementById('cn-btn-borrar-item');
+
+      if (esLog) {
+        inputNombre.placeholder = 'Buscá un ítem...';
+        inputUnidad.readOnly = true;
+        inputUnidad.classList.add('bg-neutral-100', 'text-neutral-400');
+        inputUnidad.classList.remove('bg-neutral-50', 'text-neutral-600');
+        if (btnCrear)      btnCrear.style.display      = 'none';
+        if (btnAgregar)    btnAgregar.style.display     = '';
+        if (btnBorrarAp)   btnBorrarAp.style.display    = 'none';
+        if (btnBorrarItem) btnBorrarItem.style.display  = 'none';
+      } else {
+        inputNombre.placeholder = 'Buscá o escribí un ítem nuevo...';
+        inputUnidad.readOnly = false;
+        inputUnidad.classList.remove('bg-neutral-100', 'text-neutral-400');
+        inputUnidad.classList.add('bg-neutral-50', 'text-neutral-600');
+        if (btnCrear)    btnCrear.style.display    = '';
+        if (btnAgregar)  btnAgregar.style.display  = 'none';
+        if (btnBorrarAp) btnBorrarAp.style.display = '';
+      }
+
+      cnLimpiar();
+    }
+
+    function cnBorrarAnalisis() {
+      var apId = document.getElementById('sel-ap').value;
+      if (apId === 'log') return;
+      var ap = apUsuarios.find(function(a) { return a.id === apId; });
+      if (!ap) return;
+      if (!confirm('¿Eliminás el análisis "' + ap.nombre + '" y todos sus ítems?')) return;
+      apUsuarios = apUsuarios.filter(function(a) { return a.id !== apId; });
+      localStorage.setItem('ap_usuarios', JSON.stringify(apUsuarios));
+      cnCargarApSelector();
+      document.getElementById('sel-ap').value = 'log';
+      cnOnApChange();
+    }
+
+    function cnBorrarItem() {
+      if (!cnCodigoActual || cnEsModoLog()) return;
+      var apId = document.getElementById('sel-ap').value;
+      var ap = apUsuarios.find(function(a) { return a.id === apId; });
+      if (!ap) return;
+      var item = ap.items.find(function(i) { return i.codigo === cnCodigoActual; });
+      if (!item) return;
+      if (!confirm('¿Eliminás el ítem "' + item.nombre + '" del análisis?')) return;
+      ap.items = ap.items.filter(function(i) { return i.codigo !== cnCodigoActual; });
+      localStorage.setItem('ap_usuarios', JSON.stringify(apUsuarios));
+      cnLimpiar();
+    }
+
+    function cnActualizarModo() {
+      var esLog = cnEsModoLog();
+      ['cn-btn-mat','cn-btn-mo','cn-btn-eq'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) el.style.display = cnModoVer ? 'none' : '';
+      });
+      var btnCrear = document.getElementById('cn-btn-crear');
+      if (btnCrear) btnCrear.style.display = (cnModoVer || esLog) ? 'none' : '';
+    }
+
+    function cnRenderTabla(tipo, filas, bodyId, subId) {
+      var tbody = document.getElementById(bodyId);
+      if (!filas.length) {
+        tbody.innerHTML = cnModoVer
+          ? '<tr><td colspan="6" class="px-3 py-1.5 text-center text-neutral-300 text-xs">—</td></tr>'
+          : '<tr><td colspan="6" class="px-3 py-4 text-center text-neutral-300 text-xs">Sin filas. Hacé clic en + Agregar.</td></tr>';
+        document.getElementById(subId).textContent = $$(0);
+        return;
+      }
+      var html = '';
+      filas.forEach(function(fila, idx) {
+        var subtotal = (parseFloat(fila.cantidad)||0) * (parseFloat(fila.precio)||0);
+        if (cnModoVer) {
+          html += '<tr class="border-b border-neutral-100">' +
+            '<td class="px-3 py-1 text-sm text-neutral-700">' + (fila.nombre||'') + '</td>' +
+            '<td class="px-3 py-1 text-center text-xs text-neutral-400 w-12">' + (fila.unidad||'—') + '</td>' +
+            '<td class="px-3 py-1 text-right text-sm text-neutral-600">' + (fila.cantidad||0) + '</td>' +
+            '<td class="px-3 py-1 text-right text-sm text-neutral-600">' + $$(fila.precio) + '</td>' +
+            '<td class="px-3 py-1 text-right font-medium text-sm">' + $$(subtotal) + '</td>' +
+            '<td></td></tr>';
+        } else {
+          var inputClass = 'w-full border border-neutral-200 rounded px-2 py-1 text-sm focus:outline-none focus:border-neutral-400 bg-white';
+          var celdaNombre;
+          if (tipo === 'mat') {
+            celdaNombre = '<div class="relative">' +
+              '<input type="text" value="' + (fila.nombre||'').replace(/"/g,'&quot;') + '" placeholder="Buscar material..." ' +
+              'data-tipo="mat" data-idx="' + idx + '" ' +
+              'oninput="cnFiltrar(this,\'mat\')" onblur="cnOcultar(this)" ' +
+              'class="' + inputClass + '">' +
+              '<div class="cn-sug hidden absolute z-20 bg-white border border-neutral-200 rounded shadow-lg max-h-48 overflow-y-auto w-full left-0 top-full mt-0.5"></div>' +
+              '</div>';
+          } else if (tipo === 'mo') {
+            celdaNombre = '<div class="relative">' +
+              '<input type="text" value="' + (fila.nombre||'').replace(/"/g,'&quot;') + '" placeholder="Buscar categoría..." ' +
+              'data-tipo="mo" data-idx="' + idx + '" ' +
+              'oninput="cnFiltrar(this,\'mo\')" onblur="cnOcultar(this)" ' +
+              'class="' + inputClass + '">' +
+              '<div class="cn-sug hidden absolute z-20 bg-white border border-neutral-200 rounded shadow-lg max-h-48 overflow-y-auto w-full left-0 top-full mt-0.5"></div>' +
+              '</div>';
+          } else {
+            celdaNombre = '<input type="text" value="' + (fila.nombre||'').replace(/"/g,'&quot;') + '" placeholder="Descripción" ' +
+              'data-tipo="eq" data-idx="' + idx + '" data-field="nombre" onchange="cnCambio(this)" ' +
+              'class="' + inputClass + '">';
+          }
+          html += '<tr class="border-b border-neutral-100 hover:bg-neutral-50">' +
+            '<td class="px-2 py-2">' + celdaNombre + '</td>' +
+            '<td class="px-2 py-2 text-center text-xs text-neutral-500">' + (fila.unidad||'—') + '</td>' +
+            '<td class="px-2 py-2"><input type="number" value="' + (fila.cantidad||0) + '" min="0" data-tipo="' + tipo + '" data-idx="' + idx + '" data-field="cantidad" onchange="cnCambio(this)" class="w-full text-right border border-neutral-200 rounded px-2 py-1 text-sm focus:outline-none focus:border-neutral-400"></td>' +
+            '<td class="px-2 py-2 text-right">' + (tipo==='eq' ? '<input type="number" value="' + (fila.precio||0) + '" min="0" data-tipo="eq" data-idx="' + idx + '" data-field="precio" onchange="cnCambio(this)" class="w-full text-right border border-neutral-200 rounded px-2 py-1 text-sm focus:outline-none focus:border-neutral-400">' : '<span class="text-xs text-neutral-500">' + $$(fila.precio) + '</span>') + '</td>' +
+            '<td class="px-2 py-2 text-right font-medium text-sm">' + $$(subtotal) + '</td>' +
+            '<td class="px-2 py-2 text-center"><button onclick="cnQuitarFila(\'' + tipo + '\',' + idx + ')" class="text-neutral-300 hover:text-red-500 text-lg leading-none">×</button></td>' +
+            '</tr>';
+        }
+      });
+      tbody.innerHTML = html;
+      document.getElementById(subId).textContent = $$(filas.reduce(function(s,f){ return s+(parseFloat(f.cantidad)||0)*(parseFloat(f.precio)||0); }, 0));
+    }
+
+    function cnFiltrar(input, tipo) {
+      var query = input.value.toLowerCase().trim();
+      var sug   = input.nextElementSibling;
+      var lista = tipo === 'mat' ? cnCatalogo : cnManoObra;
+      if (!query) { sug.classList.add('hidden'); sug.innerHTML = ''; return; }
+      var matches = lista.filter(function(m) { return m.nombre.toLowerCase().indexOf(query) !== -1; }).slice(0, 20);
+      if (!matches.length) { sug.classList.add('hidden'); sug.innerHTML = ''; return; }
+      sug.innerHTML = matches.map(function(m) {
+        return '<div class="px-3 py-2 text-sm hover:bg-neutral-100 cursor-pointer border-b border-neutral-100 last:border-0" ' +
+          'onmousedown="cnSeleccionar(this,\'' + tipo + '\')" ' +
+          'data-nombre="' + m.nombre.replace(/"/g,'&quot;') + '" ' +
+          'data-unidad="' + (m.unidad||'').replace(/"/g,'&quot;') + '" ' +
+          'data-precio="' + m.precio + '">' + m.nombre + '</div>';
+      }).join('');
+      sug.classList.remove('hidden');
+    }
+
+    function cnSeleccionar(div, tipo) {
+      var sug   = div.parentElement;
+      var input = sug.previousElementSibling;
+      var idx   = parseInt(input.dataset.idx);
+      var arr   = tipo === 'mat' ? cnFilasMat : cnFilasMO;
+      arr[idx].nombre = div.dataset.nombre;
+      arr[idx].unidad = div.dataset.unidad || '';
+      arr[idx].precio = parseFloat(div.dataset.precio) || 0;
+      sug.classList.add('hidden');
+      cnRenderTablas();
+    }
+
+    function cnOcultar(input) {
+      setTimeout(function() {
+        var sug = input.nextElementSibling;
+        if (sug) sug.classList.add('hidden');
+      }, 150);
+    }
+
+    function cnCambio(input) {
+      var tipo = input.dataset.tipo, idx = parseInt(input.dataset.idx), field = input.dataset.field;
+      var arr = tipo==='mat' ? cnFilasMat : (tipo==='mo' ? cnFilasMO : cnFilasEq);
+      arr[idx][field] = (field==='cantidad'||field==='precio') ? parseFloat(input.value)||0 : input.value;
+      cnRenderTablas();
+    }
+
+    function cnCambioMaterial(sel) {
+      var idx = parseInt(sel.dataset.idx), opt = sel.options[sel.selectedIndex];
+      cnFilasMat[idx].nombre = opt.value; cnFilasMat[idx].unidad = opt.dataset.unidad||''; cnFilasMat[idx].precio = parseFloat(opt.dataset.precio)||0;
+      cnRenderTablas();
+    }
+
+    function cnCambioMO(sel) {
+      var idx = parseInt(sel.dataset.idx), opt = sel.options[sel.selectedIndex];
+      cnFilasMO[idx].nombre = opt.value; cnFilasMO[idx].precio = parseFloat(opt.dataset.precio)||0; cnFilasMO[idx].unidad = '$/Hs';
+      cnRenderTablas();
+    }
+
+    function cnActualizarResumen() {
+      var sM = cnFilasMat.reduce(function(s,f){ return s+(parseFloat(f.cantidad)||0)*(parseFloat(f.precio)||0);},0);
+      var sO = cnFilasMO.reduce(function(s,f){  return s+(parseFloat(f.cantidad)||0)*(parseFloat(f.precio)||0);},0);
+      var sE = cnFilasEq.reduce(function(s,f){  return s+(parseFloat(f.cantidad)||0)*(parseFloat(f.precio)||0);},0);
+      document.getElementById('cn-res-mat').textContent   = $$(sM);
+      document.getElementById('cn-res-mo').textContent    = $$(sO);
+      document.getElementById('cn-res-eq').textContent    = $$(sE);
+      document.getElementById('cn-costo-total').textContent = $$(sM+sO+sE);
+    }
+
+    function cnRenderCascada() {
+      var div = document.getElementById('cn-cascada');
+      if (!div) return;
+      if (!cnCascada || cnCascada.error) { div.classList.add('hidden'); return; }
+
+      var sM = cnFilasMat.reduce(function(s,f){ return s+(parseFloat(f.cantidad)||0)*(parseFloat(f.precio)||0);},0);
+      var sO = cnFilasMO.reduce(function(s,f){  return s+(parseFloat(f.cantidad)||0)*(parseFloat(f.precio)||0);},0);
+      var sE = cnFilasEq.reduce(function(s,f){  return s+(parseFloat(f.cantidad)||0)*(parseFloat(f.precio)||0);},0);
+      var costo = sM + sO + sE;
+
+      var gg  = cnCascada.gastosGenerales  || 0;
+      var ben = cnCascada.beneficios       || 0;
+      var cf  = cnCascada.costoFinanciero  || 0;
+      var iva = cnCascada.iva              || 0;
+      var ib  = cnCascada.ingresosBrutos   || 0;
+      var im  = cnCascada.impMunicipales   || 0;
+      var idc = cnCascada.impDebitoCredito || 0;
+
+      var gastosGral = costo * gg;
+      var sub1       = costo + gastosGral;
+      var beneficios = sub1 * ben;
+      var costoFin   = sub1 * cf;
+      var sub2       = sub1 + beneficios + costoFin;
+      var ivaVal     = sub2 * iva;
+      var ibVal      = sub2 * ib;
+      var imVal      = sub2 * im;
+      var idcVal     = sub2 * idc;
+      var sub3       = sub2 + ivaVal + ibVal + imVal + idcVal;
+
+      function pct(n) { return (n * 100).toFixed(2).replace('.', ',') + '%'; }
+      function amt(n) { return '$ ' + n.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+
+      // Fila con porcentaje
+      function filaP(label, p, val) {
+        return '<div class="flex items-center py-1 border-b border-neutral-100">' +
+          '<span class="flex-1 text-xs text-neutral-500 pr-2">' + label + '</span>' +
+          '<span class="text-xs text-neutral-400 w-12 text-right pr-3">' + pct(p) + '</span>' +
+          '<span class="text-xs text-neutral-600 w-28 text-right">' + amt(val) + '</span>' +
+          '</div>';
+      }
+      // Fila de subtotal (sin porcentaje)
+      function filaS(label, val) {
+        return '<div class="flex items-center py-1.5 border-b border-neutral-200">' +
+          '<span class="flex-1 text-xs text-neutral-400 uppercase tracking-wide pr-2">' + label + '</span>' +
+          '<span class="w-12 pr-3"></span>' +
+          '<span class="text-xs font-semibold text-neutral-700 w-28 text-right">' + amt(val) + '</span>' +
+          '</div>';
+      }
+
+      var html = filaS('Costo del ítem (Subtotal I + II + III)', costo);
+      html += filaP('Gastos generales', gg, gastosGral);
+      html += filaS('Subtotal 1', sub1);
+      html += filaP('Beneficios', ben, beneficios);
+      html += filaP('Costo financiero', cf, costoFin);
+      html += filaS('Subtotal 2', sub2);
+      html += filaP('IVA', iva, ivaVal);
+      html += filaP('Ingresos brutos', ib, ibVal);
+      html += filaP('Impuestos municipales', im, imVal);
+      html += filaP('Impuesto al débito y crédito', idc, idcVal);
+      html += filaS('Subtotal 3', sub3);
+      html += '<div class="flex items-center pt-1.5">' +
+        '<span class="flex-1 text-xs font-bold text-neutral-800 uppercase pr-2">ITEM</span>' +
+        '<span class="w-12 pr-3"></span>' +
+        '<span class="text-xs font-bold text-neutral-800 w-28 text-right">' + amt(sub3) + '</span>' +
+        '</div>';
+
+      document.getElementById('cn-cascada-inner').innerHTML = html;
+      div.classList.remove('hidden');
+    }
+
+    // ── Análisis de precios ──────────────────────────────────────────────────
+    var apUsuarios = JSON.parse(localStorage.getItem('ap_usuarios') || '[]');
+
+    function cnCargarApSelector() {
+      var sel = document.getElementById('sel-ap');
+      // quitar opciones previas de usuario (data-usuario)
+      Array.from(sel.options).forEach(function(o) { if (o.dataset.usuario) sel.remove(o.index); });
+      apUsuarios.forEach(function(ap) {
+        var opt = document.createElement('option');
+        opt.value = ap.id;
+        opt.textContent = ap.nombre;
+        opt.dataset.usuario = '1';
+        sel.appendChild(opt);
+      });
+    }
+
+    function cnCrearAnalisis() {
+      var modal = document.getElementById('modal-crear-ap');
+      document.getElementById('modal-ap-nombre').value = '';
+      modal.classList.remove('hidden');
+      document.getElementById('modal-ap-nombre').focus();
+    }
+
+    function cnConfirmarCrearAnalisis() {
+      var nombre = document.getElementById('modal-ap-nombre').value.trim();
+      if (!nombre) return;
+      var id = 'ap_' + Date.now();
+      apUsuarios.push({ id: id, nombre: nombre, items: [] });
+      localStorage.setItem('ap_usuarios', JSON.stringify(apUsuarios));
+      cnCargarApSelector();
+      document.getElementById('sel-ap').value = id;
+      document.getElementById('modal-crear-ap').classList.add('hidden');
+    }
+
+    function cnCerrarModalAp() {
+      document.getElementById('modal-crear-ap').classList.add('hidden');
+    }
+
+    function cnLimpiar() {
+      cnFilasMat=[]; cnFilasMO=[]; cnFilasEq=[];
+      cnModoVer = false;
+      cnCodigoActual = null;
+      document.getElementById('cn-nombre').value='';
+      document.getElementById('cn-unidad').value='';
+      document.getElementById('cn-rubro').value='';
+      document.getElementById('cn-nombre-sug').classList.add('hidden');
+      cnItemsRubro = [];
+      cnDesbloquearNombre();
+      cnRenderTablas();
+      // ocultar "Eliminar ítem"
+      var btnBorrarItem = document.getElementById('cn-btn-borrar-item');
+      if (btnBorrarItem) btnBorrarItem.style.display = 'none';
+      // restaurar botones según modo AP
+      var esLog = cnEsModoLog();
+      var btnCrear   = document.getElementById('cn-btn-crear');
+      var btnAgregar = document.getElementById('cn-btn-agregar');
+      if (btnCrear)   btnCrear.style.display   = esLog ? 'none' : '';
+      if (btnAgregar) btnAgregar.style.display  = esLog ? '' : 'none';
+    }
+
+    function cnAgregarExistente() {
+      if (!cnCodigoActual) return;
+      var pool = cnItemsDelAp();
+      var item = pool.find(function(i) { return i.codigo === cnCodigoActual; });
+      if (!item) return;
+      agregarItem(item);
+      cnLimpiar();
+    }
+
+    function cnGuardar() {
+      var rubroId = document.getElementById('cn-rubro').value;
+      var nombre  = document.getElementById('cn-nombre').value.trim().toUpperCase();
+      var unidad  = document.getElementById('cn-unidad').value.trim();
+      if (!rubroId || !nombre || !unidad) { alert('Completá Rubro, Nombre y Unidad antes de agregar.'); return; }
+
+      // Calcular costo total
+      var costo = 0;
+      cnFilasMat.forEach(function(m) { costo += (parseFloat(m.cantidad)||0) * (parseFloat(m.precio)||0); });
+      cnFilasMO.forEach(function(m)  { costo += (parseFloat(m.cantidad)||0) * (parseFloat(m.precio)||0); });
+      cnFilasEq.forEach(function(m)  { costo += (parseFloat(m.cantidad)||0) * (parseFloat(m.precio)||0); });
+
+      // Obtener el pool de ítems del análisis actual
+      var apId = document.getElementById('sel-ap').value;
+      var ap = apUsuarios.find(function(a) { return a.id === apId; });
+      var pool = ap ? ap.items : todosItems;
+
+      // Generar código: rubroId + siguiente número disponible
+      var lastDecimal = 0;
+      pool.forEach(function(i) {
+        if (i.rubroId === rubroId) {
+          var d = parseFloat((i.codigo || '').split('.')[1] || '0') || 0;
+          if (d > lastDecimal) lastDecimal = d;
+        }
+      });
+      var codigo = rubroId + '.' + (lastDecimal + 1);
+
+      // Guardar en el análisis del usuario (localStorage) y agregar al presupuesto
+      var nuevoItem = {
+        codigo: codigo, nombre: nombre, unidad: unidad, precio: costo, rubroId: rubroId,
+        materiales: cnFilasMat.map(function(f) { return Object.assign({}, f); }),
+        manoobra:   cnFilasMO.map(function(f) { return Object.assign({}, f); }),
+        equipos:    cnFilasEq.map(function(f) { return Object.assign({}, f); })
+      };
+      pool.push(nuevoItem);
+      if (ap) localStorage.setItem('ap_usuarios', JSON.stringify(apUsuarios));
+      agregarItem(nuevoItem);
+
+      cnLimpiar();
+    }
+  </script>
+
+  <!-- Modal: Crear análisis de precios -->
+  <div id="modal-crear-ap" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm mx-4 p-6">
+      <h3 class="text-sm font-semibold text-neutral-700 mb-4">Nuevo análisis de precios</h3>
+      <label class="block text-xs text-neutral-400 mb-1">Nombre</label>
+      <input id="modal-ap-nombre" type="text" placeholder="Ej: Mi empresa"
+        onkeydown="if(event.key==='Enter') cnConfirmarCrearAnalisis()"
+        class="w-full border border-neutral-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-neutral-500 mb-5" />
+      <div class="flex justify-end gap-2">
+        <button onclick="cnCerrarModalAp()" class="px-4 py-2 text-xs text-neutral-400 hover:text-neutral-600 transition">Cancelar</button>
+        <button onclick="cnConfirmarCrearAnalisis()" class="px-4 py-2 bg-neutral-700 text-white rounded-lg text-xs hover:bg-neutral-800 transition font-medium">Crear</button>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,22 @@
+name: Deploy a Hostinger
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy por FTP
+        run: |
+          curl -v --ftp-pasv --ftp-create-dirs \
+            -u "${{ secrets.FTP_USER }}:${{ secrets.FTP_PASS }}" \
+            -T index.html \
+            "ftp://${{ secrets.FTP_HOST }}/index.html"
+          curl -v --ftp-pasv --ftp-create-dirs \
+            -u "${{ secrets.FTP_USER }}:${{ secrets.FTP_PASS }}" \
+            -T projects-data.js \
+            "ftp://${{ secrets.FTP_HOST }}/projects-data.js"
