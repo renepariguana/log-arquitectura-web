@@ -1448,7 +1448,6 @@
         <span style="color:#444;">·</span>
         <span id="portal-seccion-titulo" style="font-size:10px; letter-spacing:0.18em; text-transform:uppercase; color:#888;">Portal</span>
       </div>
-      <button onclick="clientesCerrarSesion()" style="background:none; border:1px solid #555; color:#aaa; padding:7px 16px; font-size:10px; letter-spacing:0.12em; text-transform:uppercase; cursor:pointer; font-family:'DM Sans',sans-serif;">Cerrar sesión</button>
     </div>
 
     <!-- Body -->
@@ -1473,9 +1472,13 @@
           </button>
         </nav>
         <!-- Usuario -->
-        <div style="padding:16px 20px; border-top:1px solid #E8E6E2;">
-          <p id="portal-saludo" style="font-size:13px; font-weight:400; color:#0D0D0D; margin:0 0 3px;">Cliente</p>
-          <p id="portal-nro-suscriptor" style="display:none; font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:#aaa; margin:0;">Suscriptor #<span id="portal-nro-val"></span></p>
+        <div style="padding:14px 20px; border-top:1px solid #E8E6E2; display:flex; align-items:center; gap:10px;">
+          <img id="portal-avatar" src="" alt="" style="width:32px; height:32px; border-radius:50%; object-fit:cover; display:none; flex-shrink:0;">
+          <div style="min-width:0;">
+            <p id="portal-saludo" style="font-size:13px; font-weight:400; color:#0D0D0D; margin:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Cliente</p>
+            <p id="portal-nro-suscriptor" style="display:none; font-size:10px; letter-spacing:0.12em; text-transform:uppercase; color:#aaa; margin:2px 0 0;">Suscriptor #<span id="portal-nro-val"></span></p>
+            <button onclick="clientesCerrarSesion()" style="background:none; border:none; padding:0; font-size:11px; color:#aaa; cursor:pointer; font-family:'DM Sans',sans-serif; margin-top:2px;">Cerrar sesión</button>
+          </div>
         </div>
       </div>
 
@@ -1519,7 +1522,7 @@
       var sesion = sessionStorage.getItem('cl_sesion');
       if (sesion) {
         var datos = JSON.parse(sesion);
-        mostrarPortal(datos.nombre, datos.folderId, datos.suscripcion, datos.esCliente, datos.nroSuscriptor || '');
+        mostrarPortal(datos.nombre, datos.folderId, datos.suscripcion, datos.esCliente, datos.nroSuscriptor || '', datos.picture || '');
         return;
       }
       var m = document.getElementById('modal-clientes-login');
@@ -1560,10 +1563,10 @@
             return;
           }
           var nombre = data.nombre || nombreGoogle;
-          var sesion = { nombre: nombre, folderId: data.folderId || '', esCliente: !!data.esCliente, suscripcion: !!data.suscripcion, email: emailGoogle, nroSuscriptor: data.nroSuscriptor || '' };
+          var sesion = { nombre: nombre, folderId: data.folderId || '', esCliente: !!data.esCliente, suscripcion: !!data.suscripcion, email: emailGoogle, nroSuscriptor: data.nroSuscriptor || '', picture: payload.picture || '' };
           sessionStorage.setItem('cl_sesion', JSON.stringify(sesion));
           closeClientesLogin();
-          mostrarPortal(nombre, data.folderId || '', data.suscripcion, data.esCliente, data.nroSuscriptor || '');
+          mostrarPortal(nombre, data.folderId || '', data.suscripcion, data.esCliente, data.nroSuscriptor || '', payload.picture || '');
         })
         .catch(function() {
           if (errEl) { errEl.textContent = 'Error de conexión. Intentá de nuevo.'; errEl.style.display = 'block'; }
@@ -1739,9 +1742,15 @@
       if (navProyectos) navProyectos.style.borderLeftColor = (seccion === 'proyectos') ? '#0D0D0D' : 'transparent';
     }
 
-    function mostrarPortal(nombre, folderId, suscripcion, esCliente, nroSuscriptor) {
+    function mostrarPortal(nombre, folderId, suscripcion, esCliente, nroSuscriptor, picture) {
       document.getElementById('portal-saludo').textContent = nombre;
       document.getElementById('portal-clientes').style.display = 'flex';
+
+      var avatarEl = document.getElementById('portal-avatar');
+      if (avatarEl && picture) {
+        avatarEl.src = picture;
+        avatarEl.style.display = 'block';
+      }
 
       var nroEl  = document.getElementById('portal-nro-suscriptor');
       var nroVal = document.getElementById('portal-nro-val');
