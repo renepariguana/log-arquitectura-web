@@ -1495,9 +1495,10 @@
             <span id="nav-proy-arrow" style="font-size:10px; color:#a3a3a3; flex-shrink:0; display:inline-block; transform:rotate(0deg); transition:transform 0.18s;">▾</span>
           </button>
           <div id="nav-proyectos-tree" style="display:block; overflow:hidden;"></div>
-          <button id="nav-btn-presupuestador" onclick="portalMostrarSeccion('presupuestador')"
-            style="display:none; align-items:center; width:100%; text-align:left; padding:10px 16px; font-size:12px; font-weight:500; color:#737373; cursor:pointer; font-family:'DM Sans',sans-serif; background:none; border:none; border-left:2px solid transparent; box-sizing:border-box;">
-            Presupuestador
+          <button id="nav-btn-presupuestador" onclick="portalTogglePresupuestador()"
+            style="display:none; align-items:center; justify-content:space-between; width:100%; text-align:left; padding:10px 16px; font-size:12px; font-weight:500; color:#737373; cursor:pointer; font-family:'DM Sans',sans-serif; background:none; border:none; border-left:2px solid transparent; box-sizing:border-box;">
+            <span>Presupuestador</span>
+            <span id="nav-presu-arrow" style="font-size:10px; color:#a3a3a3; flex-shrink:0; display:inline-block; transform:rotate(-90deg); transition:transform 0.18s;">▾</span>
           </button>
           <div id="nav-presupuestador-tree" style="display:none; overflow:hidden;"></div>
           <button id="nav-btn-presupuestador-lock" onclick="portalMostrarSeccion('promo')"
@@ -1779,8 +1780,10 @@
       if (visorWrap) visorWrap.style.display = 'none';
       _portalPdfActual = null;
 
-      // Árbol presupuestador: visible solo en esa sección
+      // Árbol presupuestador: visible (y flecha abierta) solo en esa sección
+      var arrowPresu = document.getElementById('nav-presu-arrow');
       if (treePresu) treePresu.style.display = (seccion === 'presupuestador') ? 'block' : 'none';
+      if (arrowPresu) arrowPresu.style.transform = (seccion === 'presupuestador') ? 'rotate(0deg)' : 'rotate(-90deg)';
 
       if (esPresupuestador) {
         if (normalWrap) normalWrap.style.display = 'none';
@@ -1830,11 +1833,21 @@
       };
       Object.keys(btns).forEach(function(k) {
         var b = btns[k]; if (!b) return;
-        var activo = (k === seccion || (k === 'proyectos' && seccion === 'proyectos'));
+        var activo = (k === seccion);
         b.style.background      = activo ? '#fff' : 'none';
         b.style.borderLeftColor = activo ? '#404040' : 'transparent';
         b.style.color           = activo ? '#262626' : '#737373';
       });
+    }
+
+    // Toggle del árbol del presupuestador en el sidebar
+    function portalTogglePresupuestador() {
+      var tree  = document.getElementById('nav-presupuestador-tree');
+      var arrow = document.getElementById('nav-presu-arrow');
+      var abierto = tree.style.display !== 'none';
+      tree.style.display = abierto ? 'none' : 'block';
+      if (arrow) arrow.style.transform = abierto ? 'rotate(-90deg)' : 'rotate(0deg)';
+      portalMostrarSeccion('presupuestador');
     }
 
     // Toggle del árbol de proyectos en el sidebar
