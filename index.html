@@ -1586,6 +1586,39 @@
       }
     }
 
+    // ── VISOR PDF — token Drive para carga limpia (sin fondo negro) ──
+    var _driveTC  = null;
+    var _driveTok = sessionStorage.getItem('cl_drive_token') || null;
+    var _pendingPdf = null;
+
+    (function _initDriveTok() {
+      if (!window.google || !google.accounts || !google.accounts.oauth2) { setTimeout(_initDriveTok, 400); return; }
+      _driveTC = google.accounts.oauth2.initTokenClient({
+        client_id: '234264899285-3rnoku76f2ge7prvonktsr601cs959c3.apps.googleusercontent.com',
+        scope: 'https://www.googleapis.com/auth/drive.readonly',
+        callback: function(r) {
+          if (r && r.access_token) {
+            _driveTok = r.access_token;
+            sessionStorage.setItem('cl_drive_token', r.access_token);
+            if (_pendingPdf) { var p = _pendingPdf; _pendingPdf = null; portalVerPdfEnPortal(p.id, p.nombre, p.descUrl); }
+          }
+        },
+        error_callback: function() {}
+      });
+    })();
+
+    async function _driveBlob(pdfId) {
+      if (!_driveTok) return null;
+      try {
+        var r = await fetch('https://www.googleapis.com/drive/v3/files/' + pdfId + '?alt=media', {
+          headers: { Authorization: 'Bearer ' + _driveTok }
+        });
+        if (r.status === 401) { _driveTok = null; sessionStorage.removeItem('cl_drive_token'); return null; }
+        if (!r.ok) return null;
+        return URL.createObjectURL(new Blob([await r.arrayBuffer()], { type: 'application/pdf' }));
+      } catch(e) { return null; }
+    }
+
     function onGoogleLoginPortal(response) {
       var payload, emailGoogle, nombreGoogle;
       try {
@@ -1636,6 +1669,7 @@
           sessionStorage.setItem('cl_sesion', JSON.stringify(sesion));
           closeClientesLogin();
           mostrarPortal(nombre, data.folderId || '', data.suscripcion, data.esCliente, data.nroSuscriptor || '', payload.picture || '');
+          if (_driveTC && !_driveTok) _driveTC.requestAccessToken({ prompt: 'none' });
         })
         .catch(function() {
           clearTimeout(timer);
@@ -1955,10 +1989,8 @@
     }
 
     // Muestra el PDF en el visor central y los controles en la barra superior
-    function portalVerPdfEnPortal(pdfId, nombre, descUrl) {
-      // Asegurar que estamos en la sección proyectos (oculta presupuestador y sus controles)
+    async function portalVerPdfEnPortal(pdfId, nombre, descUrl) {
       portalMostrarSeccion('proyectos');
-
       _portalPdfActual = { id: pdfId, nombre: nombre, descUrl: descUrl };
       var visor     = document.getElementById('portal-visor-pdf');
       var visorWrap = document.getElementById('portal-visor-pdf-wrap');
@@ -1967,13 +1999,23 @@
       var ctrlPres  = document.getElementById('portal-ctrl-presupuesto');
       var ctrlVacio = document.getElementById('portal-ctrl-vacio');
       var nombreEl  = document.getElementById('portal-pdf-nombre-ctrl');
-      if (visor)    visor.src = 'https://drive.google.com/file/d/' + pdfId + '/preview';
       if (visorWrap) { visorWrap.style.display = 'flex'; visorWrap.style.flex = '1'; }
       if (grid)      grid.style.display = 'none';
       if (ctrlPdf)   ctrlPdf.style.display   = 'flex';
       if (ctrlPres)  ctrlPres.style.display   = 'none';
       if (ctrlVacio) ctrlVacio.style.display  = 'none';
       if (nombreEl)  nombreEl.textContent     = nombre;
+      if (!visor) return;
+      var blobUrl = await _driveBlob(pdfId);
+      if (blobUrl) {
+        visor.src = blobUrl;
+      } else {
+        visor.src = 'https://drive.google.com/file/d/' + pdfId + '/preview';
+        if (_driveTC && !_driveTok) {
+          _pendingPdf = { id: pdfId, nombre: nombre, descUrl: descUrl };
+          _driveTC.requestAccessToken({ prompt: 'none' });
+        }
+      }
     }
 
     // Vuelve a la grilla de proyectos desde el visor PDF
@@ -1983,7 +2025,7 @@
       var grid      = document.getElementById('portal-seccion-proyectos');
       var ctrlPdf   = document.getElementById('portal-ctrl-pdf');
       var ctrlVacio = document.getElementById('portal-ctrl-vacio');
-      if (visor)     visor.src = '';
+      if (visor) { if (visor.src && visor.src.startsWith('blob:')) URL.revokeObjectURL(visor.src); visor.src = ''; }
       if (visorWrap) visorWrap.style.display = 'none';
       if (grid)  { grid.style.display = 'flex'; grid.style.flexDirection = 'column'; }
       if (ctrlPdf)   ctrlPdf.style.display   = 'none';
