@@ -185,28 +185,47 @@ function doGet(e) {
 
   if (e && e.parameter && e.parameter.action === 'loginGoogle') {
     try {
-      var email = (e.parameter.email || '').toLowerCase().trim();
+      var email  = (e.parameter.email  || '').toLowerCase().trim();
+      var nombre = (e.parameter.nombre || '').toString().trim();
       if (!email) throw new Error('Email requerido');
       var ss = SpreadsheetApp.getActiveSpreadsheet();
 
+      // Buscar en Clientes
       var hojaClientes = ss.getSheetByName('Clientes');
-      var nombre = '', folderId = '', esCliente = false;
-      if (hojaClientes) {
-        var datosC = hojaClientes.getDataRange().getValues();
-        for (var i = 1; i < datosC.length; i++) {
-          var emailC  = (datosC[i][1] || '').toString().trim().toLowerCase();
-          var estadoC = (datosC[i][4] || '').toString().trim().toLowerCase();
-          if (emailC === email && estadoC !== 'inactivo') {
-            nombre = (datosC[i][0] || '').toString().trim();
-            var link = (datosC[i][5] || '').toString().trim();
-            var fm = link.match(/[-\w]{25,}/);
-            folderId  = fm ? fm[0] : '';
-            esCliente = true;
-            break;
-          }
+      if (!hojaClientes) {
+        hojaClientes = ss.insertSheet('Clientes');
+        hojaClientes.appendRow(['Nombre', 'Email', 'DNI', '', 'Estado', 'LinkDrive']);
+        hojaClientes.getRange(1, 1, 1, 6).setFontWeight('bold');
+      }
+      var folderId = '', esCliente = false;
+      var datosC = hojaClientes.getDataRange().getValues();
+      for (var i = 1; i < datosC.length; i++) {
+        var emailC  = (datosC[i][1] || '').toString().trim().toLowerCase();
+        var estadoC = (datosC[i][4] || '').toString().trim().toLowerCase();
+        if (emailC === email) {
+          if (estadoC === 'inactivo') break;
+          nombre    = (datosC[i][0] || nombre).toString().trim();
+          var link  = (datosC[i][5] || '').toString().trim();
+          var fm    = link.match(/[-\w]{25,}/);
+          folderId  = fm ? fm[0] : '';
+          esCliente = true;
+          break;
         }
       }
 
+      // Si no existe → crear carpeta en Drive y registrar en Clientes
+      if (!esCliente) {
+        var CARPETA_CLIENTES_ID = '1SqXMjyeBs4uHa7E0dpwe408oQKL45545';
+        var carpetaPadre = DriveApp.getFolderById(CARPETA_CLIENTES_ID);
+        var nombreCarpeta = nombre || email;
+        var nuevaCarpeta  = carpetaPadre.createFolder(nombreCarpeta);
+        folderId  = nuevaCarpeta.getId();
+        var linkDrive = 'https://drive.google.com/drive/folders/' + folderId;
+        hojaClientes.appendRow([nombre, email, '', '', 'activo', linkDrive]);
+        esCliente = true;
+      }
+
+      // Buscar en Suscriptores
       var hojaSub = ss.getSheetByName('Suscriptores');
       var suscripcion = false;
       if (hojaSub) {
@@ -216,7 +235,6 @@ function doGet(e) {
           var estadoS = (datosS[j][9] || '').toString().trim().toLowerCase();
           if (emailS === email && (estadoS === 'approved' || estadoS === 'activo' || estadoS === 'active')) {
             suscripcion = true;
-            if (!nombre) nombre = ((datosS[j][1] || '') + ' ' + (datosS[j][2] || '')).trim();
             break;
           }
         }

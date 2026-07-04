@@ -1536,7 +1536,7 @@
       var errEl = document.getElementById('cl-google-error');
       if (errEl) errEl.style.display = 'none';
 
-      fetch(GSHEET_URL + '?action=loginGoogle&email=' + encodeURIComponent(emailGoogle))
+      fetch(GSHEET_URL + '?action=loginGoogle&email=' + encodeURIComponent(emailGoogle) + '&nombre=' + encodeURIComponent(nombreGoogle))
         .then(function(r) { return r.json(); })
         .then(function(data) {
           if (!data.ok) {
