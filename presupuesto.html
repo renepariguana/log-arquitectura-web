@@ -115,7 +115,7 @@
             oninput="calcularTotales(); actualizarPrint()">
         </div>
         <div>
-          <label class="block text-xs text-neutral-500 mb-1">Costo m²</label>
+          <label class="block text-xs text-neutral-500 mb-1">Costo de la construcción</label>
           <input id="obra-costo-m2" type="text" readonly placeholder="—"
             class="w-full border border-neutral-100 rounded-lg px-3 py-2.5 text-sm bg-neutral-50 text-neutral-600 cursor-default select-none">
         </div>
@@ -323,6 +323,8 @@
   <script>
     // ─── CONFIG ───────────────────────────────────────────────────────────────
     var SCRIPT_URL    = 'https://script.google.com/macros/s/AKfycbwyP241qqjfn_qWhIlFskrETqyK-BRBV_8QqEZaZMqdBd2zo_lrFdq82VuG5_1LhQ8L/exec';
+    var PORTAL_URL    = 'https://script.google.com/macros/s/AKfycbz_vTRyYCjKrAmWJ636VfHs6U5SyvcODoLqPb5rZaoP2R1RRpUSuo_-Djxyv99lUxCmBA/exec';
+    var costoM2Referencia = 0; // costo m² scrapeado desde la hoja Servicios
     var GOOGLE_CLIENT_ID = '234264899285-3rnoku76f2ge7prvonktsr601cs959c3.apps.googleusercontent.com';
 
     // ─── AUTENTICACIÓN ────────────────────────────────────────────────────────
@@ -426,11 +428,27 @@
       });
     }
 
+    function fetchCostoReferencia() {
+      fetch(PORTAL_URL + '?action=costo')
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (!data.costo) return;
+          // Convertir "$2.074.886" (formato AR: punto=miles, coma=decimal) → 2074886
+          var num = parseFloat(data.costo.replace(/\./g, '').replace(',', '.').replace(/[^0-9.]/g, ''));
+          if (!isNaN(num) && num > 0) {
+            costoM2Referencia = num;
+            calcularTotales();
+          }
+        })
+        .catch(function() {});
+    }
+
     window.onload = function() {
       initLogin();
       document.getElementById('obra-fecha').value = hoyFormateado();
       cargarLocal();
       fetchItems();
+      fetchCostoReferencia();
       cargarCatalogos();
       cnCargarApSelector();
       fetch(SCRIPT_URL + '?action=cascada')
@@ -596,7 +614,7 @@
       var m2 = parseFloat(document.getElementById('obra-m2').value) || 0;
       var costoM2El = document.getElementById('obra-costo-m2');
       if (costoM2El) {
-        costoM2El.value = (m2 > 0 && total > 0) ? $$(total / m2) + ' / m²' : '';
+        costoM2El.value = (m2 > 0 && costoM2Referencia > 0) ? $$(m2 * costoM2Referencia) : '';
       }
       guardarLocal();
     }
