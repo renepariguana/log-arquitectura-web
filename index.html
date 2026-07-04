@@ -1446,6 +1446,7 @@
       <div>
         <p style="font-size:10px; letter-spacing:0.22em; text-transform:uppercase; color:#888; margin:0 0 4px;">LOG arquitectura</p>
         <h2 id="portal-saludo" style="font-size:18px; font-weight:300; color:#fff; margin:0;">Hola, Cliente</h2>
+        <p id="portal-nro-suscriptor" style="display:none; font-size:10px; letter-spacing:0.18em; text-transform:uppercase; color:#888; margin:6px 0 0;">Suscriptor #<span id="portal-nro-val"></span></p>
       </div>
       <button onclick="clientesCerrarSesion()"
         style="background:none; border:1px solid #555; color:#aaa; padding:8px 18px; font-size:10px; letter-spacing:0.15em; text-transform:uppercase; cursor:pointer; font-family:'DM Sans',sans-serif;">
@@ -1455,8 +1456,17 @@
 
     <!-- Contenido -->
     <div style="max-width:900px; margin:0 auto; padding:40px 24px;">
+      <!-- Proyectos del cliente -->
+      <div id="portal-proyectos-section">
+        <p style="font-size:10px; letter-spacing:0.2em; text-transform:uppercase; color:#888; margin-bottom:24px;">Tus proyectos</p>
+        <div id="portal-archivos" style="display:none;">
+          <!-- Se llena dinámicamente -->
+        </div>
+        <p id="portal-vacio" style="display:none; color:#888; font-size:14px;">No hay archivos disponibles por el momento.</p>
+        <p id="portal-cargando" style="color:#888; font-size:13px;">Cargando archivos...</p>
+      </div>
       <!-- Presupuestador: visible con suscripción -->
-      <div id="portal-presupuestador-btn" style="display:none; margin-bottom:32px;">
+      <div id="portal-presupuestador-btn" style="display:none; margin-top:40px;">
         <div style="background:#0D0D0D; padding:24px 28px; display:flex; justify-content:space-between; align-items:center;">
           <div>
             <p style="font-size:10px; letter-spacing:0.2em; text-transform:uppercase; color:#888; margin:0 0 4px;">Herramienta profesional</p>
@@ -1466,7 +1476,7 @@
         </div>
       </div>
       <!-- Presupuestador promo: visible sin suscripción -->
-      <div id="portal-presupuestador-promo" style="display:none; margin-bottom:32px;">
+      <div id="portal-presupuestador-promo" style="display:none; margin-top:40px;">
         <div style="border:1px solid #e0e0e0; padding:24px 28px; display:flex; justify-content:space-between; align-items:center;">
           <div>
             <p style="font-size:10px; letter-spacing:0.2em; text-transform:uppercase; color:#aaa; margin:0 0 4px;">Disponible con suscripción</p>
@@ -1474,15 +1484,6 @@
           </div>
           <button onclick="clMostrarSuscripcionDesdePortal()" style="background:#0D0D0D; color:#fff; border:none; padding:10px 24px; font-size:10px; letter-spacing:0.15em; text-transform:uppercase; cursor:pointer; font-family:'DM Sans',sans-serif;">Suscribirme</button>
         </div>
-      </div>
-      <!-- Proyectos del cliente -->
-      <div id="portal-proyectos-section">
-        <p style="font-size:10px; letter-spacing:0.2em; text-transform:uppercase; color:#888; margin-bottom:24px;">Tus proyectos</p>
-        <div id="portal-archivos" style="display:none;">
-          <!-- Se llena dinámicamente -->
-        </div>
-        <p id="portal-vacio" style="display:none; color:#888; font-size:14px;">No hay archivos disponibles por el momento.</p>
-        <p id="portal-cargando" style="color:#888; font-size:13px;">Cargando archivos...</p>
       </div>
     </div>
   </div>
@@ -1503,7 +1504,7 @@
       var sesion = sessionStorage.getItem('cl_sesion');
       if (sesion) {
         var datos = JSON.parse(sesion);
-        mostrarPortal(datos.nombre, datos.folderId, datos.suscripcion, datos.esCliente);
+        mostrarPortal(datos.nombre, datos.folderId, datos.suscripcion, datos.esCliente, datos.nroSuscriptor || '');
         return;
       }
       var m = document.getElementById('modal-clientes-login');
@@ -1544,10 +1545,10 @@
             return;
           }
           var nombre = data.nombre || nombreGoogle;
-          var sesion = { nombre: nombre, folderId: data.folderId || '', esCliente: !!data.esCliente, suscripcion: !!data.suscripcion, email: emailGoogle };
+          var sesion = { nombre: nombre, folderId: data.folderId || '', esCliente: !!data.esCliente, suscripcion: !!data.suscripcion, email: emailGoogle, nroSuscriptor: data.nroSuscriptor || '' };
           sessionStorage.setItem('cl_sesion', JSON.stringify(sesion));
           closeClientesLogin();
-          mostrarPortal(nombre, data.folderId || '', data.suscripcion, data.esCliente);
+          mostrarPortal(nombre, data.folderId || '', data.suscripcion, data.esCliente, data.nroSuscriptor || '');
         })
         .catch(function() {
           if (errEl) { errEl.textContent = 'Error de conexión. Intentá de nuevo.'; errEl.style.display = 'block'; }
@@ -1706,9 +1707,18 @@
     }
 
 
-    function mostrarPortal(nombre, folderId, suscripcion, esCliente) {
+    function mostrarPortal(nombre, folderId, suscripcion, esCliente, nroSuscriptor) {
       document.getElementById('portal-saludo').textContent = 'Hola, ' + nombre;
       document.getElementById('portal-clientes').style.display = 'block';
+
+      var nroEl  = document.getElementById('portal-nro-suscriptor');
+      var nroVal = document.getElementById('portal-nro-val');
+      if (nroSuscriptor && nroEl && nroVal) {
+        nroVal.textContent = nroSuscriptor;
+        nroEl.style.display = 'block';
+      } else if (nroEl) {
+        nroEl.style.display = 'none';
+      }
 
       var btnPre   = document.getElementById('portal-presupuestador-btn');
       var promoPre = document.getElementById('portal-presupuestador-promo');

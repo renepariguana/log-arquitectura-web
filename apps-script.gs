@@ -226,22 +226,34 @@ function doGet(e) {
       }
 
       // Buscar en Suscriptores
+      // Estructura: A=CARPETA, B=Nombre, C=Email, D=SUSCRIPCION, E=INICIO, F=FIN, G=TIEMPO RESTANTE, H=NRO SUSCRIPTOR
       var hojaSub = ss.getSheetByName('Suscriptores');
       var suscripcion = false;
+      var nroSuscriptor = '';
       if (hojaSub) {
         var datosS = hojaSub.getDataRange().getValues();
         for (var j = 1; j < datosS.length; j++) {
-          var emailS  = (datosS[j][5] || '').toString().trim().toLowerCase();
-          var estadoS = (datosS[j][9] || '').toString().trim().toLowerCase();
-          if (emailS === email && (estadoS === 'approved' || estadoS === 'activo' || estadoS === 'active')) {
+          var emailS  = (datosS[j][2] || '').toString().trim().toLowerCase(); // Col C
+          var estadoS = (datosS[j][3] || '').toString().trim().toLowerCase(); // Col D
+          if (emailS === email && (estadoS === 'activa' || estadoS === 'activo' || estadoS === 'approved' || estadoS === 'active')) {
             suscripcion = true;
+            nroSuscriptor = (datosS[j][7] || '').toString().trim(); // Col H
+            if (!nroSuscriptor) {
+              // Contar cuántos suscriptores ya tienen número asignado
+              var count = 0;
+              for (var k = 1; k < datosS.length; k++) {
+                if ((datosS[k][7] || '').toString().trim()) count++;
+              }
+              nroSuscriptor = String(count + 1).padStart(3, '0');
+              hojaSub.getRange(j + 1, 8).setValue(nroSuscriptor);
+            }
             break;
           }
         }
       }
 
       return ContentService
-        .createTextOutput(JSON.stringify({ ok: true, nombre: nombre, folderId: folderId, esCliente: esCliente, suscripcion: suscripcion }))
+        .createTextOutput(JSON.stringify({ ok: true, nombre: nombre, folderId: folderId, esCliente: esCliente, suscripcion: suscripcion, nroSuscriptor: nroSuscriptor }))
         .setMimeType(ContentService.MimeType.JSON);
 
     } catch (err) {
