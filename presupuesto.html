@@ -913,7 +913,7 @@
           'class="group relative flex flex-col px-4 py-2.5 cursor-pointer transition ' +
           (activo ? 'bg-white border-l-2 border-neutral-700 ' : 'hover:bg-neutral-200 ') + '">' +
           '<span class="text-xs font-medium ' + (activo ? 'text-neutral-800' : 'text-neutral-500') + ' truncate pr-5">' + esc(nombre) + '</span>' +
-          (fecha ? '<span class="text-neutral-400 text-xs mt-0.5 truncate">' + esc(fecha) + '</span>' : '') +
+          (fecha ? '<span class="text-neutral-300 text-xs mt-0.5 truncate">Actualizado ' + esc(fecha) + '</span>' : '') +
           '<button onclick="borrarPresupuesto(\'' + p.id + '\', event)" ' +
           'class="absolute right-2 top-2.5 text-neutral-400 hover:text-red-400 text-xs opacity-0 group-hover:opacity-100 transition leading-none">✕</button>' +
           '</div>';
