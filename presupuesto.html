@@ -898,9 +898,10 @@
       if (!inner) return;
       if (!cnCascada || cnCascada.error) { inner.innerHTML = '<p class="text-xs text-neutral-400 py-1">Cargando porcentajes...</p>'; return; }
 
-      var costo = presupuesto.reduce(function(s, i) {
-        return s + (parseFloat(i.cantidad) || 0) * (parseFloat(i.precioBase) || 0);
-      }, 0);
+      var sM = cnFilasMat.reduce(function(s,f){ return s+(parseFloat(f.cantidad)||0)*(parseFloat(f.precio)||0);},0);
+      var sO = cnFilasMO.reduce(function(s,f){  return s+(parseFloat(f.cantidad)||0)*(parseFloat(f.precio)||0);},0);
+      var sE = cnFilasEq.reduce(function(s,f){  return s+(parseFloat(f.cantidad)||0)*(parseFloat(f.precio)||0);},0);
+      var costo = sM + sO + sE;
 
       var gg  = cnCascada.gastosGenerales  || 0;
       var ben = cnCascada.beneficios       || 0;
