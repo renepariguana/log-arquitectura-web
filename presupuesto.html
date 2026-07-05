@@ -38,6 +38,8 @@
       #print-analisis { display: block !important; page-break-before: always; }
       /* Forzar colores de fondo en impresión */
       * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+      /* Mostrar texto completo en celda ítem */
+      td[colspan="3"] { overflow: visible !important; max-width: none !important; }
     }
   </style>
 </head>
