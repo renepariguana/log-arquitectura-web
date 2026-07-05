@@ -748,20 +748,20 @@
           html += '<tr class="border-b border-neutral-100 hover:bg-neutral-50">' +
             '<td class="px-3 py-1.5 text-xs text-neutral-400 font-mono text-center">' + rubroNum + '.' + nroLocal + '</td>' +
             '<td class="px-1 py-0.5" colspan="3" style="max-width:0;overflow:hidden">' +
-              '<input type="text" value="' + (item.descripcion || '').replace(/"/g, '&quot;') + '" ' +
-              'placeholder="Descripción del ítem..." ' +
-              'onblur="presupEdit(\'' + item.uid + '\',\'descripcion\',this.value)" ' +
-              'class="w-full border border-transparent hover:border-neutral-200 focus:border-neutral-400 rounded px-2 py-0.5 text-xs focus:outline-none bg-transparent text-neutral-700">' +
-              '<div class="flex gap-1">' +
+              '<div class="flex gap-1 w-full">' +
                 '<select onchange="presupOnRubroChange(\'' + item.uid + '\', this.value)" ' +
                 'style="max-width:100px" ' +
                 'class="border border-transparent hover:border-neutral-200 focus:border-neutral-400 rounded px-1 py-0.5 text-xs focus:outline-none bg-transparent text-neutral-400 cursor-pointer">' +
                 rubroOpts + '</select>' +
                 '<select onchange="presupOnItemChange(\'' + item.uid + '\', this)" ' +
                 'style="max-width:100px" ' +
-                'class="border border-transparent hover:border-neutral-200 focus:border-neutral-400 rounded px-1 py-0.5 text-xs focus:outline-none bg-transparent text-neutral-400 cursor-pointer">' +
+                'class="flex-1 border border-transparent hover:border-neutral-200 focus:border-neutral-400 rounded px-1 py-0.5 text-xs focus:outline-none bg-transparent text-neutral-400 cursor-pointer">' +
                 itemOpts + '</select>' +
               '</div>' +
+              '<input type="text" value="' + (item.descripcion || '').replace(/"/g, '&quot;') + '" ' +
+              'placeholder="Descripción libre..." ' +
+              'onblur="presupEdit(\'' + item.uid + '\',\'descripcion\',this.value)" ' +
+              'class="w-full border border-transparent hover:border-neutral-200 focus:border-neutral-400 rounded px-2 py-0.5 text-xs focus:outline-none bg-transparent text-neutral-500 italic">' +
             '</td>' +
             '<td class="px-3 py-1.5 text-xs text-center text-neutral-600">' + (item.unidad || '—') + '</td>' +
             '<td class="px-1 py-1">' +
