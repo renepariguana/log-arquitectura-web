@@ -112,13 +112,13 @@
         <div style="flex:3; min-width:180px">
           <label class="block text-xs text-neutral-500 mb-1">Nombre de la obra</label>
           <input id="obra-nombre" type="text" placeholder="Ej: Casa García"
-            class="w-full border border-neutral-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-neutral-500"
+            class="w-full border border-neutral-200 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-neutral-500"
             oninput="actualizarPrint(); guardarLocal()">
         </div>
         <div style="flex:2; min-width:140px">
           <label class="block text-xs text-neutral-500 mb-1">Ubicación</label>
           <select id="obra-ubicacion"
-            class="w-full border border-neutral-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-neutral-500 bg-white"
+            class="w-full border border-neutral-200 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-neutral-500 bg-white"
             onchange="actualizarPrint(); guardarLocal(); actualizarZonaMO()">
             <option value="">— Provincia —</option>
             <option>Buenos Aires</option>
@@ -150,13 +150,13 @@
         <div style="flex:1; min-width:80px">
           <label class="block text-xs text-neutral-500 mb-1">Superficie (m²)</label>
           <input id="obra-m2" type="number" placeholder="0"
-            class="w-full border border-neutral-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-neutral-500"
+            class="w-full border border-neutral-200 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-neutral-500"
             oninput="calcularTotales(); actualizarPrint()">
         </div>
         <div style="flex:2; min-width:140px">
           <label class="block text-xs text-neutral-500 mb-1">Costo de la construcción</label>
           <input id="obra-costo-m2" type="text" readonly placeholder="—"
-            class="w-full border border-neutral-100 rounded-lg px-3 py-2.5 text-sm bg-neutral-50 text-neutral-600 cursor-default select-none">
+            class="w-full border border-neutral-100 rounded-lg px-3 py-1.5 text-xs bg-neutral-50 text-neutral-600 cursor-default select-none">
         </div>
       </div>
     </section>
