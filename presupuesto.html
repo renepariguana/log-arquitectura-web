@@ -168,7 +168,10 @@
     <!-- ÍTEM — sección unificada -->
     <section class="bg-neutral-100 rounded-xl mb-8 no-print overflow-hidden">
       <div class="flex items-center justify-between px-5 py-4">
-        <span class="text-xs font-semibold tracking-widest text-neutral-400 uppercase">Análisis de Precios</span>
+        <button onclick="toggleCrear()" class="flex items-center gap-3 text-left hover:opacity-70 transition">
+          <span class="text-xs font-semibold tracking-widest text-neutral-400 uppercase">Análisis de Precios</span>
+          <span id="crear-chevron" class="text-neutral-400 text-xs transition-transform">▼</span>
+        </button>
         <div class="flex items-center gap-2">
           <button onclick="cnLimpiar()" class="px-4 py-1.5 text-xs text-neutral-400 hover:text-neutral-600 transition">Limpiar</button>
           <button id="cn-btn-borrar-item" onclick="cnBorrarItem()" style="display:none"
@@ -1198,7 +1201,9 @@
       cnRenderCascada();
       var hayFilas = cnFilasMat.length || cnFilasMO.length || cnFilasEq.length;
       var body = document.getElementById('crear-body');
+      var chevron = document.getElementById('crear-chevron');
       if (body) body.classList.toggle('hidden', !hayFilas);
+      if (chevron) chevron.style.transform = hayFilas ? 'rotate(180deg)' : '';
     }
 
     function cnEsModoLog() {
@@ -1445,7 +1450,9 @@
       cnItemsRubro = [];
       cnDesbloquearNombre();
       var body = document.getElementById('crear-body');
+      var chevron = document.getElementById('crear-chevron');
       if (body) body.classList.add('hidden');
+      if (chevron) chevron.style.transform = '';
       cnRenderTablas();
       // ocultar "Eliminar ítem"
       var btnBorrarItem = document.getElementById('cn-btn-borrar-item');
