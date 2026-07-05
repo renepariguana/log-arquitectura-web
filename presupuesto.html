@@ -66,7 +66,7 @@
     <div class="flex items-center gap-3">
       <span id="estado-sync" class="text-xs text-neutral-500">Cargando ítems...</span>
       <button onclick="nuevoPresupuesto()" class="px-4 py-1.5 text-sm text-neutral-400 hover:text-white transition">Nuevo</button>
-      <button onclick="imprimirPresupuesto()" class="px-4 py-1.5 text-sm bg-white text-black rounded font-medium hover:bg-neutral-200 transition">Imprimir / PDF</button>
+      <button id="btn-imprimir" onclick="imprimirPresupuesto()" class="px-4 py-1.5 text-sm bg-white text-black rounded font-medium hover:bg-neutral-200 transition">Imprimir / PDF</button>
     </div>
   </header>
 
@@ -1695,11 +1695,25 @@
         });
       });
 
-      console.log('[IMPRIMIR] items para imprimir:', JSON.stringify(itemsParaImprimir));
-      if (!itemsParaImprimir.length) { console.log('[IMPRIMIR] Sin items con refCodigo, imprimiendo directo'); window.print(); return; }
+      var btn = document.getElementById('btn-imprimir');
+
+      // Si ya está listo para imprimir (segunda pulsación), imprimimos directo
+      if (btn.dataset.listo === '1') {
+        btn.dataset.listo = '0';
+        btn.textContent = 'Imprimir / PDF';
+        window.print();
+        return;
+      }
+
+      // Sin ítems con análisis: imprimir directo
+      if (!itemsParaImprimir.length) { window.print(); return; }
+
+      // Primera pulsación: preparar análisis
+      btn.disabled = true;
+      btn.textContent = 'Preparando...';
 
       var printDiv = document.getElementById('print-analisis');
-      printDiv.innerHTML = '<p style="font-size:11px;color:#aaa;text-align:center;padding:1rem">Preparando análisis de precios...</p>';
+      printDiv.innerHTML = '';
 
       var promCascada = cnCascada
         ? Promise.resolve(cnCascada)
@@ -1707,11 +1721,10 @@
 
       var fetchItems = itemsParaImprimir.map(function(info) {
         var url = SCRIPT_URL + '?action=analisisitem&codigo=' + encodeURIComponent(info.codigo) + '&nombre=' + encodeURIComponent(info.nombre || info.descripcion || '');
-        console.log('[IMPRIMIR] Fetching:', url);
         return fetch(url)
           .then(function(r){return r.json();})
-          .then(function(data){ console.log('[IMPRIMIR] Respuesta para', info.codigo, ':', JSON.stringify(data).substring(0,200)); return {info:info, data:data};})
-          .catch(function(e){ console.error('[IMPRIMIR] Error fetch item', info.codigo, e); return {info:info, data:{}};});
+          .then(function(data){return {info:info, data:data};})
+          .catch(function(){return {info:info, data:{}};});
       });
 
       Promise.all([promCascada].concat(fetchItems))
@@ -1723,9 +1736,15 @@
             catch(e) { console.error('renderAnalisisPrint error:', e, r); }
           });
           printDiv.innerHTML = html;
-          setTimeout(function(){ window.print(); }, 400);
+          btn.disabled = false;
+          btn.textContent = '✓ Imprimir ahora';
+          btn.dataset.listo = '1';
         })
-        .catch(function(e){ console.error('imprimirPresupuesto error:', e); window.print(); });
+        .catch(function(e) {
+          console.error('imprimirPresupuesto error:', e);
+          btn.disabled = false;
+          btn.textContent = 'Imprimir / PDF';
+        });
     }
 
     function renderAnalisisPrint(info, data, cascada) {
