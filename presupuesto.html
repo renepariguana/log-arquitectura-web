@@ -166,7 +166,7 @@
     </section>
 
     <!-- ÍTEM — sección unificada -->
-    <section class="bg-neutral-100 rounded-xl mb-8 no-print overflow-hidden">
+    <section class="bg-neutral-100 rounded-xl mb-8 no-print">
       <div class="flex items-center justify-between px-5 py-4">
         <button onclick="toggleCrear()" class="flex items-center gap-3 text-left hover:opacity-70 transition">
           <span class="text-xs font-semibold tracking-widest text-neutral-400 uppercase">Análisis de Precios</span>
@@ -905,7 +905,7 @@
       var sM = cnFilasMat.reduce(function(s,f){ return s+(parseFloat(f.cantidad)||0)*(parseFloat(f.precio)||0);},0);
       var sO = cnFilasMO.reduce(function(s,f){  return s+(parseFloat(f.cantidad)||0)*(parseFloat(f.precio)||0);},0);
       var sE = cnFilasEq.reduce(function(s,f){  return s+(parseFloat(f.cantidad)||0)*(parseFloat(f.precio)||0);},0);
-      var costo = sM + sO + sE;
+      var costo = sM + sO + sE || cnCostoActual;
 
       var gg  = cnCascada.gastosGenerales  || 0;
       var ben = cnCascada.beneficios       || 0;
@@ -989,6 +989,7 @@
     var cnCatalogo = [], cnManoObra = [], cnFilasMat = [], cnFilasMO = [], cnFilasEq = [], cnCargado = false, cnModoVer = false;
     var cnCascada = null;
     var cnCodigoActual = null;
+    var cnCostoActual  = 0;
 
     var cnItemsRubro = [], cnNombreOriginal = '';
 
@@ -1046,6 +1047,11 @@
       var bloqueado = 'w-full border border-neutral-200 rounded-lg px-3 py-1.5 text-xs bg-neutral-100 text-neutral-500 cursor-default';
       nombre.readOnly = true; nombre.className = bloqueado;
       unidad.readOnly = true; unidad.className = bloqueado;
+
+      // Precio base del ítem para la cascada (disponible inmediatamente)
+      var dbRef = todosItems.find(function(i) { return i.codigo === div.dataset.codigo; });
+      cnCostoActual = dbRef ? (parseFloat(dbRef.precio) || 0) : 0;
+      cnRenderCascada();
 
       if (!cnEsModoLog()) {
         // ítem del análisis propio → cargar desde localStorage
@@ -1443,6 +1449,7 @@
       cnFilasMat=[]; cnFilasMO=[]; cnFilasEq=[];
       cnModoVer = false;
       cnCodigoActual = null;
+      cnCostoActual  = 0;
       document.getElementById('cn-nombre').value='';
       document.getElementById('cn-unidad').value='';
       document.getElementById('cn-rubro').value='';
