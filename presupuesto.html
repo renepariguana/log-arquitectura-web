@@ -1695,7 +1695,8 @@
         });
       });
 
-      if (!itemsParaImprimir.length) { window.print(); return; }
+      console.log('[IMPRIMIR] items para imprimir:', JSON.stringify(itemsParaImprimir));
+      if (!itemsParaImprimir.length) { console.log('[IMPRIMIR] Sin items con refCodigo, imprimiendo directo'); window.print(); return; }
 
       var printDiv = document.getElementById('print-analisis');
       printDiv.innerHTML = '<p style="font-size:11px;color:#aaa;text-align:center;padding:1rem">Preparando análisis de precios...</p>';
@@ -1705,24 +1706,31 @@
         : fetch(SCRIPT_URL + '?action=cascada').then(function(r){return r.json();}).then(function(d){cnCascada=d;return d;});
 
       var fetchItems = itemsParaImprimir.map(function(info) {
-        return fetch(SCRIPT_URL + '?action=analisisitem&codigo=' + encodeURIComponent(info.codigo) + '&nombre=' + encodeURIComponent(info.nombre || info.descripcion || ''))
+        var url = SCRIPT_URL + '?action=analisisitem&codigo=' + encodeURIComponent(info.codigo) + '&nombre=' + encodeURIComponent(info.nombre || info.descripcion || '');
+        console.log('[IMPRIMIR] Fetching:', url);
+        return fetch(url)
           .then(function(r){return r.json();})
-          .then(function(data){return {info:info, data:data};})
-          .catch(function(){return {info:info, data:{}};});
+          .then(function(data){ console.log('[IMPRIMIR] Respuesta para', info.codigo, ':', JSON.stringify(data).substring(0,200)); return {info:info, data:data};})
+          .catch(function(e){ console.error('[IMPRIMIR] Error fetch item', info.codigo, e); return {info:info, data:{}};});
       });
 
       Promise.all([promCascada].concat(fetchItems))
         .then(function(results) {
-          var cascada = results[0];
+          var cascada = results[0] || {};
           var html = '<h2 style="font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:#666;margin-bottom:1rem">Análisis de Precios</h2>';
-          results.slice(1).forEach(function(r) { html += renderAnalisisPrint(r.info, r.data, cascada); });
+          results.slice(1).forEach(function(r) {
+            try { html += renderAnalisisPrint(r.info, r.data, cascada); }
+            catch(e) { console.error('renderAnalisisPrint error:', e, r); }
+          });
           printDiv.innerHTML = html;
           setTimeout(function(){ window.print(); }, 400);
         })
-        .catch(function(){ printDiv.innerHTML=''; window.print(); });
+        .catch(function(e){ console.error('imprimirPresupuesto error:', e); window.print(); });
     }
 
     function renderAnalisisPrint(info, data, cascada) {
+      cascada = cascada || {};
+      data = data || {};
       function fmt(n) { return '$ ' + (n||0).toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
       function pct(n) { return (n*100).toFixed(2)+' %'; }
 
