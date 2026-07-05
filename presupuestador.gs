@@ -179,40 +179,45 @@ function getCatalogo() {
 
 function getManoObra(zona) {
   try {
-    var ZONA_COL = { 'A': 2, 'B': 5, 'C': 8, 'C_Austral': 11 }; // 0-based
-    var colPrecioOffset = ZONA_COL[zona] !== undefined ? ZONA_COL[zona] : ZONA_COL['A'];
+    // Mismos índices BUSCARV que usa la fórmula del Sheets (1-based desde col CATEGORIA):
+    // =BUSCARV(B17;'MANO DE OBRA'!A5:Y10;3;FALSO) → A=3, B=6, C=9, C_Austral=12
+    var ZONA_BUSCARV = { 'A': 3, 'B': 6, 'C': 9, 'C_Austral': 12 };
+    var buscarVIdx = ZONA_BUSCARV[zona] || 3;
 
     var apSS = SpreadsheetApp.openById(AP_ID);
-    var hoja = apSS.getSheetByName('MANO DE OBRA');
+    var hoja = apSS.getSheetByName('MANO DE OBRA')
+            || apSS.getSheetByName('Mano de Obra')
+            || apSS.getSheetByName('mano de obra');
     if (!hoja) throw new Error('Hoja MANO DE OBRA no encontrada en AP_ID');
 
     var datos = hoja.getDataRange().getValues();
 
-    // Encontrar fila encabezado (tiene CATEGORIA en col A)
+    // Detectar CATEGORIA dinámicamente (igual que uocra-actualizador.gs)
     var headerRow = -1, colCat = -1, colUn = -1;
     for (var r = 0; r < datos.length; r++) {
       for (var c = 0; c < datos[r].length; c++) {
-        var v = (datos[r][c] || '').toString().toUpperCase().trim();
-        if (v === 'CATEGORIA' || v === 'CATEGORÍA') {
-          headerRow = r; colCat = c; break;
-        }
+        var t = (datos[r][c] || '').toString().toLowerCase().trim();
+        if (/^categor/.test(t)) { headerRow = r; colCat = c; break; }
       }
       if (headerRow >= 0) break;
     }
     if (headerRow < 0) throw new Error('Columna CATEGORIA no encontrada en MANO DE OBRA');
 
-    // Columna UN: buscar en la fila encabezado
     for (var c = 0; c < datos[headerRow].length; c++) {
       var h = (datos[headerRow][c] || '').toString().toUpperCase().trim();
       if (h === 'UN' || h === 'UNIDAD') { colUn = c; break; }
     }
+
+    // Columna de precio = offset desde CATEGORIA igual que BUSCARV
+    // BUSCARV index 3 desde colCat → 0-based offset = buscarVIdx - 1
+    var colPrecio = colCat + (buscarVIdx - 1);
 
     var categorias = [];
     for (var r = headerRow + 1; r < datos.length; r++) {
       var nombre = (datos[r][colCat] || '').toString().trim();
       if (!nombre) continue;
       var unidad = colUn >= 0 ? (datos[r][colUn] || '').toString().trim() : '$/Hs';
-      var precioRaw = datos[r][colPrecioOffset];
+      var precioRaw = datos[r][colPrecio];
       var precio = typeof precioRaw === 'number' ? precioRaw
         : parseFloat((precioRaw || '').toString().replace(/\$/g, '').replace(/\./g, '').replace(',', '.')) || 0;
       categorias.push({ nombre: nombre, unidad: unidad, precio: precio });
