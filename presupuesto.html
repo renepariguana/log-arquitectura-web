@@ -104,8 +104,11 @@
 
     <!-- DATOS DE LA OBRA -->
     <section id="obra-section" class="bg-white rounded-xl shadow-sm p-6 mb-6">
-      <h2 class="text-xs font-semibold tracking-widest text-neutral-400 uppercase mb-4">Datos de la Obra</h2>
-      <div class="flex flex-wrap gap-4 items-end">
+      <div class="flex justify-between items-baseline mb-4">
+        <h2 class="text-xs font-semibold tracking-widest text-neutral-400 uppercase">Datos de la Obra</h2>
+        <span id="obra-fecha" class="text-xs text-neutral-400"></span>
+      </div>
+      <div class="flex flex-wrap gap-4">
         <div style="flex:3; min-width:180px">
           <label class="block text-xs text-neutral-500 mb-1">Nombre de la obra</label>
           <input id="obra-nombre" type="text" placeholder="Ej: Casa García"
@@ -154,10 +157,6 @@
           <label class="block text-xs text-neutral-500 mb-1">Costo de la construcción</label>
           <input id="obra-costo-m2" type="text" readonly placeholder="—"
             class="w-full border border-neutral-100 rounded-lg px-3 py-2.5 text-sm bg-neutral-50 text-neutral-600 cursor-default select-none">
-        </div>
-        <div style="flex:0 0 auto; padding-bottom:0.625rem">
-          <span class="text-xs text-neutral-400 uppercase tracking-wide block mb-1">Fecha</span>
-          <span id="obra-fecha" class="text-sm text-neutral-500"></span>
         </div>
       </div>
     </section>
