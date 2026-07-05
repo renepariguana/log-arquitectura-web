@@ -164,14 +164,6 @@
       </table>
     </section>
 
-    <!-- ÍTEM — botón agregar -->
-    <section class="bg-neutral-100 rounded-xl mb-4 no-print overflow-hidden">
-      <div class="flex items-center justify-end px-5 py-3">
-        <button onclick="addPresupRow()" class="px-4 py-1.5 bg-neutral-800 text-white rounded-lg text-xs hover:bg-neutral-700 transition font-medium">+ Agregar ítem</button>
-      </div>
-
-    </section>
-
     <!-- ÍTEM — sección unificada -->
     <section class="bg-neutral-100 rounded-xl mb-8 no-print overflow-hidden">
       <div class="flex items-center justify-between px-5 py-4">
@@ -587,8 +579,10 @@
     function renderPresupuesto() {
       var tbody = document.getElementById('tabla-body');
 
+      var addRow = '<tr class="no-print"><td class="px-3 py-1.5"><button onclick="addPresupRow()" class="w-6 h-6 rounded-full border border-neutral-300 text-neutral-400 hover:border-neutral-600 hover:text-neutral-700 text-base font-light transition-colors flex items-center justify-center">+</button></td><td colspan="8"></td></tr>';
+
       if (!presupuesto.length) {
-        tbody.innerHTML = '<tr><td colspan="9" class="px-6 py-16 text-center text-neutral-400 text-sm">Agregá un ítem con el botón +</td></tr>';
+        tbody.innerHTML = addRow;
         document.getElementById('tabla-tfoot').classList.add('hidden');
         cnRenderCascada();
         return;
@@ -689,7 +683,7 @@
         });
       });
 
-      tbody.innerHTML = html;
+      tbody.innerHTML = html + addRow;
       document.getElementById('tabla-tfoot').classList.remove('hidden');
       calcularTotales();
       cnRenderCascada();
