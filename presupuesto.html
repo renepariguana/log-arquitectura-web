@@ -750,12 +750,10 @@
             '<td class="px-1 py-0.5" colspan="3" style="max-width:0;overflow:hidden">' +
               '<div class="flex gap-1 w-full">' +
                 '<select onchange="presupOnRubroChange(\'' + item.uid + '\', this.value)" ' +
-                'style="max-width:100px" ' +
-                'class="border border-transparent hover:border-neutral-200 focus:border-neutral-400 rounded px-1 py-0.5 text-xs focus:outline-none bg-transparent text-neutral-400 cursor-pointer">' +
+                'class="flex-1 min-w-0 border border-transparent hover:border-neutral-200 focus:border-neutral-400 rounded px-1 py-0.5 text-xs focus:outline-none bg-transparent text-neutral-400 cursor-pointer">' +
                 rubroOpts + '</select>' +
                 '<select onchange="presupOnItemChange(\'' + item.uid + '\', this)" ' +
-                'style="max-width:100px" ' +
-                'class="flex-1 border border-transparent hover:border-neutral-200 focus:border-neutral-400 rounded px-1 py-0.5 text-xs focus:outline-none bg-transparent text-neutral-400 cursor-pointer">' +
+                'class="flex-1 min-w-0 border border-transparent hover:border-neutral-200 focus:border-neutral-400 rounded px-1 py-0.5 text-xs focus:outline-none bg-transparent text-neutral-400 cursor-pointer">' +
                 itemOpts + '</select>' +
               '</div>' +
               '<input type="text" value="' + (item.descripcion || '').replace(/"/g, '&quot;') + '" ' +
