@@ -1202,6 +1202,13 @@
           cnFilasMO = (data.manoobra || []).map(function(f) {
             return { nombre: f.nombre, unidad: f.unidad || 'hs', cantidad: parseFloat(f.cantidad) || 0, precio: parseFloat(f.precio) || 0 };
           });
+          // Aplicar precios de zona actual (cnManoObra ya tiene los precios correctos)
+          cnFilasMO.forEach(function(fila) {
+            var match = cnManoObra.find(function(c) {
+              return c.nombre.toLowerCase().trim() === fila.nombre.toLowerCase().trim();
+            });
+            if (match && match.precio > 0) { fila.precio = match.precio; fila.unidad = match.unidad; }
+          });
           cnFilasEq = (data.equipos || []).map(function(f) {
             return { nombre: f.nombre, unidad: f.unidad || '', cantidad: parseFloat(f.cantidad) || 0, precio: parseFloat(f.precio) || 0 };
           });
