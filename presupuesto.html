@@ -188,16 +188,6 @@
         </div>
       </div>
 
-      <!-- CASCADA DE PRECIOS — siempre visible -->
-      <div class="border-t border-neutral-200 px-5 pt-4 pb-3 no-print">
-        <div class="ml-auto" style="max-width:360px">
-          <div class="flex justify-end mb-1">
-            <button onclick="cnResetPct()" class="text-xs text-neutral-400 hover:text-neutral-600 transition">Restaurar</button>
-          </div>
-          <div id="cn-cascada-inner" class="text-xs text-neutral-400 py-1">Cargando porcentajes...</div>
-        </div>
-      </div>
-
       <div id="crear-body" class="hidden border-t border-neutral-200 px-5 py-5">
 
         <!-- Selectores -->
@@ -316,6 +306,16 @@
           <span class="text-right font-bold text-lg text-neutral-700 border-t border-neutral-300 pt-2" id="cn-costo-total">$ 0</span>
         </div>
 
+      </div>
+
+      <!-- CASCADA DE PRECIOS — siempre visible, siempre abajo -->
+      <div class="border-t border-neutral-200 px-5 py-5 no-print">
+        <div class="ml-auto" style="max-width:360px">
+          <div class="flex justify-end mb-1">
+            <button onclick="cnResetPct()" class="text-xs text-neutral-400 hover:text-neutral-600 transition">Restaurar</button>
+          </div>
+          <div id="cn-cascada-inner" class="text-xs text-neutral-400 py-1">Cargando porcentajes...</div>
+        </div>
       </div>
 
     </section>
