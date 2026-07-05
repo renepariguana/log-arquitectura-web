@@ -16,6 +16,7 @@
     input[type=number]::-webkit-inner-spin-button,
     input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
     input[type=number] { -moz-appearance: textfield; }
+    .print-item-nombre { display: none; }
 
     @media print {
       #app-header, #agregar-section, .no-print, #sidebar, #panel-derecho, #print-header { display: none !important; }
@@ -40,6 +41,11 @@
       * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
       /* Mostrar texto completo en celda ítem */
       td[colspan="3"] { overflow: visible !important; max-width: none !important; }
+      /* Nombre del ítem de BD solo visible al imprimir */
+      .print-item-nombre { display: block !important; }
+      /* Datos de la obra en una sola fila */
+      #obra-section .flex { flex-wrap: nowrap !important; }
+      #obra-section .flex > div { min-width: 0 !important; flex-shrink: 1 !important; }
     }
   </style>
 </head>
@@ -746,9 +752,11 @@
 
           // Select de ítem filtrado por rubro
           var itemOpts = '<option value="">Ítem...</option>';
+          var itemNombrePrint = '';
           if (item.rubroId) {
             todosItems.filter(function(i) { return i.rubroId === item.rubroId; }).forEach(function(i) {
               itemOpts += '<option value="' + i.codigo + '"' + (item.refCodigo === i.codigo ? ' selected' : '') + '>' + i.nombre + '</option>';
+              if (item.refCodigo === i.codigo) itemNombrePrint = i.nombre;
             });
           }
 
@@ -763,6 +771,7 @@
                 'class="flex-1 min-w-0 border border-transparent hover:border-neutral-200 focus:border-neutral-400 rounded px-1 py-0.5 text-xs focus:outline-none bg-transparent text-neutral-400 cursor-pointer">' +
                 itemOpts + '</select>' +
               '</div>' +
+              (itemNombrePrint ? '<span class="print-item-nombre text-xs text-neutral-600 font-medium">' + itemNombrePrint + '</span>' : '') +
               '<input type="text" value="' + (item.descripcion || '').replace(/"/g, '&quot;') + '" ' +
               'placeholder="Descripción del ítem..." ' +
               'onblur="presupEdit(\'' + item.uid + '\',\'descripcion\',this.value)" ' +
