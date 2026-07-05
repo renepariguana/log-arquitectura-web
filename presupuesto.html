@@ -18,15 +18,23 @@
     input[type=number] { -moz-appearance: textfield; }
 
     @media print {
-      #app-header, #agregar-section, .no-print, #sidebar, #panel-derecho { display: none !important; }
-      #print-header { display: block !important; }
+      #app-header, #agregar-section, .no-print, #sidebar, #panel-derecho, #print-header { display: none !important; }
       body { background: white !important; }
-      main { padding: 0 !important; max-width: 100% !important; }
+      main { padding: 0.5rem !important; max-width: 100% !important; }
       section { box-shadow: none !important; border-radius: 0 !important; margin-bottom: 0.5rem !important; }
-      #obra-section { display: none !important; }
       table { border-collapse: collapse; }
       tr { page-break-inside: avoid; }
       @page { margin: 1.5cm; size: A4; }
+      input, select, textarea {
+        border: none !important;
+        outline: none !important;
+        background: transparent !important;
+        -webkit-appearance: none;
+        appearance: none;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+      }
+      #obra-section { border: 1px solid #e5e5e5 !important; padding: 1rem !important; }
     }
   </style>
 </head>
