@@ -168,10 +168,7 @@
     <!-- ÍTEM — sección unificada -->
     <section class="bg-neutral-100 rounded-xl mb-8 no-print overflow-hidden">
       <div class="flex items-center justify-between px-5 py-4">
-        <button onclick="toggleCrear()" class="flex items-center gap-3 text-left hover:opacity-70 transition">
-          <span class="text-xs font-semibold tracking-widest text-neutral-400 uppercase">Agregar Ítem al Presupuesto</span>
-          <span id="crear-chevron" class="text-neutral-400 text-xs transition-transform">▼</span>
-        </button>
+        <span class="text-xs font-semibold tracking-widest text-neutral-400 uppercase">Análisis de Precios</span>
         <div class="flex items-center gap-2">
           <button onclick="cnLimpiar()" class="px-4 py-1.5 text-xs text-neutral-400 hover:text-neutral-600 transition">Limpiar</button>
           <button id="cn-btn-borrar-item" onclick="cnBorrarItem()" style="display:none"
@@ -189,10 +186,9 @@
         </div>
       </div>
 
-      <div id="crear-body" class="hidden border-t border-neutral-200 px-5 py-5">
-
-        <!-- Selectores -->
-        <div class="grid grid-cols-1 sm:grid-cols-7 gap-4 mb-6">
+      <!-- Selectores — siempre visibles -->
+      <div class="border-t border-neutral-200 px-5 py-4">
+        <div class="grid grid-cols-1 sm:grid-cols-7 gap-4">
           <div class="sm:col-span-2">
             <div class="flex items-center justify-between mb-1">
               <label class="text-xs text-neutral-400">Análisis de precios</label>
@@ -228,6 +224,10 @@
               class="w-full border border-neutral-300 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-neutral-400 bg-neutral-50 text-neutral-600">
           </div>
         </div>
+      </div>
+
+      <!-- Tablas — se abren con el acordeón al elegir un ítem -->
+      <div id="crear-body" class="hidden border-t border-neutral-200 px-5 py-5">
 
         <!-- MATERIALES -->
         <div class="mb-5 rounded-xl overflow-hidden">
@@ -1196,6 +1196,9 @@
       cnRenderTabla('eq',  cnFilasEq,  'cn-eq-body',  'cn-sub-eq');
       cnActualizarResumen();
       cnRenderCascada();
+      var hayFilas = cnFilasMat.length || cnFilasMO.length || cnFilasEq.length;
+      var body = document.getElementById('crear-body');
+      if (body) body.classList.toggle('hidden', !hayFilas);
     }
 
     function cnEsModoLog() {
@@ -1441,6 +1444,8 @@
       document.getElementById('cn-nombre-sug').classList.add('hidden');
       cnItemsRubro = [];
       cnDesbloquearNombre();
+      var body = document.getElementById('crear-body');
+      if (body) body.classList.add('hidden');
       cnRenderTablas();
       // ocultar "Eliminar ítem"
       var btnBorrarItem = document.getElementById('cn-btn-borrar-item');
