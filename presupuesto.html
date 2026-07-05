@@ -669,11 +669,13 @@
         return;
       }
 
-      // Ordenar: primero por rubroId, luego por orden de inserción
+      // Ordenar según posición en todosRubros
       var sorted = presupuesto.slice().sort(function(a, b) {
-        if ((a.rubroId || '') < (b.rubroId || '')) return -1;
-        if ((a.rubroId || '') > (b.rubroId || '')) return 1;
-        return 0;
+        var ia = todosRubros.findIndex(function(r) { return r.codigo === a.rubroId; });
+        var ib = todosRubros.findIndex(function(r) { return r.codigo === b.rubroId; });
+        if (ia < 0) ia = 9999;
+        if (ib < 0) ib = 9999;
+        return ia - ib;
       });
 
       var totalGeneral = sorted.reduce(function(s, i) {
