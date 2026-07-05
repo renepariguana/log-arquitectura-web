@@ -485,7 +485,7 @@
           document.getElementById('estado-sync').textContent = todosItems.length + ' ítems disponibles';
           if (isEmbedded) window.parent.postMessage({ type: 'items-count', count: todosItems.length }, '*');
           poblarRubrosCrear();
-          if (presupuesto.length) renderPresupuesto();
+          renderPresupuesto();
         })
         .catch(function() {
           document.getElementById('estado-sync').textContent = '⚠️ Sin conexión con el servidor';
@@ -788,7 +788,7 @@
           pptosSave(lista);
           localStorage.removeItem('log_ppto');
         }
-        if (!lista.length) { pptoActivo = 'ppto_' + Date.now(); renderSidebar(); return; }
+        if (!lista.length) { pptoActivo = 'ppto_' + Date.now(); renderSidebar(); renderPresupuesto(); return; }
         // cargar el activo (último si no hay uno guardado)
         var idActivo = localStorage.getItem('log_ppto_activo') || lista[lista.length - 1].id;
         var d = lista.find(function(p) { return p.id === idActivo; }) || lista[lista.length - 1];
@@ -805,7 +805,8 @@
         }
         actualizarPrint();
         renderSidebar();
-      } catch(e) { pptoActivo = 'ppto_' + Date.now(); renderSidebar(); }
+        renderPresupuesto();
+      } catch(e) { pptoActivo = 'ppto_' + Date.now(); renderSidebar(); renderPresupuesto(); }
     }
 
     function cargarPresupuesto(id) {
