@@ -201,13 +201,13 @@
                 <button onclick="cnCrearAnalisis()" class="text-xs text-neutral-400 hover:text-neutral-600 transition">+ Crear</button>
               </div>
             </div>
-            <select id="sel-ap" onchange="cnOnApChange()" class="w-full border border-neutral-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-neutral-400 bg-neutral-50 text-neutral-600">
+            <select id="sel-ap" onchange="cnOnApChange()" class="w-full border border-neutral-300 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-neutral-400 bg-neutral-50 text-neutral-600">
               <option value="log">LOG arquitectura</option>
             </select>
           </div>
           <div class="sm:col-span-2">
             <label class="block text-xs text-neutral-400 mb-1">Rubro</label>
-            <select id="cn-rubro" onchange="cnOnRubroChange()" class="w-full border border-neutral-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-neutral-400 bg-neutral-50 text-neutral-600">
+            <select id="cn-rubro" onchange="cnOnRubroChange()" class="w-full border border-neutral-300 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-neutral-400 bg-neutral-50 text-neutral-600">
               <option value="">Seleccioná...</option>
             </select>
           </div>
@@ -217,7 +217,7 @@
               <input id="cn-nombre" type="text" placeholder="Buscá un ítem..."
                 oninput="cnFiltrarItems(this)" onblur="cnOcultar(this)"
                 onclick="if(this.readOnly) cnDesbloquearNombre(false)"
-                class="w-full border border-neutral-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-neutral-400 bg-neutral-50 text-neutral-600">
+                class="w-full border border-neutral-300 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-neutral-400 bg-neutral-50 text-neutral-600">
               <div id="cn-nombre-sug" class="hidden absolute z-20 bg-white border border-neutral-200 rounded-lg shadow-lg max-h-52 overflow-y-auto w-full left-0 top-full mt-0.5"></div>
             </div>
           </div>
@@ -225,13 +225,13 @@
             <label class="block text-xs text-neutral-400 mb-1">Unidad</label>
             <input id="cn-unidad" type="text" placeholder="Ej: m3"
               onclick="if(this.readOnly) cnDesbloquearNombre(false)"
-              class="w-full border border-neutral-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-neutral-400 bg-neutral-50 text-neutral-600">
+              class="w-full border border-neutral-300 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-neutral-400 bg-neutral-50 text-neutral-600">
           </div>
         </div>
 
         <!-- MATERIALES -->
         <div class="mb-5 rounded-xl overflow-hidden">
-          <table class="w-full text-sm">
+          <table class="w-full text-xs">
             <thead><tr class="bg-neutral-200 text-neutral-600 text-xs uppercase">
               <th class="px-3 py-2 text-left font-medium">
                 <strong>Materiales</strong>
@@ -246,7 +246,7 @@
             <tbody id="cn-mat-body"></tbody>
             <tfoot><tr class="border-t border-neutral-300">
               <td colspan="4" class="px-3 py-2 text-right text-xs text-neutral-400 font-semibold uppercase tracking-wide">Subtotal I</td>
-              <td class="px-3 py-2 text-right font-bold text-sm text-neutral-600" id="cn-sub-mat">$ 0</td>
+              <td class="px-3 py-2 text-right font-bold text-xs text-neutral-600" id="cn-sub-mat">$ 0</td>
               <td></td>
             </tr></tfoot>
           </table>
@@ -254,7 +254,7 @@
 
         <!-- MANO DE OBRA -->
         <div class="mb-5 rounded-xl overflow-hidden">
-          <table class="w-full text-sm">
+          <table class="w-full text-xs">
             <thead><tr class="bg-neutral-200 text-neutral-600 text-xs uppercase">
               <th class="px-3 py-2 text-left font-medium">
                 <strong>Mano de Obra</strong>
@@ -269,7 +269,7 @@
             <tbody id="cn-mo-body"></tbody>
             <tfoot><tr class="border-t border-neutral-300">
               <td colspan="4" class="px-3 py-2 text-right text-xs text-neutral-400 font-semibold uppercase tracking-wide">Subtotal II</td>
-              <td class="px-3 py-2 text-right font-bold text-sm text-neutral-600" id="cn-sub-mo">$ 0</td>
+              <td class="px-3 py-2 text-right font-bold text-xs text-neutral-600" id="cn-sub-mo">$ 0</td>
               <td></td>
             </tr></tfoot>
           </table>
@@ -277,7 +277,7 @@
 
         <!-- EQUIPOS -->
         <div class="mb-5 rounded-xl overflow-hidden">
-          <table class="w-full text-sm">
+          <table class="w-full text-xs">
             <thead><tr class="bg-neutral-200 text-neutral-600 text-xs uppercase">
               <th class="px-3 py-2 text-left font-medium">
                 <strong>Equipos</strong>
@@ -292,19 +292,19 @@
             <tbody id="cn-eq-body"></tbody>
             <tfoot><tr class="border-t border-neutral-300">
               <td colspan="4" class="px-3 py-2 text-right text-xs text-neutral-400 font-semibold uppercase tracking-wide">Subtotal III</td>
-              <td class="px-3 py-2 text-right font-bold text-sm text-neutral-600" id="cn-sub-eq">$ 0</td>
+              <td class="px-3 py-2 text-right font-bold text-xs text-neutral-600" id="cn-sub-eq">$ 0</td>
               <td></td>
             </tr></tfoot>
           </table>
         </div>
 
         <!-- RESUMEN COSTO DEL ÍTEM -->
-        <div class="bg-neutral-200 rounded-xl p-4 mb-5 grid grid-cols-2 gap-2 text-sm">
+        <div class="bg-neutral-200 rounded-xl p-4 mb-5 grid grid-cols-2 gap-2 text-xs">
           <span class="text-neutral-400 text-xs uppercase tracking-wider">Materiales</span>   <span class="text-right text-neutral-600" id="cn-res-mat">$ 0</span>
           <span class="text-neutral-400 text-xs uppercase tracking-wider">Mano de Obra</span> <span class="text-right text-neutral-600" id="cn-res-mo">$ 0</span>
           <span class="text-neutral-400 text-xs uppercase tracking-wider">Equipos</span>      <span class="text-right text-neutral-600" id="cn-res-eq">$ 0</span>
           <span class="font-bold uppercase tracking-wider text-neutral-500 border-t border-neutral-300 pt-2">Costo del Ítem</span>
-          <span class="text-right font-bold text-lg text-neutral-700 border-t border-neutral-300 pt-2" id="cn-costo-total">$ 0</span>
+          <span class="text-right font-bold text-xs text-neutral-700 border-t border-neutral-300 pt-2" id="cn-costo-total">$ 0</span>
         </div>
 
       </div>
@@ -528,6 +528,20 @@
       guardarLocal();
     }
 
+    function calcCascadaPrice(base) {
+      if (!cnCascada || cnCascada.error || !base) return base || 0;
+      var gg  = cnCascada.gastosGenerales  || 0;
+      var ben = cnCascada.beneficios       || 0;
+      var cf  = cnCascada.costoFinanciero  || 0;
+      var iva = cnCascada.iva              || 0;
+      var ib  = cnCascada.ingresosBrutos   || 0;
+      var im  = cnCascada.impMunicipales   || 0;
+      var idc = cnCascada.impDebitoCredito || 0;
+      var sub1 = base * (1 + gg);
+      var sub2 = sub1 * (1 + ben + cf);
+      return sub2 * (1 + iva + ib + im + idc);
+    }
+
     function presupOnItemChange(uid, select) {
       var item = presupuesto.find(function(i) { return i.uid === uid; });
       if (!item) return;
@@ -535,7 +549,8 @@
       var dbItem = todosItems.find(function(i) { return i.codigo === select.value; });
       if (dbItem) {
         item.unidad = dbItem.unidad || item.unidad;
-        item.precio = dbItem.precio || 0;
+        item.precioBase = dbItem.precio || 0;
+        item.precio = calcCascadaPrice(item.precioBase);
       }
       renderPresupuesto();
       guardarLocal();
@@ -884,7 +899,7 @@
       if (!cnCascada || cnCascada.error) { inner.innerHTML = '<p class="text-xs text-neutral-400 py-1">Cargando porcentajes...</p>'; return; }
 
       var costo = presupuesto.reduce(function(s, i) {
-        return s + (parseFloat(i.cantidad) || 0) * (parseFloat(i.precio) || 0);
+        return s + (parseFloat(i.cantidad) || 0) * (parseFloat(i.precioBase) || 0);
       }, 0);
 
       var gg  = cnCascada.gastosGenerales  || 0;
@@ -1004,7 +1019,7 @@
     function cnMostrarSugerencias(sug, lista) {
       if (!lista.length) { sug.classList.add('hidden'); sug.innerHTML = ''; return; }
       sug.innerHTML = lista.map(function(i) {
-        return '<div class="px-3 py-2 text-sm hover:bg-neutral-100 cursor-pointer border-b border-neutral-100 last:border-0 flex justify-between items-center" ' +
+        return '<div class="px-3 py-2 text-xs hover:bg-neutral-100 cursor-pointer border-b border-neutral-100 last:border-0 flex justify-between items-center" ' +
           'onmousedown="cnSeleccionarItem(this)" ' +
           'data-nombre="' + i.nombre.replace(/"/g, '&quot;') + '" ' +
           'data-unidad="' + (i.unidad||'').replace(/"/g, '&quot;') + '" ' +
@@ -1023,7 +1038,7 @@
       nombre.value = div.dataset.codigo + ' — ' + div.dataset.nombre;
       unidad.value = div.dataset.unidad || '';
       document.getElementById('cn-nombre-sug').classList.add('hidden');
-      var bloqueado = 'w-full border border-neutral-200 rounded-lg px-3 py-2.5 text-sm bg-neutral-100 text-neutral-500 cursor-default';
+      var bloqueado = 'w-full border border-neutral-200 rounded-lg px-3 py-1.5 text-xs bg-neutral-100 text-neutral-500 cursor-default';
       nombre.readOnly = true; nombre.className = bloqueado;
       unidad.readOnly = true; unidad.className = bloqueado;
 
@@ -1104,7 +1119,7 @@
     function cnDesbloquearNombre(limpiar) {
       var nombre = document.getElementById('cn-nombre');
       var unidad = document.getElementById('cn-unidad');
-      var base = 'w-full border border-neutral-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-neutral-400 bg-neutral-50 text-neutral-600';
+      var base = 'w-full border border-neutral-300 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-neutral-400 bg-neutral-50 text-neutral-600';
       nombre.readOnly = false; nombre.className = base;
       unidad.readOnly = false; unidad.className = base;
       cnModoVer = false;
@@ -1267,14 +1282,14 @@
         var subtotal = (parseFloat(fila.cantidad)||0) * (parseFloat(fila.precio)||0);
         if (cnModoVer) {
           html += '<tr class="border-b border-neutral-100">' +
-            '<td class="px-3 py-1 text-sm text-neutral-700">' + (fila.nombre||'') + '</td>' +
+            '<td class="px-3 py-1 text-xs text-neutral-700">' + (fila.nombre||'') + '</td>' +
             '<td class="px-3 py-1 text-center text-xs text-neutral-400 w-12">' + (fila.unidad||'—') + '</td>' +
-            '<td class="px-3 py-1 text-right text-sm text-neutral-600">' + (fila.cantidad||0) + '</td>' +
-            '<td class="px-3 py-1 text-right text-sm text-neutral-600">' + $$(fila.precio) + '</td>' +
-            '<td class="px-3 py-1 text-right font-medium text-sm">' + $$(subtotal) + '</td>' +
+            '<td class="px-3 py-1 text-right text-xs text-neutral-600">' + (fila.cantidad||0) + '</td>' +
+            '<td class="px-3 py-1 text-right text-xs text-neutral-600">' + $$(fila.precio) + '</td>' +
+            '<td class="px-3 py-1 text-right font-medium text-xs">' + $$(subtotal) + '</td>' +
             '<td></td></tr>';
         } else {
-          var inputClass = 'w-full border border-neutral-200 rounded px-2 py-1 text-sm focus:outline-none focus:border-neutral-400 bg-white';
+          var inputClass = 'w-full border border-neutral-200 rounded px-2 py-1 text-xs focus:outline-none focus:border-neutral-400 bg-white';
           var celdaNombre;
           if (tipo === 'mat') {
             celdaNombre = '<div class="relative">' +
@@ -1300,9 +1315,9 @@
           html += '<tr class="border-b border-neutral-100 hover:bg-neutral-50">' +
             '<td class="px-2 py-2">' + celdaNombre + '</td>' +
             '<td class="px-2 py-2 text-center text-xs text-neutral-500">' + (fila.unidad||'—') + '</td>' +
-            '<td class="px-2 py-2"><input type="number" value="' + (fila.cantidad||0) + '" min="0" data-tipo="' + tipo + '" data-idx="' + idx + '" data-field="cantidad" onchange="cnCambio(this)" class="w-full text-right border border-neutral-200 rounded px-2 py-1 text-sm focus:outline-none focus:border-neutral-400"></td>' +
-            '<td class="px-2 py-2 text-right">' + (tipo==='eq' ? '<input type="number" value="' + (fila.precio||0) + '" min="0" data-tipo="eq" data-idx="' + idx + '" data-field="precio" onchange="cnCambio(this)" class="w-full text-right border border-neutral-200 rounded px-2 py-1 text-sm focus:outline-none focus:border-neutral-400">' : '<span class="text-xs text-neutral-500">' + $$(fila.precio) + '</span>') + '</td>' +
-            '<td class="px-2 py-2 text-right font-medium text-sm">' + $$(subtotal) + '</td>' +
+            '<td class="px-2 py-2"><input type="number" value="' + (fila.cantidad||0) + '" min="0" data-tipo="' + tipo + '" data-idx="' + idx + '" data-field="cantidad" onchange="cnCambio(this)" class="w-full text-right border border-neutral-200 rounded px-2 py-1 text-xs focus:outline-none focus:border-neutral-400"></td>' +
+            '<td class="px-2 py-2 text-right">' + (tipo==='eq' ? '<input type="number" value="' + (fila.precio||0) + '" min="0" data-tipo="eq" data-idx="' + idx + '" data-field="precio" onchange="cnCambio(this)" class="w-full text-right border border-neutral-200 rounded px-2 py-1 text-xs focus:outline-none focus:border-neutral-400">' : '<span class="text-xs text-neutral-500">' + $$(fila.precio) + '</span>') + '</td>' +
+            '<td class="px-2 py-2 text-right font-medium text-xs">' + $$(subtotal) + '</td>' +
             '<td class="px-2 py-2 text-center"><button onclick="cnQuitarFila(\'' + tipo + '\',' + idx + ')" class="text-neutral-300 hover:text-red-500 text-lg leading-none">×</button></td>' +
             '</tr>';
         }
@@ -1319,7 +1334,7 @@
       var matches = lista.filter(function(m) { return m.nombre.toLowerCase().indexOf(query) !== -1; }).slice(0, 20);
       if (!matches.length) { sug.classList.add('hidden'); sug.innerHTML = ''; return; }
       sug.innerHTML = matches.map(function(m) {
-        return '<div class="px-3 py-2 text-sm hover:bg-neutral-100 cursor-pointer border-b border-neutral-100 last:border-0" ' +
+        return '<div class="px-3 py-2 text-xs hover:bg-neutral-100 cursor-pointer border-b border-neutral-100 last:border-0" ' +
           'onmousedown="cnSeleccionar(this,\'' + tipo + '\')" ' +
           'data-nombre="' + m.nombre.replace(/"/g,'&quot;') + '" ' +
           'data-unidad="' + (m.unidad||'').replace(/"/g,'&quot;') + '" ' +
@@ -1493,11 +1508,11 @@
   <!-- Modal: Crear análisis de precios -->
   <div id="modal-crear-ap" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm mx-4 p-6">
-      <h3 class="text-sm font-semibold text-neutral-700 mb-4">Nuevo análisis de precios</h3>
+      <h3 class="text-xs font-semibold text-neutral-700 mb-4">Nuevo análisis de precios</h3>
       <label class="block text-xs text-neutral-400 mb-1">Nombre</label>
       <input id="modal-ap-nombre" type="text" placeholder="Ej: Mi empresa"
         onkeydown="if(event.key==='Enter') cnConfirmarCrearAnalisis()"
-        class="w-full border border-neutral-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-neutral-500 mb-5" />
+        class="w-full border border-neutral-300 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-neutral-500 mb-5" />
       <div class="flex justify-end gap-2">
         <button onclick="cnCerrarModalAp()" class="px-4 py-2 text-xs text-neutral-400 hover:text-neutral-600 transition">Cancelar</button>
         <button onclick="cnConfirmarCrearAnalisis()" class="px-4 py-2 bg-neutral-700 text-white rounded-lg text-xs hover:bg-neutral-800 transition font-medium">Crear</button>
