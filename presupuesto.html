@@ -695,11 +695,11 @@
         }).join('');
 
       var html = '';
-      var nroGlobal = 0;
       var rubroNum  = 0;
 
       orden.forEach(function(rubroId) {
         rubroNum++;
+        var nroLocal = 0;
         var r        = todosRubros.find(function(x) { return x.codigo === rubroId; });
         var rubroNom = rubroId === '__sin__' ? 'Sin rubro' : (r ? r.nombre : rubroId);
         var subtotal = grupos[rubroId].reduce(function(s, i) {
@@ -715,7 +715,7 @@
           '<td class="no-print"></td></tr>';
 
         grupos[rubroId].forEach(function(item) {
-          nroGlobal++;
+          nroLocal++;
           var total = (parseFloat(item.cantidad) || 0) * (parseFloat(item.precio) || 0);
           var incid = totalGeneral > 0 ? (total / totalGeneral * 100).toFixed(1).replace('.', ',') + ' %' : '—';
 
@@ -734,7 +734,7 @@
           }
 
           html += '<tr class="border-b border-neutral-100 hover:bg-neutral-50">' +
-            '<td class="px-3 py-1.5 text-xs text-neutral-400 font-mono text-center">' + nroGlobal + '</td>' +
+            '<td class="px-3 py-1.5 text-xs text-neutral-400 font-mono text-center">' + nroLocal + '</td>' +
             '<td class="px-1 py-1">' +
               '<input type="text" value="' + (item.descripcion || '').replace(/"/g, '&quot;') + '" ' +
               'placeholder="Descripción del ítem..." ' +
