@@ -1701,6 +1701,11 @@
       if (btn.dataset.listo === '1') {
         btn.dataset.listo = '0';
         btn.textContent = 'Imprimir / PDF';
+        var pd = document.getElementById('print-analisis');
+        pd.style.border = '';
+        pd.style.borderRadius = '';
+        pd.style.marginTop = '';
+        pd.classList.add('hidden');
         window.print();
         return;
       }
@@ -1736,6 +1741,10 @@
             catch(e) { console.error('renderAnalisisPrint error:', e, r); }
           });
           printDiv.innerHTML = html;
+          printDiv.classList.remove('hidden');
+          printDiv.style.border = '2px solid #22c55e';
+          printDiv.style.borderRadius = '8px';
+          printDiv.style.marginTop = '1rem';
           btn.disabled = false;
           btn.textContent = '✓ Imprimir ahora';
           btn.dataset.listo = '1';
