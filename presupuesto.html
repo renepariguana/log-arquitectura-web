@@ -1727,17 +1727,22 @@
       var ivaV=sub2*iva, ibV=sub2*ib, imV=sub2*im, idcV=sub2*idc;
       var precioItem=sub2+ivaV+ibV+imV+idcV;
 
-      var TH='<th style="padding:3px 6px;font-size:10px;text-align:left;font-weight:600;text-transform:uppercase;letter-spacing:.04em;background:#e8e8e8">';
-      var THR='<th style="padding:3px 6px;font-size:10px;text-align:right;font-weight:600;text-transform:uppercase;letter-spacing:.04em;background:#e8e8e8;width:80px">';
-      var THC='<th style="padding:3px 6px;font-size:10px;text-align:center;font-weight:600;text-transform:uppercase;letter-spacing:.04em;background:#e8e8e8;width:60px">';
-      var thead='<tr>'+TH+'Descripción</th>'+THC+'Unid.</th>'+THR+'Cantidad</th>'+THR+'Precio</th>'+THR+'Subtotal</th></tr>';
+      // Negro para títulos de columna, gris neutral-700 para rubros/secciones
+      var BG_NEGRO  = '#171717';
+      var BG_GRIS   = '#404040';
+      var BG_GRIS2  = '#525252';
+
+      var TH ='<th style="padding:4px 8px;font-size:10px;text-align:left;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:white;background:'+BG_NEGRO+'">';
+      var THR='<th style="padding:4px 6px;font-size:10px;text-align:right;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:white;background:'+BG_NEGRO+';width:80px">';
+      var THC='<th style="padding:4px 6px;font-size:10px;text-align:center;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:white;background:'+BG_NEGRO+';width:60px">';
+      var thead='<tr>'+TH+'Descripción</th>'+THC+'Unid.</th>'+THR+'Cantidad</th>'+THR+'Precio Unit.</th>'+THR+'Subtotal</th></tr>';
 
       function tablaRows(filas) {
         if(!filas.length) return '<tr><td colspan="5" style="padding:4px 8px;font-size:11px;color:#aaa;text-align:center">—</td></tr>';
         return filas.map(function(f,i){
           var sub=f.cantidad*f.precio;
-          var bg=i%2===0?'':'background:#fafafa';
-          return '<tr style="'+bg+'">'+
+          var bg=i%2===0?'white':'#f9f9f9';
+          return '<tr style="background:'+bg+';border-bottom:1px solid #f0f0f0">'+
             '<td style="padding:3px 8px;font-size:11px">'+f.nombre+'</td>'+
             '<td style="padding:3px 6px;font-size:11px;text-align:center">'+f.unidad+'</td>'+
             '<td style="padding:3px 6px;font-size:11px;text-align:right">'+f.cantidad+'</td>'+
@@ -1749,22 +1754,22 @@
 
       function seccion(titulo, sub, filas) {
         if(!filas.length) return '';
-        return '<div style="background:#f2f2f2;padding:3px 8px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:#555;display:flex;justify-content:space-between">'+
+        return '<div style="background:'+BG_GRIS2+';color:white;padding:4px 10px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;display:flex;justify-content:space-between">'+
           '<span>'+titulo+'</span><span>'+fmt(sub)+'</span></div>'+
           '<table style="width:100%;border-collapse:collapse"><thead>'+thead+'</thead><tbody>'+tablaRows(filas)+'</tbody></table>';
       }
 
       function filaC(label, val, bold, right) {
         var s=bold?'font-weight:700;font-size:12px':'font-size:11px;color:#555';
-        return '<tr><td colspan="3" style="padding:2px 8px;'+s+'">'+label+'</td>'+
+        return '<tr style="border-bottom:1px solid #f0f0f0"><td colspan="3" style="padding:2px 8px;'+s+'">'+label+'</td>'+
           '<td style="padding:2px 6px;font-size:11px;text-align:right;color:#888">'+(right||'')+'</td>'+
           '<td style="padding:2px 6px;text-align:right;'+s+'">'+fmt(val)+'</td></tr>';
       }
 
-      return '<div style="page-break-inside:avoid;margin-bottom:1.2rem;border:1px solid #ddd;border-radius:4px;overflow:hidden">'+
-        '<div style="background:#3a3a3a;color:white;padding:6px 10px;display:flex;justify-content:space-between;align-items:baseline">'+
-          '<span style="font-size:12px;font-weight:600">'+info.num+' · '+(info.descripcion||info.codigo)+'</span>'+
-          '<span style="font-size:10px;color:#bbb">'+info.rubro+' · '+(info.unidad||'')+'</span>'+
+      return '<div style="page-break-inside:avoid;margin-bottom:1.2rem;overflow:hidden">'+
+        '<div style="background:'+BG_GRIS+';color:white;padding:6px 10px;display:flex;justify-content:space-between;align-items:baseline">'+
+          '<span style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em">'+info.num+' · '+(info.descripcion||info.rubro||info.codigo)+'</span>'+
+          '<span style="font-size:10px;color:#ccc">'+info.rubro+'</span>'+
         '</div>'+
         seccion('Materiales', sM, mat)+
         seccion('Mano de obra', sO, mo)+
