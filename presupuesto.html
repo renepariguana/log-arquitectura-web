@@ -183,6 +183,152 @@
 
     </section>
 
+    <!-- ÍTEM — sección unificada -->
+    <section class="bg-neutral-100 rounded-xl mb-8 no-print overflow-hidden">
+      <div class="flex items-center justify-between px-5 py-4">
+        <button onclick="toggleCrear()" class="flex items-center gap-3 text-left hover:opacity-70 transition">
+          <span class="text-xs font-semibold tracking-widest text-neutral-400 uppercase">Agregar Ítem al Presupuesto</span>
+          <span id="crear-chevron" class="text-neutral-400 text-xs transition-transform">▼</span>
+        </button>
+        <div class="flex items-center gap-2">
+          <button onclick="cnLimpiar()" class="px-4 py-1.5 text-xs text-neutral-400 hover:text-neutral-600 transition">Limpiar</button>
+          <button id="cn-btn-borrar-item" onclick="cnBorrarItem()" style="display:none"
+            class="px-4 py-1.5 text-xs text-red-400 hover:text-red-600 transition">
+            Eliminar ítem
+          </button>
+          <button id="cn-btn-crear" onclick="cnGuardar()" style="display:none"
+            class="px-4 py-1.5 bg-neutral-400 text-white rounded-lg text-xs hover:bg-neutral-500 transition font-medium">
+            Crear y Agregar
+          </button>
+          <button id="cn-btn-agregar" onclick="cnAgregarExistente()"
+            class="px-4 py-1.5 bg-neutral-400 text-white rounded-lg text-xs hover:bg-neutral-500 transition font-medium">
+            + Agregar
+          </button>
+        </div>
+      </div>
+
+      <div id="crear-body" class="hidden border-t border-neutral-200 px-5 py-5">
+
+        <!-- Selectores -->
+        <div class="grid grid-cols-1 sm:grid-cols-7 gap-4 mb-6">
+          <div class="sm:col-span-2">
+            <div class="flex items-center justify-between mb-1">
+              <label class="text-xs text-neutral-400">Análisis de precios</label>
+              <div class="flex items-center gap-2">
+                <button id="cn-btn-borrar-ap" onclick="cnBorrarAnalisis()" style="display:none" class="text-xs text-red-300 hover:text-red-500 transition">Eliminar</button>
+                <button onclick="cnCrearAnalisis()" class="text-xs text-neutral-400 hover:text-neutral-600 transition">+ Crear</button>
+              </div>
+            </div>
+            <select id="sel-ap" onchange="cnOnApChange()" class="w-full border border-neutral-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-neutral-400 bg-neutral-50 text-neutral-600">
+              <option value="log">LOG arquitectura</option>
+            </select>
+          </div>
+          <div class="sm:col-span-2">
+            <label class="block text-xs text-neutral-400 mb-1">Rubro</label>
+            <select id="cn-rubro" onchange="cnOnRubroChange()" class="w-full border border-neutral-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-neutral-400 bg-neutral-50 text-neutral-600">
+              <option value="">Seleccioná...</option>
+            </select>
+          </div>
+          <div class="sm:col-span-2">
+            <label class="block text-xs text-neutral-400 mb-1">Nombre del ítem</label>
+            <div class="relative">
+              <input id="cn-nombre" type="text" placeholder="Buscá un ítem..."
+                oninput="cnFiltrarItems(this)" onblur="cnOcultar(this)"
+                onclick="if(this.readOnly) cnDesbloquearNombre(false)"
+                class="w-full border border-neutral-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-neutral-400 bg-neutral-50 text-neutral-600">
+              <div id="cn-nombre-sug" class="hidden absolute z-20 bg-white border border-neutral-200 rounded-lg shadow-lg max-h-52 overflow-y-auto w-full left-0 top-full mt-0.5"></div>
+            </div>
+          </div>
+          <div class="sm:col-span-1">
+            <label class="block text-xs text-neutral-400 mb-1">Unidad</label>
+            <input id="cn-unidad" type="text" placeholder="Ej: m3"
+              onclick="if(this.readOnly) cnDesbloquearNombre(false)"
+              class="w-full border border-neutral-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-neutral-400 bg-neutral-50 text-neutral-600">
+          </div>
+        </div>
+
+        <!-- MATERIALES -->
+        <div class="mb-5 rounded-xl overflow-hidden">
+          <table class="w-full text-sm">
+            <thead><tr class="bg-neutral-200 text-neutral-600 text-xs uppercase">
+              <th class="px-3 py-2 text-left font-medium">
+                <strong>Materiales</strong>
+                <button id="cn-btn-mat" onclick="cnAgregarFila('mat')" class="ml-2 normal-case font-normal text-xs px-2 py-0.5 bg-neutral-200 hover:bg-neutral-400 hover:text-white text-neutral-500 rounded transition">+ Agregar</button>
+              </th>
+              <th class="px-3 py-2 text-center font-medium w-12">Unidad</th>
+              <th class="px-3 py-2 text-right font-medium w-28">Cantidad</th>
+              <th class="px-3 py-2 text-right font-medium w-32">Precio Unitario</th>
+              <th class="px-3 py-2 text-right font-medium w-28">Subtotal</th>
+              <th class="px-3 py-2 w-8"></th>
+            </tr></thead>
+            <tbody id="cn-mat-body"></tbody>
+            <tfoot><tr class="border-t border-neutral-300">
+              <td colspan="4" class="px-3 py-2 text-right text-xs text-neutral-400 font-semibold uppercase tracking-wide">Subtotal I</td>
+              <td class="px-3 py-2 text-right font-bold text-sm text-neutral-600" id="cn-sub-mat">$ 0</td>
+              <td></td>
+            </tr></tfoot>
+          </table>
+        </div>
+
+        <!-- MANO DE OBRA -->
+        <div class="mb-5 rounded-xl overflow-hidden">
+          <table class="w-full text-sm">
+            <thead><tr class="bg-neutral-200 text-neutral-600 text-xs uppercase">
+              <th class="px-3 py-2 text-left font-medium">
+                <strong>Mano de Obra</strong>
+                <button id="cn-btn-mo" onclick="cnAgregarFila('mo')" class="ml-2 normal-case font-normal text-xs px-2 py-0.5 bg-neutral-200 hover:bg-neutral-400 hover:text-white text-neutral-500 rounded transition">+ Agregar</button>
+              </th>
+              <th class="px-3 py-2 text-center font-medium w-12">Unidad</th>
+              <th class="px-3 py-2 text-right font-medium w-28">Cantidad</th>
+              <th class="px-3 py-2 text-right font-medium w-32">Precio Unitario</th>
+              <th class="px-3 py-2 text-right font-medium w-28">Subtotal</th>
+              <th class="px-3 py-2 w-8"></th>
+            </tr></thead>
+            <tbody id="cn-mo-body"></tbody>
+            <tfoot><tr class="border-t border-neutral-300">
+              <td colspan="4" class="px-3 py-2 text-right text-xs text-neutral-400 font-semibold uppercase tracking-wide">Subtotal II</td>
+              <td class="px-3 py-2 text-right font-bold text-sm text-neutral-600" id="cn-sub-mo">$ 0</td>
+              <td></td>
+            </tr></tfoot>
+          </table>
+        </div>
+
+        <!-- EQUIPOS -->
+        <div class="mb-5 rounded-xl overflow-hidden">
+          <table class="w-full text-sm">
+            <thead><tr class="bg-neutral-200 text-neutral-600 text-xs uppercase">
+              <th class="px-3 py-2 text-left font-medium">
+                <strong>Equipos</strong>
+                <button id="cn-btn-eq" onclick="cnAgregarFila('eq')" class="ml-2 normal-case font-normal text-xs px-2 py-0.5 bg-neutral-200 hover:bg-neutral-400 hover:text-white text-neutral-500 rounded transition">+ Agregar</button>
+              </th>
+              <th class="px-3 py-2 text-center font-medium w-12">Unidad</th>
+              <th class="px-3 py-2 text-right font-medium w-28">Cantidad</th>
+              <th class="px-3 py-2 text-right font-medium w-32">Precio Unitario</th>
+              <th class="px-3 py-2 text-right font-medium w-28">Subtotal</th>
+              <th class="px-3 py-2 w-8"></th>
+            </tr></thead>
+            <tbody id="cn-eq-body"></tbody>
+            <tfoot><tr class="border-t border-neutral-300">
+              <td colspan="4" class="px-3 py-2 text-right text-xs text-neutral-400 font-semibold uppercase tracking-wide">Subtotal III</td>
+              <td class="px-3 py-2 text-right font-bold text-sm text-neutral-600" id="cn-sub-eq">$ 0</td>
+              <td></td>
+            </tr></tfoot>
+          </table>
+        </div>
+
+        <!-- RESUMEN COSTO DEL ÍTEM -->
+        <div class="bg-neutral-200 rounded-xl p-4 mb-5 grid grid-cols-2 gap-2 text-sm">
+          <span class="text-neutral-400 text-xs uppercase tracking-wider">Materiales</span>   <span class="text-right text-neutral-600" id="cn-res-mat">$ 0</span>
+          <span class="text-neutral-400 text-xs uppercase tracking-wider">Mano de Obra</span> <span class="text-right text-neutral-600" id="cn-res-mo">$ 0</span>
+          <span class="text-neutral-400 text-xs uppercase tracking-wider">Equipos</span>      <span class="text-right text-neutral-600" id="cn-res-eq">$ 0</span>
+          <span class="font-bold uppercase tracking-wider text-neutral-500 border-t border-neutral-300 pt-2">Costo del Ítem</span>
+          <span class="text-right font-bold text-lg text-neutral-700 border-t border-neutral-300 pt-2" id="cn-costo-total">$ 0</span>
+        </div>
+
+      </div>
+
+    </section>
+
   </main>
   </div><!-- /contenido principal -->
 
