@@ -135,12 +135,12 @@
       <table class="w-full text-sm">
         <thead>
           <tr class="bg-neutral-900 text-white text-xs uppercase tracking-wider">
-            <th class="px-4 py-3 text-center font-medium w-16">Nº</th>
-            <th class="px-4 py-3 text-left font-medium">Descripción</th>
-            <th class="px-2 py-3 text-center font-medium w-44">Items</th>
-            <th class="px-2 py-3 text-center font-medium w-10">Unid.</th>
-            <th class="px-2 py-3 text-center font-medium w-14">Cant.</th>
-            <th class="px-2 py-3 text-center font-medium w-24">Precio Unit.</th>
+            <th class="px-4 py-3 text-center font-medium w-10">Nº</th>
+            <th class="px-2 py-3 text-left font-medium w-40">Rubro</th>
+            <th class="px-2 py-3 text-left font-medium">Ítem</th>
+            <th class="px-2 py-3 text-center font-medium w-16">Unid.</th>
+            <th class="px-2 py-3 text-center font-medium w-16">Cant.</th>
+            <th class="px-2 py-3 text-center font-medium w-28">Precio Unit.</th>
             <th class="px-2 py-3 text-center font-medium w-28">Total</th>
             <th class="px-2 py-3 text-center font-medium w-12">Incid.</th>
             <th class="px-2 py-3 w-8 no-print"></th>
@@ -149,7 +149,7 @@
         <tbody id="tabla-body">
           <tr>
             <td colspan="8" class="px-6 py-16 text-center text-neutral-400 text-sm">
-              Seleccioná un rubro e ítem abajo para comenzar.
+              Agregá un ítem con el botón + de abajo.
             </td>
           </tr>
         </tbody>
@@ -164,149 +164,12 @@
       </table>
     </section>
 
-    <!-- ÍTEM — sección unificada -->
-    <section class="bg-neutral-100 rounded-xl mb-8 no-print overflow-hidden">
-      <div class="flex items-center justify-between px-5 py-4">
-        <button onclick="toggleCrear()" class="flex items-center gap-3 text-left hover:opacity-70 transition">
-          <span class="text-xs font-semibold tracking-widest text-neutral-400 uppercase">Agregar Ítem al Presupuesto</span>
-          <span id="crear-chevron" class="text-neutral-400 text-xs transition-transform">▼</span>
-        </button>
-        <div class="flex items-center gap-2">
-          <button onclick="cnLimpiar()" class="px-4 py-1.5 text-xs text-neutral-400 hover:text-neutral-600 transition">Limpiar</button>
-          <button id="cn-btn-borrar-item" onclick="cnBorrarItem()" style="display:none"
-            class="px-4 py-1.5 text-xs text-red-400 hover:text-red-600 transition">
-            Eliminar ítem
-          </button>
-          <button id="cn-btn-crear" onclick="cnGuardar()" style="display:none"
-            class="px-4 py-1.5 bg-neutral-400 text-white rounded-lg text-xs hover:bg-neutral-500 transition font-medium">
-            Crear y Agregar
-          </button>
-          <button id="cn-btn-agregar" onclick="cnAgregarExistente()"
-            class="px-4 py-1.5 bg-neutral-400 text-white rounded-lg text-xs hover:bg-neutral-500 transition font-medium">
-            + Agregar
-          </button>
-        </div>
+    <!-- ÍTEM — botón agregar -->
+    <section class="bg-neutral-100 rounded-xl mb-4 no-print overflow-hidden">
+      <div class="flex items-center justify-end px-5 py-3">
+        <button onclick="addPresupRow()" class="px-4 py-1.5 bg-neutral-800 text-white rounded-lg text-xs hover:bg-neutral-700 transition font-medium">+ Agregar ítem</button>
       </div>
 
-      <div id="crear-body" class="hidden border-t border-neutral-200 px-5 py-5">
-
-        <!-- Selectores -->
-        <div class="grid grid-cols-1 sm:grid-cols-7 gap-4 mb-6">
-          <div class="sm:col-span-2">
-            <div class="flex items-center justify-between mb-1">
-              <label class="text-xs text-neutral-400">Análisis de precios</label>
-              <div class="flex items-center gap-2">
-                <button id="cn-btn-borrar-ap" onclick="cnBorrarAnalisis()" style="display:none" class="text-xs text-red-300 hover:text-red-500 transition">Eliminar</button>
-                <button onclick="cnCrearAnalisis()" class="text-xs text-neutral-400 hover:text-neutral-600 transition">+ Crear</button>
-              </div>
-            </div>
-            <select id="sel-ap" onchange="cnOnApChange()" class="w-full border border-neutral-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-neutral-400 bg-neutral-50 text-neutral-600">
-              <option value="log">LOG arquitectura</option>
-            </select>
-          </div>
-          <div class="sm:col-span-2">
-            <label class="block text-xs text-neutral-400 mb-1">Rubro</label>
-            <select id="cn-rubro" onchange="cnOnRubroChange()" class="w-full border border-neutral-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-neutral-400 bg-neutral-50 text-neutral-600">
-              <option value="">Seleccioná...</option>
-            </select>
-          </div>
-          <div class="sm:col-span-2">
-            <label class="block text-xs text-neutral-400 mb-1">Nombre del ítem</label>
-            <div class="relative">
-              <input id="cn-nombre" type="text" placeholder="Buscá un ítem..."
-                oninput="cnFiltrarItems(this)" onblur="cnOcultar(this)"
-                onclick="if(this.readOnly) cnDesbloquearNombre(false)"
-                class="w-full border border-neutral-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-neutral-400 bg-neutral-50 text-neutral-600">
-              <div id="cn-nombre-sug" class="hidden absolute z-20 bg-white border border-neutral-200 rounded-lg shadow-lg max-h-52 overflow-y-auto w-full left-0 top-full mt-0.5"></div>
-            </div>
-          </div>
-          <div class="sm:col-span-1">
-            <label class="block text-xs text-neutral-400 mb-1">Unidad</label>
-            <input id="cn-unidad" type="text" placeholder="Ej: m3"
-              onclick="if(this.readOnly) cnDesbloquearNombre(false)"
-              class="w-full border border-neutral-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-neutral-400 bg-neutral-50 text-neutral-600">
-          </div>
-        </div>
-
-        <!-- MATERIALES -->
-        <div class="mb-5 rounded-xl overflow-hidden">
-          <table class="w-full text-sm">
-            <thead><tr class="bg-neutral-200 text-neutral-600 text-xs uppercase">
-              <th class="px-3 py-2 text-left font-medium">
-                <strong>Materiales</strong>
-                <button id="cn-btn-mat" onclick="cnAgregarFila('mat')" class="ml-2 normal-case font-normal text-xs px-2 py-0.5 bg-neutral-200 hover:bg-neutral-400 hover:text-white text-neutral-500 rounded transition">+ Agregar</button>
-              </th>
-              <th class="px-3 py-2 text-center font-medium w-12">Unidad</th>
-              <th class="px-3 py-2 text-right font-medium w-28">Cantidad</th>
-              <th class="px-3 py-2 text-right font-medium w-32">Precio Unitario</th>
-              <th class="px-3 py-2 text-right font-medium w-28">Subtotal</th>
-              <th class="px-3 py-2 w-8"></th>
-            </tr></thead>
-            <tbody id="cn-mat-body"></tbody>
-            <tfoot><tr class="border-t border-neutral-300">
-              <td colspan="4" class="px-3 py-2 text-right text-xs text-neutral-400 font-semibold uppercase tracking-wide">Subtotal I</td>
-              <td class="px-3 py-2 text-right font-bold text-sm text-neutral-600" id="cn-sub-mat">$ 0</td>
-              <td></td>
-            </tr></tfoot>
-          </table>
-        </div>
-
-        <!-- MANO DE OBRA -->
-        <div class="mb-5 rounded-xl overflow-hidden">
-          <table class="w-full text-sm">
-            <thead><tr class="bg-neutral-200 text-neutral-600 text-xs uppercase">
-              <th class="px-3 py-2 text-left font-medium">
-                <strong>Mano de Obra</strong>
-                <button id="cn-btn-mo" onclick="cnAgregarFila('mo')" class="ml-2 normal-case font-normal text-xs px-2 py-0.5 bg-neutral-200 hover:bg-neutral-400 hover:text-white text-neutral-500 rounded transition">+ Agregar</button>
-              </th>
-              <th class="px-3 py-2 text-center font-medium w-12">Unidad</th>
-              <th class="px-3 py-2 text-right font-medium w-28">Horas</th>
-              <th class="px-3 py-2 text-right font-medium w-32">Precio Unitario</th>
-              <th class="px-3 py-2 text-right font-medium w-28">Subtotal</th>
-              <th class="px-3 py-2 w-8"></th>
-            </tr></thead>
-            <tbody id="cn-mo-body"></tbody>
-            <tfoot><tr class="border-t border-neutral-300">
-              <td colspan="4" class="px-3 py-2 text-right text-xs text-neutral-400 font-semibold uppercase tracking-wide">Subtotal II</td>
-              <td class="px-3 py-2 text-right font-bold text-sm text-neutral-600" id="cn-sub-mo">$ 0</td>
-              <td></td>
-            </tr></tfoot>
-          </table>
-        </div>
-
-        <!-- EQUIPOS -->
-        <div class="mb-6 rounded-xl overflow-hidden">
-          <table class="w-full text-sm">
-            <thead><tr class="bg-neutral-200 text-neutral-600 text-xs uppercase">
-              <th class="px-3 py-2 text-left font-medium">
-                <strong>Equipos</strong>
-                <button id="cn-btn-eq" onclick="cnAgregarFila('eq')" class="ml-2 normal-case font-normal text-xs px-2 py-0.5 bg-neutral-200 hover:bg-neutral-400 hover:text-white text-neutral-500 rounded transition">+ Agregar</button>
-              </th>
-              <th class="px-3 py-2 text-center font-medium w-12">Unidad</th>
-              <th class="px-3 py-2 text-right font-medium w-28">Cantidad</th>
-              <th class="px-3 py-2 text-right font-medium w-32">Precio Unitario</th>
-              <th class="px-3 py-2 text-right font-medium w-28">Subtotal</th>
-              <th class="px-3 py-2 w-8"></th>
-            </tr></thead>
-            <tbody id="cn-eq-body"></tbody>
-            <tfoot><tr class="border-t border-neutral-300">
-              <td colspan="4" class="px-3 py-2 text-right text-xs text-neutral-400 font-semibold uppercase tracking-wide">Subtotal III</td>
-              <td class="px-3 py-2 text-right font-bold text-sm text-neutral-600" id="cn-sub-eq">$ 0</td>
-              <td></td>
-            </tr></tfoot>
-          </table>
-        </div>
-
-        <!-- RESUMEN COSTO DEL ÍTEM -->
-        <div class="bg-neutral-200 rounded-xl p-4 mb-5 grid grid-cols-2 gap-2 text-sm">
-          <span class="text-neutral-400 text-xs uppercase tracking-wider">Materiales</span>   <span class="text-right text-neutral-600" id="cn-res-mat">$ 0</span>
-          <span class="text-neutral-400 text-xs uppercase tracking-wider">Mano de Obra</span> <span class="text-right text-neutral-600" id="cn-res-mo">$ 0</span>
-          <span class="text-neutral-400 text-xs uppercase tracking-wider">Equipos</span>      <span class="text-right text-neutral-600" id="cn-res-eq">$ 0</span>
-          <span class="font-bold uppercase tracking-wider text-neutral-500 border-t border-neutral-300 pt-2">Costo del Ítem</span>
-          <span class="text-right font-bold text-lg text-neutral-700 border-t border-neutral-300 pt-2" id="cn-costo-total">$ 0</span>
-        </div>
-
-      </div>
 
       <!-- CASCADA DE PRECIOS — siempre visible, siempre abajo -->
       <div class="border-t border-neutral-200 px-5 py-5 no-print">
@@ -455,8 +318,6 @@
       cargarLocal();
       fetchItems();
       fetchCostoReferencia();
-      cargarCatalogos();
-      cnCargarApSelector();
       fetch(SCRIPT_URL + '?action=cascada')
         .then(function(r) { return r.json(); })
         .then(function(d) {
@@ -492,24 +353,85 @@
     }
 
     // ─── AGREGAR / QUITAR ─────────────────────────────────────────────────────
-    function agregarItem(item) {
+    function addPresupRow() {
       presupuesto.push({
-        uid         : Date.now() + '_' + Math.floor(Math.random() * 9999),
-        codigo      : item.codigo,
-        nombre      : item.nombre,
-        descripcion : '',
-        unidad      : item.unidad || 'unid',
-        cantidad    : 1,
-        precio      : item.precio || 0,
-        rubroId     : item.rubroId
+        uid: Date.now() + '_' + Math.floor(Math.random() * 9999),
+        rubroId: '', nombre: '', refCodigo: '', unidad: '', cantidad: 1, precio: 0
       });
-      presupuesto.sort(function(a, b) { return parseFloat(a.codigo) - parseFloat(b.codigo); });
       renderPresupuesto();
       guardarLocal();
+      setTimeout(function() {
+        var inputs = document.querySelectorAll('[id^="sug-inp-"]');
+        if (inputs.length) inputs[inputs.length - 1].focus();
+      }, 60);
     }
 
     function quitarItem(uid) {
       presupuesto = presupuesto.filter(function(i) { return i.uid !== uid; });
+      renderPresupuesto();
+      guardarLocal();
+    }
+
+    // ─── EDICIÓN INLINE ───────────────────────────────────────────────────────
+    function presupEdit(uid, field, value) {
+      var item = presupuesto.find(function(i) { return i.uid === uid; });
+      if (!item) return;
+      item[field] = value;
+      guardarLocal();
+    }
+
+    function presupEditNum(uid, field, value) {
+      var item = presupuesto.find(function(i) { return i.uid === uid; });
+      if (!item) return;
+      item[field] = parseFloat(value) || 0;
+      renderPresupuesto();
+      guardarLocal();
+    }
+
+    function presupOnRubroChange(uid, val) {
+      var item = presupuesto.find(function(i) { return i.uid === uid; });
+      if (!item) return;
+      item.rubroId = val;
+      item.refCodigo = '';
+      renderPresupuesto();
+      guardarLocal();
+    }
+
+    function presupOnNombreInput(uid, input) {
+      var item = presupuesto.find(function(i) { return i.uid === uid; });
+      if (!item) return;
+      var sug = document.getElementById('sug-' + uid);
+      if (!sug) return;
+      var q = input.value.trim().toLowerCase();
+      var pool = todosItems.filter(function(i) {
+        return (!item.rubroId || i.rubroId === item.rubroId) &&
+               (!q || i.nombre.toLowerCase().indexOf(q) !== -1);
+      }).slice(0, 10);
+      if (!pool.length) { sug.style.display = 'none'; return; }
+      sug.innerHTML = pool.map(function(i) {
+        var nom = i.nombre.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        var uni = (i.unidad || '').replace(/'/g, "\\'");
+        return '<div onmousedown="presupOnItemSelect(\'' + uid + '\',\'' + nom + '\',\'' + uni + '\',' + (i.precio || 0) + ',\'' + i.codigo + '\')" ' +
+          'style="padding:7px 12px;cursor:pointer;font-size:12px;color:#404040;border-bottom:1px solid #f5f5f5" ' +
+          'onmouseover="this.style.background=\'#f5f5f5\'" onmouseout="this.style.background=\'\'">' +
+          i.nombre + '<span style="color:#aaa;font-size:10px;margin-left:8px">' + (i.unidad || '') + ' · $' + (i.precio || 0).toLocaleString('es-AR', {maximumFractionDigits:0}) + '</span>' +
+          '</div>';
+      }).join('');
+      sug.style.display = 'block';
+    }
+
+    function presupOcultarSug(uid) {
+      var sug = document.getElementById('sug-' + uid);
+      if (sug) sug.style.display = 'none';
+    }
+
+    function presupOnItemSelect(uid, nombre, unidad, precio, codigo) {
+      var item = presupuesto.find(function(i) { return i.uid === uid; });
+      if (!item) return;
+      item.nombre = nombre;
+      item.unidad = unidad;
+      item.precio = precio;
+      item.refCodigo = codigo;
       renderPresupuesto();
       guardarLocal();
     }
@@ -519,81 +441,103 @@
       var tbody = document.getElementById('tabla-body');
 
       if (!presupuesto.length) {
-        tbody.innerHTML = '<tr><td colspan="9" class="px-6 py-16 text-center text-neutral-400 text-sm">Seleccioná un rubro e ítem abajo para comenzar.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9" class="px-6 py-16 text-center text-neutral-400 text-sm">Agregá un ítem con el botón +</td></tr>';
         document.getElementById('tabla-tfoot').classList.add('hidden');
+        cnRenderCascada();
         return;
       }
 
+      // Ordenar: primero por rubroId, luego por orden de inserción
+      var sorted = presupuesto.slice().sort(function(a, b) {
+        if ((a.rubroId || '') < (b.rubroId || '')) return -1;
+        if ((a.rubroId || '') > (b.rubroId || '')) return 1;
+        return 0;
+      });
+
+      var totalGeneral = sorted.reduce(function(s, i) {
+        return s + (parseFloat(i.cantidad) || 0) * (parseFloat(i.precio) || 0);
+      }, 0);
+
       // Agrupar por rubro
       var grupos = {}, orden = [];
-      presupuesto.forEach(function(item) {
-        if (!grupos[item.rubroId]) { grupos[item.rubroId] = []; orden.push(item.rubroId); }
-        grupos[item.rubroId].push(item);
+      sorted.forEach(function(item) {
+        var key = item.rubroId || '__sin__';
+        if (!grupos[key]) { grupos[key] = []; orden.push(key); }
+        grupos[key].push(item);
       });
 
-      // Calcular total general primero (para incidencia)
-      var totalGeneral = 0;
-      presupuesto.forEach(function(i) { totalGeneral += (parseFloat(i.cantidad) || 0) * (parseFloat(i.precio) || 0); });
-
-      // Pre-calcular subtotales por rubro
-      var subtotales = {};
-      orden.forEach(function(rubroId) {
-        subtotales[rubroId] = 0;
-        grupos[rubroId].forEach(function(item) {
-          subtotales[rubroId] += (parseFloat(item.cantidad) || 0) * (parseFloat(item.precio) || 0);
-        });
-      });
+      // Opciones de rubro para el select inline
+      var rubroBaseOpts = '<option value="">Rubro...</option>' +
+        todosRubros.map(function(r) {
+          return '<option value="' + r.codigo + '">' + r.nombre + '</option>';
+        }).join('');
 
       var html = '';
-      var rubroNum = 0;
+      var nroGlobal = 0;
+      var rubroNum  = 0;
 
       orden.forEach(function(rubroId) {
         rubroNum++;
-        var itemNum = 0;
         var r        = todosRubros.find(function(x) { return x.codigo === rubroId; });
-        var rubroNom = (r ? rubroNum + '. ' + r.nombre : rubroNum + '. RUBRO ' + rubroId).toUpperCase();
-        var subtotal = subtotales[rubroId];
-        var incidRubro = totalGeneral > 0 ? (subtotal / totalGeneral * 100).toFixed(2).replace('.', ',') + ' %' : '—';
+        var rubroNom = rubroId === '__sin__' ? 'Sin rubro' : (r ? r.nombre : rubroId);
+        var subtotal = grupos[rubroId].reduce(function(s, i) {
+          return s + (parseFloat(i.cantidad) || 0) * (parseFloat(i.precio) || 0);
+        }, 0);
+        var incidRubro = totalGeneral > 0 ? (subtotal / totalGeneral * 100).toFixed(1).replace('.', ',') + ' %' : '—';
 
-        // Encabezado de rubro con subtotal e incidencia
+        // Encabezado de rubro
         html += '<tr class="bg-neutral-800 text-white">' +
-          '<td colspan="6" class="px-4 py-2.5 text-sm font-semibold tracking-wide">' + rubroNom + '</td>' +
-          '<td class="px-4 py-2.5 text-right font-semibold text-sm">' + $$(subtotal) + '</td>' +
-          '<td class="px-4 py-2.5 text-right text-xs font-semibold">' + incidRubro + '</td>' +
-          '<td class="no-print px-4 py-2.5"></td></tr>';
+          '<td colspan="6" class="px-4 py-2 text-xs font-semibold tracking-widest uppercase">' + rubroNum + '. ' + rubroNom + '</td>' +
+          '<td class="px-4 py-2 text-right text-sm font-semibold">' + $$(subtotal) + '</td>' +
+          '<td class="px-4 py-2 text-right text-xs font-semibold">' + incidRubro + '</td>' +
+          '<td class="no-print"></td></tr>';
 
         grupos[rubroId].forEach(function(item) {
-          itemNum++;
-          var nroDisplay = rubroNum + '.' + itemNum;
+          nroGlobal++;
           var total = (parseFloat(item.cantidad) || 0) * (parseFloat(item.precio) || 0);
-          var incid = totalGeneral > 0 ? (total / totalGeneral * 100).toFixed(2).replace('.', ',') + ' %' : '—';
+          var incid = totalGeneral > 0 ? (total / totalGeneral * 100).toFixed(1).replace('.', ',') + ' %' : '—';
+
+          // Select de rubro con valor actual preseleccionado
+          var rubroOpts = '<option value="">Rubro...</option>' +
+            todosRubros.map(function(r) {
+              return '<option value="' + r.codigo + '"' + (item.rubroId === r.codigo ? ' selected' : '') + '>' + r.nombre + '</option>';
+            }).join('');
+
           html += '<tr class="border-b border-neutral-100 hover:bg-neutral-50">' +
-            '<td class="px-4 py-2.5 text-xs text-neutral-400 font-mono text-center">' + nroDisplay + '</td>' +
-            '<td class="px-2 py-2.5">' +
-              '<input type="text" value="' + (item.descripcion || '').replace(/"/g, '&quot;') + '" placeholder="Escribí una descripción..." ' +
-              'data-uid="' + item.uid + '" data-field="descripcion" ' +
-              'class="w-full border border-transparent hover:border-neutral-200 focus:border-neutral-400 rounded px-2 py-1 text-sm focus:outline-none bg-transparent text-neutral-600" ' +
-              'onchange="editarItem(this)">' +
+            '<td class="px-3 py-1.5 text-xs text-neutral-400 font-mono text-center">' + nroGlobal + '</td>' +
+            '<td class="px-1 py-1">' +
+              '<select onchange="presupOnRubroChange(\'' + item.uid + '\', this.value)" ' +
+              'class="w-full border border-transparent hover:border-neutral-200 focus:border-neutral-400 rounded px-1 py-1 text-xs focus:outline-none bg-transparent text-neutral-500 cursor-pointer">' +
+              rubroOpts + '</select>' +
             '</td>' +
-            '<td class="px-2 py-2.5 text-xs text-center text-neutral-600 w-44">' + item.nombre + '</td>' +
-            '<td class="px-2 py-2.5 text-xs text-center text-neutral-500">' + (item.unidad || '') + '</td>' +
-            '<td class="px-1 py-2.5 text-right">' +
+            '<td class="px-1 py-1 relative">' +
+              '<input id="sug-inp-' + item.uid + '" type="text" ' +
+              'value="' + (item.nombre || '').replace(/"/g, '&quot;') + '" ' +
+              'placeholder="Nombre del ítem..." ' +
+              'oninput="presupOnNombreInput(\'' + item.uid + '\', this)" ' +
+              'onblur="setTimeout(function(){presupOcultarSug(\'' + item.uid + '\')},150); presupEdit(\'' + item.uid + '\',\'nombre\',this.value)" ' +
+              'class="w-full border border-transparent hover:border-neutral-200 focus:border-neutral-400 rounded px-2 py-1 text-sm focus:outline-none bg-transparent text-neutral-700">' +
+              '<div id="sug-' + item.uid + '" style="display:none;position:absolute;top:100%;left:0;z-index:30;background:#fff;border:1px solid #e5e5e5;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,0.10);max-height:200px;overflow-y:auto;min-width:280px"></div>' +
+            '</td>' +
+            '<td class="px-1 py-1">' +
+              '<input type="text" value="' + (item.unidad || '') + '" placeholder="unid." ' +
+              'onblur="presupEdit(\'' + item.uid + '\',\'unidad\',this.value)" ' +
+              'class="w-16 border border-transparent hover:border-neutral-200 focus:border-neutral-400 rounded px-2 py-1 text-xs text-center focus:outline-none bg-transparent text-neutral-600">' +
+            '</td>' +
+            '<td class="px-1 py-1">' +
               '<input type="number" value="' + (item.cantidad || 1) + '" min="0" ' +
-              'data-uid="' + item.uid + '" data-field="cantidad" ' +
-              'class="w-full text-right border border-transparent hover:border-neutral-200 focus:border-neutral-400 rounded px-1 py-1 text-sm focus:outline-none bg-transparent" ' +
-              'onchange="editarItem(this)">' +
+              'onchange="presupEditNum(\'' + item.uid + '\',\'cantidad\',this.value)" ' +
+              'class="w-16 border border-transparent hover:border-neutral-200 focus:border-neutral-400 rounded px-1 py-1 text-sm text-right focus:outline-none bg-transparent">' +
             '</td>' +
-            '<td class="px-1 py-2.5 text-right">' +
-              '<input type="text" value="' + (parseFloat(item.precio) || 0).toFixed(2).replace('.', ',') + '" ' +
-              'data-uid="' + item.uid + '" data-field="precio" ' +
-              'class="w-full text-right border border-transparent hover:border-neutral-200 focus:border-neutral-400 rounded px-1 py-1 text-sm focus:outline-none bg-transparent" ' +
-              'onchange="editarItem(this)">' +
+            '<td class="px-1 py-1">' +
+              '<input type="number" value="' + (parseFloat(item.precio) || 0) + '" min="0" ' +
+              'onchange="presupEditNum(\'' + item.uid + '\',\'precio\',this.value)" ' +
+              'class="w-full border border-transparent hover:border-neutral-200 focus:border-neutral-400 rounded px-1 py-1 text-sm text-right focus:outline-none bg-transparent">' +
             '</td>' +
-            '<td class="px-2 py-2.5 text-right font-medium text-sm">' + $$(total) + '</td>' +
-            '<td class="px-2 py-2.5 text-right text-xs text-neutral-500">' + incid + '</td>' +
-            '<td class="px-1 py-2.5 text-center no-print">' +
-              '<button onclick="quitarItem(\'' + item.uid + '\')" ' +
-              'class="text-neutral-300 hover:text-red-500 transition text-xl leading-none" title="Quitar">×</button>' +
+            '<td class="px-3 py-1.5 text-right font-medium text-sm">' + $$(total) + '</td>' +
+            '<td class="px-2 py-1.5 text-right text-xs text-neutral-500">' + incid + '</td>' +
+            '<td class="px-1 py-1.5 text-center no-print">' +
+              '<button onclick="quitarItem(\'' + item.uid + '\')" class="text-neutral-300 hover:text-red-500 transition text-xl leading-none">×</button>' +
             '</td></tr>';
         });
       });
@@ -601,19 +545,7 @@
       tbody.innerHTML = html;
       document.getElementById('tabla-tfoot').classList.remove('hidden');
       calcularTotales();
-    }
-
-    // ─── EDICIÓN INLINE ───────────────────────────────────────────────────────
-    function editarItem(input) {
-      var item = presupuesto.find(function(i) { return i.uid === input.dataset.uid; });
-      if (!item) return;
-      var field = input.dataset.field;
-      if (field === 'descripcion') {
-        item[field] = input.value;
-      } else {
-        item[field] = parseFloat(input.value.replace(',', '.')) || 0;
-      }
-      renderPresupuesto();
+      cnRenderCascada();
     }
 
     // ─── TOTALES ──────────────────────────────────────────────────────────────
@@ -776,428 +708,19 @@
     // ─── HELPERS ─────────────────────────────────────────────────────────────
     function $$(n) { return '$ ' + Math.round(n).toLocaleString('es-AR'); }
 
-    // ═══════════════════════════════════════════════════════════
-    // CREAR NUEVO ÍTEM
-    // ═══════════════════════════════════════════════════════════
-    var cnCatalogo = [], cnManoObra = [], cnFilasMat = [], cnFilasMO = [], cnFilasEq = [], cnCargado = false, cnModoVer = false;
+
+    // ─── CASCADA DE PRECIOS ─────────────────────────────────────────────────────
     var cnCascada = null;
-    var cnCodigoActual = null;
 
-    var cnItemsRubro = [], cnNombreOriginal = '';
-
-    function cnItemsDelAp() {
-      if (cnEsModoLog()) return todosItems;
-      var apId = document.getElementById('sel-ap').value;
-      var ap = apUsuarios.find(function(a) { return a.id === apId; });
-      return ap ? ap.items : [];
-    }
-
-    function cnOnRubroChange() {
-      var rubroId = document.getElementById('cn-rubro').value;
-      cnItemsRubro = cnItemsDelAp().filter(function(i) {
-        return i.rubroId === rubroId;
-      });
-      var sug = document.getElementById('cn-nombre-sug');
-      var input = document.getElementById('cn-nombre');
-      input.value = '';
-      cnDesbloquearNombre();
-      cnMostrarSugerencias(sug, cnItemsRubro);
-      input.focus();
-    }
-
-    function cnFiltrarItems(input) {
-      var query = input.value.toLowerCase().trim();
-      var sug = document.getElementById('cn-nombre-sug');
-      var lista = query
-        ? cnItemsRubro.filter(function(i) { return i.nombre.toLowerCase().indexOf(query) !== -1; })
-        : cnItemsRubro;
-      cnMostrarSugerencias(sug, lista);
-    }
-
-    function cnMostrarSugerencias(sug, lista) {
-      if (!lista.length) { sug.classList.add('hidden'); sug.innerHTML = ''; return; }
-      sug.innerHTML = lista.map(function(i) {
-        return '<div class="px-3 py-2 text-sm hover:bg-neutral-100 cursor-pointer border-b border-neutral-100 last:border-0 flex justify-between items-center" ' +
-          'onmousedown="cnSeleccionarItem(this)" ' +
-          'data-nombre="' + i.nombre.replace(/"/g, '&quot;') + '" ' +
-          'data-unidad="' + (i.unidad||'').replace(/"/g, '&quot;') + '" ' +
-          'data-codigo="' + i.codigo + '">' +
-          '<span><span class="text-neutral-400 text-xs mr-2">' + i.codigo + '</span>' + i.nombre + '</span>' +
-          '<span class="text-neutral-400 text-xs ml-4 shrink-0">' + (i.unidad||'') + '</span>' +
-        '</div>';
-      }).join('');
-      sug.classList.remove('hidden');
-    }
-
-    function cnSeleccionarItem(div) {
-      var nombre = document.getElementById('cn-nombre');
-      var unidad = document.getElementById('cn-unidad');
-      cnNombreOriginal = div.dataset.nombre;
-      nombre.value = div.dataset.codigo + ' — ' + div.dataset.nombre;
-      unidad.value = div.dataset.unidad || '';
-      document.getElementById('cn-nombre-sug').classList.add('hidden');
-      var bloqueado = 'w-full border border-neutral-200 rounded-lg px-3 py-2.5 text-sm bg-neutral-100 text-neutral-500 cursor-default';
-      nombre.readOnly = true; nombre.className = bloqueado;
-      unidad.readOnly = true; unidad.className = bloqueado;
-
-      if (!cnEsModoLog()) {
-        // ítem del análisis propio → cargar desde localStorage
-        var apId = document.getElementById('sel-ap').value;
-        var ap = apUsuarios.find(function(a) { return a.id === apId; });
-        var item = ap && ap.items.find(function(i) { return i.codigo === div.dataset.codigo; });
-        cnCodigoActual = div.dataset.codigo;
-        cnFilasMat = (item && item.materiales) ? item.materiales.map(function(f) { return Object.assign({}, f); }) : [];
-        cnFilasMO  = (item && item.manoobra)   ? item.manoobra.map(function(f) { return Object.assign({}, f); })   : [];
-        cnFilasEq  = (item && item.equipos)    ? item.equipos.map(function(f) { return Object.assign({}, f); })    : [];
-        cnModoVer  = true;
-        cnActualizarModo();
-        cnRenderTablas();
-        cnRenderCascada();
-        // ítem existente del usuario → "+ Agregar" + "Eliminar ítem", ocultar "Crear y Agregar"
-        var btnCrear      = document.getElementById('cn-btn-crear');
-        var btnAgregar    = document.getElementById('cn-btn-agregar');
-        var btnBorrarItem = document.getElementById('cn-btn-borrar-item');
-        if (btnCrear)      btnCrear.style.display      = 'none';
-        if (btnAgregar)    btnAgregar.style.display     = '';
-        if (btnBorrarItem) btnBorrarItem.style.display  = '';
-      } else {
-        cargarAnalisisItem(div.dataset.codigo, div.dataset.nombre);
-      }
-    }
-
-    function cargarAnalisisItem(codigo, nombre) {
-      cnCodigoActual = codigo;
-      cnFilasMat = []; cnFilasMO = []; cnFilasEq = [];
-      var cargando = '<tr><td colspan="6" class="px-3 py-4 text-center text-neutral-400 text-xs">Cargando análisis...</td></tr>';
-      document.getElementById('cn-mat-body').innerHTML = cargando;
-      document.getElementById('cn-mo-body').innerHTML  = cargando;
-      document.getElementById('cn-eq-body').innerHTML  = cargando;
-
-      var urlAnalisis = SCRIPT_URL + '?action=analisisitem&codigo=' + encodeURIComponent(codigo) + '&nombre=' + encodeURIComponent(nombre);
-      var urlCascada  = SCRIPT_URL + '?action=cascada';
-
-      var promCascada = cnCascada
-        ? Promise.resolve(cnCascada)
-        : fetch(urlCascada).then(function(r) { return r.json(); }).then(function(d) { cnCascada = d; return d; });
-
-      Promise.all([
-        fetch(urlAnalisis).then(function(r) { return r.json(); }),
-        promCascada
-      ])
-        .then(function(results) {
-          var data = results[0];
-          if (data.error) {
-            var msg = '<tr><td colspan="6" class="px-3 py-4 text-center text-orange-400 text-xs">⚠️ ' + data.error + '</td></tr>';
-            document.getElementById('cn-mat-body').innerHTML = msg;
-            document.getElementById('cn-mo-body').innerHTML  = msg;
-            document.getElementById('cn-eq-body').innerHTML  = msg;
-            return;
-          }
-          cnFilasMat = (data.materiales || []).map(function(f) {
-            return { nombre: f.nombre, unidad: f.unidad || '', cantidad: parseFloat(f.cantidad) || 0, precio: parseFloat(f.precio) || 0 };
-          });
-          cnFilasMO = (data.manoobra || []).map(function(f) {
-            return { nombre: f.nombre, unidad: f.unidad || 'hs', cantidad: parseFloat(f.cantidad) || 0, precio: parseFloat(f.precio) || 0 };
-          });
-          cnFilasEq = (data.equipos || []).map(function(f) {
-            return { nombre: f.nombre, unidad: f.unidad || '', cantidad: parseFloat(f.cantidad) || 0, precio: parseFloat(f.precio) || 0 };
-          });
-          cnModoVer = true;
-          cnActualizarModo();
-          cnRenderTablas();
-        })
-        .catch(function() {
-          var msg = '<tr><td colspan="6" class="px-3 py-4 text-center text-red-400 text-xs">❌ Sin conexión o script sin publicar</td></tr>';
-          document.getElementById('cn-mat-body').innerHTML = msg;
-          document.getElementById('cn-mo-body').innerHTML  = msg;
-          document.getElementById('cn-eq-body').innerHTML  = msg;
-        });
-    }
-
-    function cnDesbloquearNombre(limpiar) {
-      var nombre = document.getElementById('cn-nombre');
-      var unidad = document.getElementById('cn-unidad');
-      var base = 'w-full border border-neutral-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-neutral-400 bg-neutral-50 text-neutral-600';
-      nombre.readOnly = false; nombre.className = base;
-      unidad.readOnly = false; unidad.className = base;
-      cnModoVer = false;
-      cnActualizarModo();
-      cnRenderTablas();
-      if (limpiar) {
-        nombre.value = ''; unidad.value = '';
-        cnMostrarSugerencias(document.getElementById('cn-nombre-sug'), cnItemsRubro);
-        nombre.focus();
-      } else if (cnNombreOriginal) {
-        nombre.value = cnNombreOriginal;
-      }
-    }
-
-    function poblarRubrosCrear() {
-      var sel = document.getElementById('cn-rubro');
-      if (!sel) return;
-      var valorActual = sel.value;
-      sel.innerHTML = '<option value="">Seleccioná...</option>';
-      todosRubros.forEach(function(r) {
-        var opt = document.createElement('option');
-        opt.value = r.codigo; opt.textContent = r.codigo + '. ' + r.nombre;
-        sel.appendChild(opt);
-      });
-      if (valorActual) sel.value = valorActual;
-    }
-
-    function toggleCrear() {
-      var body    = document.getElementById('crear-body');
-      var chevron = document.getElementById('crear-chevron');
-      var abierto = !body.classList.contains('hidden');
-      body.classList.toggle('hidden', abierto);
-      chevron.style.transform = abierto ? '' : 'rotate(180deg)';
-    }
-
-    function cargarCatalogos() {
-      fetch(SCRIPT_URL + '?action=catalogo')
-        .then(function(r) { return r.json(); })
-        .then(function(data) {
-          cnCatalogo = data.materiales || [];
-          if (cnFilasMat.length) cnRenderTablas();
-          return fetch(SCRIPT_URL + '?action=manoobra');
-        })
-        .then(function(r) { return r.json(); })
-        .then(function(data) {
-          cnManoObra = data.categorias || [];
-          if (cnFilasMO.length) cnRenderTablas();
-          cnCargado = true;
-        })
-        .catch(function() { cnCargado = true; });
-    }
-
-    function cnAgregarFila(tipo) {
-      if (tipo === 'mat') cnFilasMat.push({ nombre: '', unidad: '', cantidad: 1, precio: 0 });
-      else if (tipo === 'mo') {
-        var p = cnManoObra[0] || { nombre: '', unidad: '$/Hs', precio: 0 };
-        cnFilasMO.push({ nombre: p.nombre, unidad: p.unidad, cantidad: 0, precio: p.precio });
-      } else cnFilasEq.push({ nombre: '', unidad: '', cantidad: 1, precio: 0 });
-      cnRenderTablas();
-    }
-
-    function cnQuitarFila(tipo, idx) {
-      if (tipo === 'mat') cnFilasMat.splice(idx, 1);
-      else if (tipo === 'mo') cnFilasMO.splice(idx, 1);
-      else cnFilasEq.splice(idx, 1);
-      cnRenderTablas();
-    }
-
-    function cnRenderTablas() {
-      cnRenderTabla('mat', cnFilasMat, 'cn-mat-body', 'cn-sub-mat');
-      cnRenderTabla('mo',  cnFilasMO,  'cn-mo-body',  'cn-sub-mo');
-      cnRenderTabla('eq',  cnFilasEq,  'cn-eq-body',  'cn-sub-eq');
-      cnActualizarResumen();
-      cnRenderCascada();
-    }
-
-    function cnEsModoLog() {
-      var sel = document.getElementById('sel-ap');
-      return !sel || sel.value === 'log';
-    }
-
-    function cnOnApChange() {
-      var esLog = cnEsModoLog();
-      var inputNombre   = document.getElementById('cn-nombre');
-      var inputUnidad   = document.getElementById('cn-unidad');
-      var btnCrear      = document.getElementById('cn-btn-crear');
-      var btnAgregar    = document.getElementById('cn-btn-agregar');
-      var btnBorrarAp   = document.getElementById('cn-btn-borrar-ap');
-      var btnBorrarItem = document.getElementById('cn-btn-borrar-item');
-
-      if (esLog) {
-        inputNombre.placeholder = 'Buscá un ítem...';
-        inputUnidad.readOnly = true;
-        inputUnidad.classList.add('bg-neutral-100', 'text-neutral-400');
-        inputUnidad.classList.remove('bg-neutral-50', 'text-neutral-600');
-        if (btnCrear)      btnCrear.style.display      = 'none';
-        if (btnAgregar)    btnAgregar.style.display     = '';
-        if (btnBorrarAp)   btnBorrarAp.style.display    = 'none';
-        if (btnBorrarItem) btnBorrarItem.style.display  = 'none';
-      } else {
-        inputNombre.placeholder = 'Buscá o escribí un ítem nuevo...';
-        inputUnidad.readOnly = false;
-        inputUnidad.classList.remove('bg-neutral-100', 'text-neutral-400');
-        inputUnidad.classList.add('bg-neutral-50', 'text-neutral-600');
-        if (btnCrear)    btnCrear.style.display    = '';
-        if (btnAgregar)  btnAgregar.style.display  = 'none';
-        if (btnBorrarAp) btnBorrarAp.style.display = '';
-      }
-
-      cnLimpiar();
-    }
-
-    function cnBorrarAnalisis() {
-      var apId = document.getElementById('sel-ap').value;
-      if (apId === 'log') return;
-      var ap = apUsuarios.find(function(a) { return a.id === apId; });
-      if (!ap) return;
-      if (!confirm('¿Eliminás el análisis "' + ap.nombre + '" y todos sus ítems?')) return;
-      apUsuarios = apUsuarios.filter(function(a) { return a.id !== apId; });
-      localStorage.setItem('ap_usuarios', JSON.stringify(apUsuarios));
-      cnCargarApSelector();
-      document.getElementById('sel-ap').value = 'log';
-      cnOnApChange();
-    }
-
-    function cnBorrarItem() {
-      if (!cnCodigoActual || cnEsModoLog()) return;
-      var apId = document.getElementById('sel-ap').value;
-      var ap = apUsuarios.find(function(a) { return a.id === apId; });
-      if (!ap) return;
-      var item = ap.items.find(function(i) { return i.codigo === cnCodigoActual; });
-      if (!item) return;
-      if (!confirm('¿Eliminás el ítem "' + item.nombre + '" del análisis?')) return;
-      ap.items = ap.items.filter(function(i) { return i.codigo !== cnCodigoActual; });
-      localStorage.setItem('ap_usuarios', JSON.stringify(apUsuarios));
-      cnLimpiar();
-    }
-
-    function cnActualizarModo() {
-      var esLog = cnEsModoLog();
-      ['cn-btn-mat','cn-btn-mo','cn-btn-eq'].forEach(function(id) {
-        var el = document.getElementById(id);
-        if (el) el.style.display = cnModoVer ? 'none' : '';
-      });
-      var btnCrear = document.getElementById('cn-btn-crear');
-      if (btnCrear) btnCrear.style.display = (cnModoVer || esLog) ? 'none' : '';
-    }
-
-    function cnRenderTabla(tipo, filas, bodyId, subId) {
-      var tbody = document.getElementById(bodyId);
-      if (!filas.length) {
-        tbody.innerHTML = cnModoVer
-          ? '<tr><td colspan="6" class="px-3 py-1.5 text-center text-neutral-300 text-xs">—</td></tr>'
-          : '<tr><td colspan="6" class="px-3 py-4 text-center text-neutral-300 text-xs">Sin filas. Hacé clic en + Agregar.</td></tr>';
-        document.getElementById(subId).textContent = $$(0);
-        return;
-      }
-      var html = '';
-      filas.forEach(function(fila, idx) {
-        var subtotal = (parseFloat(fila.cantidad)||0) * (parseFloat(fila.precio)||0);
-        if (cnModoVer) {
-          html += '<tr class="border-b border-neutral-100">' +
-            '<td class="px-3 py-1 text-sm text-neutral-700">' + (fila.nombre||'') + '</td>' +
-            '<td class="px-3 py-1 text-center text-xs text-neutral-400 w-12">' + (fila.unidad||'—') + '</td>' +
-            '<td class="px-3 py-1 text-right text-sm text-neutral-600">' + (fila.cantidad||0) + '</td>' +
-            '<td class="px-3 py-1 text-right text-sm text-neutral-600">' + $$(fila.precio) + '</td>' +
-            '<td class="px-3 py-1 text-right font-medium text-sm">' + $$(subtotal) + '</td>' +
-            '<td></td></tr>';
-        } else {
-          var inputClass = 'w-full border border-neutral-200 rounded px-2 py-1 text-sm focus:outline-none focus:border-neutral-400 bg-white';
-          var celdaNombre;
-          if (tipo === 'mat') {
-            celdaNombre = '<div class="relative">' +
-              '<input type="text" value="' + (fila.nombre||'').replace(/"/g,'&quot;') + '" placeholder="Buscar material..." ' +
-              'data-tipo="mat" data-idx="' + idx + '" ' +
-              'oninput="cnFiltrar(this,\'mat\')" onblur="cnOcultar(this)" ' +
-              'class="' + inputClass + '">' +
-              '<div class="cn-sug hidden absolute z-20 bg-white border border-neutral-200 rounded shadow-lg max-h-48 overflow-y-auto w-full left-0 top-full mt-0.5"></div>' +
-              '</div>';
-          } else if (tipo === 'mo') {
-            celdaNombre = '<div class="relative">' +
-              '<input type="text" value="' + (fila.nombre||'').replace(/"/g,'&quot;') + '" placeholder="Buscar categoría..." ' +
-              'data-tipo="mo" data-idx="' + idx + '" ' +
-              'oninput="cnFiltrar(this,\'mo\')" onblur="cnOcultar(this)" ' +
-              'class="' + inputClass + '">' +
-              '<div class="cn-sug hidden absolute z-20 bg-white border border-neutral-200 rounded shadow-lg max-h-48 overflow-y-auto w-full left-0 top-full mt-0.5"></div>' +
-              '</div>';
-          } else {
-            celdaNombre = '<input type="text" value="' + (fila.nombre||'').replace(/"/g,'&quot;') + '" placeholder="Descripción" ' +
-              'data-tipo="eq" data-idx="' + idx + '" data-field="nombre" onchange="cnCambio(this)" ' +
-              'class="' + inputClass + '">';
-          }
-          html += '<tr class="border-b border-neutral-100 hover:bg-neutral-50">' +
-            '<td class="px-2 py-2">' + celdaNombre + '</td>' +
-            '<td class="px-2 py-2 text-center text-xs text-neutral-500">' + (fila.unidad||'—') + '</td>' +
-            '<td class="px-2 py-2"><input type="number" value="' + (fila.cantidad||0) + '" min="0" data-tipo="' + tipo + '" data-idx="' + idx + '" data-field="cantidad" onchange="cnCambio(this)" class="w-full text-right border border-neutral-200 rounded px-2 py-1 text-sm focus:outline-none focus:border-neutral-400"></td>' +
-            '<td class="px-2 py-2 text-right">' + (tipo==='eq' ? '<input type="number" value="' + (fila.precio||0) + '" min="0" data-tipo="eq" data-idx="' + idx + '" data-field="precio" onchange="cnCambio(this)" class="w-full text-right border border-neutral-200 rounded px-2 py-1 text-sm focus:outline-none focus:border-neutral-400">' : '<span class="text-xs text-neutral-500">' + $$(fila.precio) + '</span>') + '</td>' +
-            '<td class="px-2 py-2 text-right font-medium text-sm">' + $$(subtotal) + '</td>' +
-            '<td class="px-2 py-2 text-center"><button onclick="cnQuitarFila(\'' + tipo + '\',' + idx + ')" class="text-neutral-300 hover:text-red-500 text-lg leading-none">×</button></td>' +
-            '</tr>';
-        }
-      });
-      tbody.innerHTML = html;
-      document.getElementById(subId).textContent = $$(filas.reduce(function(s,f){ return s+(parseFloat(f.cantidad)||0)*(parseFloat(f.precio)||0); }, 0));
-    }
-
-    function cnFiltrar(input, tipo) {
-      var query = input.value.toLowerCase().trim();
-      var sug   = input.nextElementSibling;
-      var lista = tipo === 'mat' ? cnCatalogo : cnManoObra;
-      if (!query) { sug.classList.add('hidden'); sug.innerHTML = ''; return; }
-      var matches = lista.filter(function(m) { return m.nombre.toLowerCase().indexOf(query) !== -1; }).slice(0, 20);
-      if (!matches.length) { sug.classList.add('hidden'); sug.innerHTML = ''; return; }
-      sug.innerHTML = matches.map(function(m) {
-        return '<div class="px-3 py-2 text-sm hover:bg-neutral-100 cursor-pointer border-b border-neutral-100 last:border-0" ' +
-          'onmousedown="cnSeleccionar(this,\'' + tipo + '\')" ' +
-          'data-nombre="' + m.nombre.replace(/"/g,'&quot;') + '" ' +
-          'data-unidad="' + (m.unidad||'').replace(/"/g,'&quot;') + '" ' +
-          'data-precio="' + m.precio + '">' + m.nombre + '</div>';
-      }).join('');
-      sug.classList.remove('hidden');
-    }
-
-    function cnSeleccionar(div, tipo) {
-      var sug   = div.parentElement;
-      var input = sug.previousElementSibling;
-      var idx   = parseInt(input.dataset.idx);
-      var arr   = tipo === 'mat' ? cnFilasMat : cnFilasMO;
-      arr[idx].nombre = div.dataset.nombre;
-      arr[idx].unidad = div.dataset.unidad || '';
-      arr[idx].precio = parseFloat(div.dataset.precio) || 0;
-      sug.classList.add('hidden');
-      cnRenderTablas();
-    }
-
-    function cnOcultar(input) {
-      setTimeout(function() {
-        var sug = input.nextElementSibling;
-        if (sug) sug.classList.add('hidden');
-      }, 150);
-    }
-
-    function cnCambio(input) {
-      var tipo = input.dataset.tipo, idx = parseInt(input.dataset.idx), field = input.dataset.field;
-      var arr = tipo==='mat' ? cnFilasMat : (tipo==='mo' ? cnFilasMO : cnFilasEq);
-      arr[idx][field] = (field==='cantidad'||field==='precio') ? parseFloat(input.value)||0 : input.value;
-      cnRenderTablas();
-    }
-
-    function cnCambioMaterial(sel) {
-      var idx = parseInt(sel.dataset.idx), opt = sel.options[sel.selectedIndex];
-      cnFilasMat[idx].nombre = opt.value; cnFilasMat[idx].unidad = opt.dataset.unidad||''; cnFilasMat[idx].precio = parseFloat(opt.dataset.precio)||0;
-      cnRenderTablas();
-    }
-
-    function cnCambioMO(sel) {
-      var idx = parseInt(sel.dataset.idx), opt = sel.options[sel.selectedIndex];
-      cnFilasMO[idx].nombre = opt.value; cnFilasMO[idx].precio = parseFloat(opt.dataset.precio)||0; cnFilasMO[idx].unidad = '$/Hs';
-      cnRenderTablas();
-    }
-
-    function cnActualizarResumen() {
-      var sM = cnFilasMat.reduce(function(s,f){ return s+(parseFloat(f.cantidad)||0)*(parseFloat(f.precio)||0);},0);
-      var sO = cnFilasMO.reduce(function(s,f){  return s+(parseFloat(f.cantidad)||0)*(parseFloat(f.precio)||0);},0);
-      var sE = cnFilasEq.reduce(function(s,f){  return s+(parseFloat(f.cantidad)||0)*(parseFloat(f.precio)||0);},0);
-      document.getElementById('cn-res-mat').textContent   = $$(sM);
-      document.getElementById('cn-res-mo').textContent    = $$(sO);
-      document.getElementById('cn-res-eq').textContent    = $$(sE);
-      document.getElementById('cn-costo-total').textContent = $$(sM+sO+sE);
-    }
 
     function cnRenderCascada() {
       var inner = document.getElementById('cn-cascada-inner');
       if (!inner) return;
       if (!cnCascada || cnCascada.error) { inner.innerHTML = '<p class="text-xs text-neutral-400 py-1">Cargando porcentajes...</p>'; return; }
 
-      var sM = cnFilasMat.reduce(function(s,f){ return s+(parseFloat(f.cantidad)||0)*(parseFloat(f.precio)||0);},0);
-      var sO = cnFilasMO.reduce(function(s,f){  return s+(parseFloat(f.cantidad)||0)*(parseFloat(f.precio)||0);},0);
-      var sE = cnFilasEq.reduce(function(s,f){  return s+(parseFloat(f.cantidad)||0)*(parseFloat(f.precio)||0);},0);
-      var costo = sM + sO + sE;
+      var costo = presupuesto.reduce(function(s, i) {
+        return s + (parseFloat(i.cantidad) || 0) * (parseFloat(i.precio) || 0);
+      }, 0);
 
       var gg  = cnCascada.gastosGenerales  || 0;
       var ben = cnCascada.beneficios       || 0;
@@ -1274,131 +797,8 @@
         .then(function(d) { cnCascada = d; cnRenderCascada(); });
     }
 
-    // ── Análisis de precios ──────────────────────────────────────────────────
-    var apUsuarios = JSON.parse(localStorage.getItem('ap_usuarios') || '[]');
-
-    function cnCargarApSelector() {
-      var sel = document.getElementById('sel-ap');
-      // quitar opciones previas de usuario (data-usuario)
-      Array.from(sel.options).forEach(function(o) { if (o.dataset.usuario) sel.remove(o.index); });
-      apUsuarios.forEach(function(ap) {
-        var opt = document.createElement('option');
-        opt.value = ap.id;
-        opt.textContent = ap.nombre;
-        opt.dataset.usuario = '1';
-        sel.appendChild(opt);
-      });
-    }
-
-    function cnCrearAnalisis() {
-      var modal = document.getElementById('modal-crear-ap');
-      document.getElementById('modal-ap-nombre').value = '';
-      modal.classList.remove('hidden');
-      document.getElementById('modal-ap-nombre').focus();
-    }
-
-    function cnConfirmarCrearAnalisis() {
-      var nombre = document.getElementById('modal-ap-nombre').value.trim();
-      if (!nombre) return;
-      var id = 'ap_' + Date.now();
-      apUsuarios.push({ id: id, nombre: nombre, items: [] });
-      localStorage.setItem('ap_usuarios', JSON.stringify(apUsuarios));
-      cnCargarApSelector();
-      document.getElementById('sel-ap').value = id;
-      document.getElementById('modal-crear-ap').classList.add('hidden');
-    }
-
-    function cnCerrarModalAp() {
-      document.getElementById('modal-crear-ap').classList.add('hidden');
-    }
-
-    function cnLimpiar() {
-      cnFilasMat=[]; cnFilasMO=[]; cnFilasEq=[];
-      cnModoVer = false;
-      cnCodigoActual = null;
-      document.getElementById('cn-nombre').value='';
-      document.getElementById('cn-unidad').value='';
-      document.getElementById('cn-rubro').value='';
-      document.getElementById('cn-nombre-sug').classList.add('hidden');
-      cnItemsRubro = [];
-      cnDesbloquearNombre();
-      cnRenderTablas();
-      // ocultar "Eliminar ítem"
-      var btnBorrarItem = document.getElementById('cn-btn-borrar-item');
-      if (btnBorrarItem) btnBorrarItem.style.display = 'none';
-      // restaurar botones según modo AP
-      var esLog = cnEsModoLog();
-      var btnCrear   = document.getElementById('cn-btn-crear');
-      var btnAgregar = document.getElementById('cn-btn-agregar');
-      if (btnCrear)   btnCrear.style.display   = esLog ? 'none' : '';
-      if (btnAgregar) btnAgregar.style.display  = esLog ? '' : 'none';
-    }
-
-    function cnAgregarExistente() {
-      if (!cnCodigoActual) return;
-      var pool = cnItemsDelAp();
-      var item = pool.find(function(i) { return i.codigo === cnCodigoActual; });
-      if (!item) return;
-      agregarItem(item);
-      cnLimpiar();
-    }
-
-    function cnGuardar() {
-      var rubroId = document.getElementById('cn-rubro').value;
-      var nombre  = document.getElementById('cn-nombre').value.trim().toUpperCase();
-      var unidad  = document.getElementById('cn-unidad').value.trim();
-      if (!rubroId || !nombre || !unidad) { alert('Completá Rubro, Nombre y Unidad antes de agregar.'); return; }
-
-      // Calcular costo total
-      var costo = 0;
-      cnFilasMat.forEach(function(m) { costo += (parseFloat(m.cantidad)||0) * (parseFloat(m.precio)||0); });
-      cnFilasMO.forEach(function(m)  { costo += (parseFloat(m.cantidad)||0) * (parseFloat(m.precio)||0); });
-      cnFilasEq.forEach(function(m)  { costo += (parseFloat(m.cantidad)||0) * (parseFloat(m.precio)||0); });
-
-      // Obtener el pool de ítems del análisis actual
-      var apId = document.getElementById('sel-ap').value;
-      var ap = apUsuarios.find(function(a) { return a.id === apId; });
-      var pool = ap ? ap.items : todosItems;
-
-      // Generar código: rubroId + siguiente número disponible
-      var lastDecimal = 0;
-      pool.forEach(function(i) {
-        if (i.rubroId === rubroId) {
-          var d = parseFloat((i.codigo || '').split('.')[1] || '0') || 0;
-          if (d > lastDecimal) lastDecimal = d;
-        }
-      });
-      var codigo = rubroId + '.' + (lastDecimal + 1);
-
-      // Guardar en el análisis del usuario (localStorage) y agregar al presupuesto
-      var nuevoItem = {
-        codigo: codigo, nombre: nombre, unidad: unidad, precio: costo, rubroId: rubroId,
-        materiales: cnFilasMat.map(function(f) { return Object.assign({}, f); }),
-        manoobra:   cnFilasMO.map(function(f) { return Object.assign({}, f); }),
-        equipos:    cnFilasEq.map(function(f) { return Object.assign({}, f); })
-      };
-      pool.push(nuevoItem);
-      if (ap) localStorage.setItem('ap_usuarios', JSON.stringify(apUsuarios));
-      agregarItem(nuevoItem);
-
-      cnLimpiar();
-    }
   </script>
 
-  <!-- Modal: Crear análisis de precios -->
-  <div id="modal-crear-ap" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-    <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm mx-4 p-6">
-      <h3 class="text-sm font-semibold text-neutral-700 mb-4">Nuevo análisis de precios</h3>
-      <label class="block text-xs text-neutral-400 mb-1">Nombre</label>
-      <input id="modal-ap-nombre" type="text" placeholder="Ej: Mi empresa"
-        onkeydown="if(event.key==='Enter') cnConfirmarCrearAnalisis()"
-        class="w-full border border-neutral-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-neutral-500 mb-5" />
-      <div class="flex justify-end gap-2">
-        <button onclick="cnCerrarModalAp()" class="px-4 py-2 text-xs text-neutral-400 hover:text-neutral-600 transition">Cancelar</button>
-        <button onclick="cnConfirmarCrearAnalisis()" class="px-4 py-2 bg-neutral-700 text-white rounded-lg text-xs hover:bg-neutral-800 transition font-medium">Crear</button>
-      </div>
-    </div>
-  </div>
 
 </body>
 </html>
