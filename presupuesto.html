@@ -92,8 +92,9 @@
         <p class="text-xs text-neutral-500 mt-1" id="print-emision"></p>
       </div>
     </div>
-    <div class="grid grid-cols-3 gap-6 text-sm border-t border-neutral-200 pt-4">
+    <div class="grid grid-cols-4 gap-6 text-sm border-t border-neutral-200 pt-4">
       <div><span class="text-neutral-400 text-xs uppercase tracking-wide">Obra</span><p class="font-semibold mt-0.5" id="print-obra"></p></div>
+      <div><span class="text-neutral-400 text-xs uppercase tracking-wide">Ubicación</span><p class="font-semibold mt-0.5" id="print-ubicacion"></p></div>
       <div><span class="text-neutral-400 text-xs uppercase tracking-wide">Fecha</span><p class="font-semibold mt-0.5" id="print-fecha"></p></div>
       <div><span class="text-neutral-400 text-xs uppercase tracking-wide">Superficie</span><p class="font-semibold mt-0.5"><span id="print-m2"></span></p></div>
     </div>
@@ -104,12 +105,44 @@
     <!-- DATOS DE LA OBRA -->
     <section id="obra-section" class="bg-white rounded-xl shadow-sm p-6 mb-6">
       <h2 class="text-xs font-semibold tracking-widest text-neutral-400 uppercase mb-4">Datos de la Obra</h2>
-      <div class="flex flex-wrap gap-4">
+      <div class="flex flex-wrap gap-4 items-end">
         <div style="flex:3; min-width:180px">
           <label class="block text-xs text-neutral-500 mb-1">Nombre de la obra</label>
           <input id="obra-nombre" type="text" placeholder="Ej: Casa García"
             class="w-full border border-neutral-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-neutral-500"
             oninput="actualizarPrint(); guardarLocal()">
+        </div>
+        <div style="flex:2; min-width:140px">
+          <label class="block text-xs text-neutral-500 mb-1">Ubicación</label>
+          <select id="obra-ubicacion"
+            class="w-full border border-neutral-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-neutral-500 bg-white"
+            onchange="actualizarPrint(); guardarLocal()">
+            <option value="">— Provincia —</option>
+            <option>Buenos Aires</option>
+            <option>CABA</option>
+            <option>Catamarca</option>
+            <option>Chaco</option>
+            <option>Chubut</option>
+            <option>Córdoba</option>
+            <option>Corrientes</option>
+            <option>Entre Ríos</option>
+            <option>Formosa</option>
+            <option>Jujuy</option>
+            <option>La Pampa</option>
+            <option>La Rioja</option>
+            <option>Mendoza</option>
+            <option>Misiones</option>
+            <option>Neuquén</option>
+            <option>Río Negro</option>
+            <option>Salta</option>
+            <option>San Juan</option>
+            <option>San Luis</option>
+            <option>Santa Cruz</option>
+            <option>Santa Fe</option>
+            <option>Santiago del Estero</option>
+            <option>Tierra del Fuego</option>
+            <option>Tucumán</option>
+          </select>
         </div>
         <div style="flex:1; min-width:80px">
           <label class="block text-xs text-neutral-500 mb-1">Superficie (m²)</label>
@@ -122,10 +155,9 @@
           <input id="obra-costo-m2" type="text" readonly placeholder="—"
             class="w-full border border-neutral-100 rounded-lg px-3 py-2.5 text-sm bg-neutral-50 text-neutral-600 cursor-default select-none">
         </div>
-        <div style="flex:0 0 auto">
-          <label class="block text-xs text-neutral-500 mb-1">Fecha</label>
-          <input id="obra-fecha" type="text" readonly size="21"
-            class="border border-neutral-100 rounded-lg px-3 py-2.5 text-sm bg-neutral-50 text-neutral-500 cursor-default select-none">
+        <div style="flex:0 0 auto; padding-bottom:0.625rem">
+          <span class="text-xs text-neutral-400 uppercase tracking-wide block mb-1">Fecha</span>
+          <span id="obra-fecha" class="text-sm text-neutral-500"></span>
         </div>
       </div>
     </section>
@@ -464,7 +496,7 @@
 
     window.onload = function() {
       initLogin();
-      document.getElementById('obra-fecha').value = hoyFormateado();
+      document.getElementById('obra-fecha').textContent = hoyFormateado();
       cargarLocal();
       fetchItems();
       fetchCostoReferencia();
@@ -479,7 +511,7 @@
           cnRenderCascada();
         });
       setInterval(function() {
-        document.getElementById('obra-fecha').value = hoyFormateado();
+        document.getElementById('obra-fecha').textContent = hoyFormateado();
       }, 60000);
     };
 
@@ -756,10 +788,12 @@
 
     // ─── IMPRIMIR ────────────────────────────────────────────────────────────
     function actualizarPrint() {
-      document.getElementById('print-obra').textContent = document.getElementById('obra-nombre').value || '—';
-      document.getElementById('print-m2').textContent   = (document.getElementById('obra-m2').value || '—') + ' m²';
-      document.getElementById('print-fecha').textContent = hoyFormateado();
-      document.getElementById('print-emision').textContent = 'Emitido el ' + hoyFormateado();
+      document.getElementById('print-obra').textContent      = document.getElementById('obra-nombre').value || '—';
+      document.getElementById('print-ubicacion').textContent = document.getElementById('obra-ubicacion').value || '—';
+      document.getElementById('print-m2').textContent        = (document.getElementById('obra-m2').value || '—') + ' m²';
+      document.getElementById('print-fecha').textContent     = hoyFormateado();
+      document.getElementById('print-emision').textContent   = 'Emitido el ' + hoyFormateado();
+      document.getElementById('obra-fecha').textContent      = hoyFormateado();
     }
 
     // ─── PERSISTENCIA ────────────────────────────────────────────────────────
@@ -779,7 +813,7 @@
       var lista = pptosList();
       var data  = {
         id    : pptoActivo,
-        obra  : { nombre: document.getElementById('obra-nombre').value, fecha: document.getElementById('obra-fecha').value, m2: document.getElementById('obra-m2').value },
+        obra  : { nombre: document.getElementById('obra-nombre').value, fecha: hoyFormateado(), ubicacion: document.getElementById('obra-ubicacion').value, m2: document.getElementById('obra-m2').value },
         items : presupuesto
       };
       var idx = lista.findIndex(function(p) { return p.id === pptoActivo; });
@@ -806,8 +840,9 @@
         var d = lista.find(function(p) { return p.id === idActivo; }) || lista[lista.length - 1];
         pptoActivo = d.id;
         if (d.obra) {
-          document.getElementById('obra-nombre').value = d.obra.nombre || '';
-          document.getElementById('obra-m2').value     = d.obra.m2     || '';
+          document.getElementById('obra-nombre').value    = d.obra.nombre    || '';
+          document.getElementById('obra-ubicacion').value = d.obra.ubicacion || '';
+          document.getElementById('obra-m2').value        = d.obra.m2        || '';
         }
         if (d.items && d.items.length) {
           presupuesto = d.items.map(function(i, idx) {
@@ -832,8 +867,9 @@
         if (!i.uid) i.uid = Date.now() + '_' + idx;
         return i;
       });
-      document.getElementById('obra-nombre').value = (d.obra && d.obra.nombre) || '';
-      document.getElementById('obra-m2').value     = (d.obra && d.obra.m2)     || '';
+      document.getElementById('obra-nombre').value    = (d.obra && d.obra.nombre)    || '';
+      document.getElementById('obra-ubicacion').value = (d.obra && d.obra.ubicacion) || '';
+      document.getElementById('obra-m2').value        = (d.obra && d.obra.m2)        || '';
       renderPresupuesto();
       actualizarPrint();
       renderSidebar();
@@ -891,9 +927,9 @@
       pptoActivo = 'ppto_' + Date.now();
       localStorage.setItem('log_ppto_activo', pptoActivo);
       presupuesto = [];
-      document.getElementById('obra-nombre').value = '';
-      document.getElementById('obra-m2').value     = '';
-      document.getElementById('obra-fecha').value  = hoyFormateado();
+      document.getElementById('obra-nombre').value    = '';
+      document.getElementById('obra-ubicacion').value = '';
+      document.getElementById('obra-m2').value        = '';
       renderPresupuesto();
       renderSidebar();
     }
