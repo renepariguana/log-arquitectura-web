@@ -14,7 +14,7 @@ function doGet(e) {
   var action = (e && e.parameter && e.parameter.action) || '';
   if (action === 'items')        return getItems();
   if (action === 'catalogo')     return getCatalogo();
-  if (action === 'manoobra')     return getManoObra();
+  if (action === 'manoobra')     return getManoObra(e.parameter.zona || 'A');
   if (action === 'nuevoitem')    return crearNuevoItem(e.parameter.data || '{}');
   if (action === 'analisisitem') return getAnalisisItem(e.parameter.codigo || '', e.parameter.nombre || '');
   if (action === 'cascada')      return getCascada();
@@ -172,47 +172,53 @@ function getCatalogo() {
 }
 
 // ─────────────────────────────────────────────
-// GET MANO DE OBRA — Categorías de MATERIALES Y MANO DE OBRA
+// GET MANO DE OBRA — Lee categorías y precios por zona desde AP_ID
+// zona: 'A' | 'B' | 'C' | 'C_Austral'
+// Columnas en MANO DE OBRA (desde col A=1): A=3, B=6, C=9, C_Austral=12
 // ─────────────────────────────────────────────
 
-function getManoObra() {
+function getManoObra(zona) {
   try {
-    var mmSS = SpreadsheetApp.openById(MM_ID);
-    var hoja = mmSS.getSheetByName('Mano de obra');
-    if (!hoja) throw new Error('Hoja Mano de obra no encontrada');
+    var ZONA_COL = { 'A': 2, 'B': 5, 'C': 8, 'C_Austral': 11 }; // 0-based
+    var colPrecioOffset = ZONA_COL[zona] !== undefined ? ZONA_COL[zona] : ZONA_COL['A'];
+
+    var apSS = SpreadsheetApp.openById(AP_ID);
+    var hoja = apSS.getSheetByName('MANO DE OBRA');
+    if (!hoja) throw new Error('Hoja MANO DE OBRA no encontrada en AP_ID');
 
     var datos = hoja.getDataRange().getValues();
 
-    var headerRow = -1, colCat = -1, colUn = -1, colMOPre = -1;
+    // Encontrar fila encabezado (tiene CATEGORIA en col A)
+    var headerRow = -1, colCat = -1, colUn = -1;
     for (var r = 0; r < datos.length; r++) {
       for (var c = 0; c < datos[r].length; c++) {
-        if ((datos[r][c] || '').toString().toUpperCase().trim() === 'CATEGORIA') {
+        var v = (datos[r][c] || '').toString().toUpperCase().trim();
+        if (v === 'CATEGORIA' || v === 'CATEGORÍA') {
           headerRow = r; colCat = c; break;
         }
       }
       if (headerRow >= 0) break;
     }
-    if (headerRow < 0) throw new Error('Columna CATEGORIA no encontrada en Mano de obra');
+    if (headerRow < 0) throw new Error('Columna CATEGORIA no encontrada en MANO DE OBRA');
 
-    var headers = datos[headerRow];
-    for (var c = 0; c < headers.length; c++) {
-      var h = (headers[c] || '').toString().toUpperCase().trim();
-      if (h === 'UN') colUn = c;
-      if (h === '$/HS' || h === '$/HRS' || h === 'PRECIO' || h === 'PRECIO UNITARIO' || h === 'PRECIO UNITARIO ($)') colMOPre = c;
+    // Columna UN: buscar en la fila encabezado
+    for (var c = 0; c < datos[headerRow].length; c++) {
+      var h = (datos[headerRow][c] || '').toString().toUpperCase().trim();
+      if (h === 'UN' || h === 'UNIDAD') { colUn = c; break; }
     }
 
     var categorias = [];
     for (var r = headerRow + 1; r < datos.length; r++) {
       var nombre = (datos[r][colCat] || '').toString().trim();
       if (!nombre) continue;
-      var unidad = colUn >= 0 ? (datos[r][colUn] || '').toString().trim() : 'hs';
-      var precioRaw = colMOPre >= 0 ? datos[r][colMOPre] : 0;
+      var unidad = colUn >= 0 ? (datos[r][colUn] || '').toString().trim() : '$/Hs';
+      var precioRaw = datos[r][colPrecioOffset];
       var precio = typeof precioRaw === 'number' ? precioRaw
         : parseFloat((precioRaw || '').toString().replace(/\$/g, '').replace(/\./g, '').replace(',', '.')) || 0;
       categorias.push({ nombre: nombre, unidad: unidad, precio: precio });
     }
 
-    return ContentService.createTextOutput(JSON.stringify({ categorias: categorias }))
+    return ContentService.createTextOutput(JSON.stringify({ categorias: categorias, zona: zona }))
       .setMimeType(ContentService.MimeType.JSON);
   } catch (err) {
     return ContentService.createTextOutput(JSON.stringify({ error: err.toString() }))
