@@ -35,6 +35,7 @@
         padding-right: 0 !important;
       }
       #obra-section { border: 1px solid #e5e5e5 !important; padding: 1rem !important; }
+      #print-analisis { display: block !important; page-break-before: always; }
     }
   </style>
 </head>
@@ -50,7 +51,7 @@
     <div class="flex items-center gap-3">
       <span id="estado-sync" class="text-xs text-neutral-500">Cargando ítems...</span>
       <button onclick="nuevoPresupuesto()" class="px-4 py-1.5 text-sm text-neutral-400 hover:text-white transition">Nuevo</button>
-      <button onclick="window.print()" class="px-4 py-1.5 text-sm bg-white text-black rounded font-medium hover:bg-neutral-200 transition">Imprimir / PDF</button>
+      <button onclick="imprimirPresupuesto()" class="px-4 py-1.5 text-sm bg-white text-black rounded font-medium hover:bg-neutral-200 transition">Imprimir / PDF</button>
     </div>
   </header>
 
@@ -362,6 +363,9 @@
         <div id="cn-cascada-inner" class="text-xs text-neutral-400 py-1">Cargando porcentajes...</div>
       </div>
     </div>
+
+  <!-- ANÁLISIS DE PRECIOS — solo impresión -->
+  <div id="print-analisis" class="hidden px-6 pt-4"></div>
 
   </main>
   </div><!-- /contenido principal -->
@@ -1628,6 +1632,158 @@
       agregarItem(nuevoItem);
 
       cnLimpiar();
+    }
+
+    // ─── IMPRESIÓN CON ANÁLISIS DE PRECIOS ────────────────────────
+    function imprimirPresupuesto() {
+      // Replicar orden y numeración de renderPresupuesto
+      var sorted = presupuesto.slice().sort(function(a, b) {
+        var ia = todosRubros.findIndex(function(r) { return r.codigo === a.rubroId; });
+        var ib = todosRubros.findIndex(function(r) { return r.codigo === b.rubroId; });
+        if (ia < 0) ia = 9999;
+        if (ib < 0) ib = 9999;
+        return ia - ib;
+      });
+      var grupos = {}, orden = [];
+      sorted.forEach(function(item) {
+        var key = item.rubroId || '__sin__';
+        if (!grupos[key]) { grupos[key] = []; orden.push(key); }
+        grupos[key].push(item);
+      });
+
+      var itemsParaImprimir = [];
+      var vistos = {};
+      var rubroNum = 0;
+      orden.forEach(function(rubroId) {
+        rubroNum++;
+        var r = todosRubros.find(function(x) { return x.codigo === rubroId; });
+        var rubroNom = rubroId === '__sin__' ? 'Sin rubro' : (r ? r.nombre : rubroId);
+        var nroLocal = 0;
+        grupos[rubroId].forEach(function(item) {
+          nroLocal++;
+          if (item.refCodigo && !vistos[item.refCodigo]) {
+            vistos[item.refCodigo] = true;
+            itemsParaImprimir.push({
+              num: rubroNum + '.' + nroLocal,
+              rubro: rubroNom,
+              codigo: item.refCodigo,
+              descripcion: item.descripcion,
+              unidad: item.unidad,
+              cantidad: item.cantidad,
+              precio: item.precio
+            });
+          }
+        });
+      });
+
+      if (!itemsParaImprimir.length) { window.print(); return; }
+
+      var printDiv = document.getElementById('print-analisis');
+      printDiv.innerHTML = '<p style="font-size:11px;color:#aaa;text-align:center;padding:1rem">Preparando análisis de precios...</p>';
+
+      var promCascada = cnCascada
+        ? Promise.resolve(cnCascada)
+        : fetch(SCRIPT_URL + '?action=cascada').then(function(r){return r.json();}).then(function(d){cnCascada=d;return d;});
+
+      var fetchItems = itemsParaImprimir.map(function(info) {
+        return fetch(SCRIPT_URL + '?action=analisisitem&codigo=' + encodeURIComponent(info.codigo) + '&nombre=' + encodeURIComponent(info.descripcion || ''))
+          .then(function(r){return r.json();})
+          .then(function(data){return {info:info, data:data};})
+          .catch(function(){return {info:info, data:{}};});
+      });
+
+      Promise.all([promCascada].concat(fetchItems))
+        .then(function(results) {
+          var cascada = results[0];
+          var html = '<h2 style="font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:#666;margin-bottom:1rem">Análisis de Precios</h2>';
+          results.slice(1).forEach(function(r) { html += renderAnalisisPrint(r.info, r.data, cascada); });
+          printDiv.innerHTML = html;
+          setTimeout(function(){ window.print(); }, 400);
+        })
+        .catch(function(){ printDiv.innerHTML=''; window.print(); });
+    }
+
+    function renderAnalisisPrint(info, data, cascada) {
+      function fmt(n) { return '$ ' + (n||0).toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+      function pct(n) { return (n*100).toFixed(2)+' %'; }
+
+      var mat = (data.materiales||[]).map(function(f){return{nombre:f.nombre,unidad:f.unidad||'',cantidad:parseFloat(f.cantidad)||0,precio:parseFloat(f.precio)||0};});
+      var mo  = (data.manoobra||[]).map(function(f){
+        var m={nombre:f.nombre,unidad:f.unidad||'hs',cantidad:parseFloat(f.cantidad)||0,precio:parseFloat(f.precio)||0};
+        var match=cnManoObra.find(function(c){return c.nombre.toLowerCase().trim()===m.nombre.toLowerCase().trim();});
+        if(match&&match.precio>0){m.precio=match.precio;m.unidad=match.unidad;}
+        return m;
+      });
+      var eq  = (data.equipos||[]).map(function(f){return{nombre:f.nombre,unidad:f.unidad||'',cantidad:parseFloat(f.cantidad)||0,precio:parseFloat(f.precio)||0};});
+
+      var sM=mat.reduce(function(s,f){return s+f.cantidad*f.precio;},0);
+      var sO=mo.reduce(function(s,f){ return s+f.cantidad*f.precio;},0);
+      var sE=eq.reduce(function(s,f){ return s+f.cantidad*f.precio;},0);
+      var costo=sM+sO+sE;
+
+      var gg=cascada.gastosGenerales||0, ben=cascada.beneficios||0, cf=cascada.costoFinanciero||0;
+      var iva=cascada.iva||0, ib=cascada.ingresosBrutos||0, im=cascada.impMunicipales||0, idc=cascada.impDebitoCredito||0;
+      var gastosGral=costo*gg, sub1=costo+gastosGral;
+      var beneficiosV=sub1*ben, costoFinV=sub1*cf, sub2=sub1+beneficiosV+costoFinV;
+      var ivaV=sub2*iva, ibV=sub2*ib, imV=sub2*im, idcV=sub2*idc;
+      var precioItem=sub2+ivaV+ibV+imV+idcV;
+
+      var TH='<th style="padding:3px 6px;font-size:10px;text-align:left;font-weight:600;text-transform:uppercase;letter-spacing:.04em;background:#e8e8e8">';
+      var THR='<th style="padding:3px 6px;font-size:10px;text-align:right;font-weight:600;text-transform:uppercase;letter-spacing:.04em;background:#e8e8e8;width:80px">';
+      var THC='<th style="padding:3px 6px;font-size:10px;text-align:center;font-weight:600;text-transform:uppercase;letter-spacing:.04em;background:#e8e8e8;width:60px">';
+      var thead='<tr>'+TH+'Descripción</th>'+THC+'Unid.</th>'+THR+'Cantidad</th>'+THR+'Precio</th>'+THR+'Subtotal</th></tr>';
+
+      function tablaRows(filas) {
+        if(!filas.length) return '<tr><td colspan="5" style="padding:4px 8px;font-size:11px;color:#aaa;text-align:center">—</td></tr>';
+        return filas.map(function(f,i){
+          var sub=f.cantidad*f.precio;
+          var bg=i%2===0?'':'background:#fafafa';
+          return '<tr style="'+bg+'">'+
+            '<td style="padding:3px 8px;font-size:11px">'+f.nombre+'</td>'+
+            '<td style="padding:3px 6px;font-size:11px;text-align:center">'+f.unidad+'</td>'+
+            '<td style="padding:3px 6px;font-size:11px;text-align:right">'+f.cantidad+'</td>'+
+            '<td style="padding:3px 6px;font-size:11px;text-align:right">'+fmt(f.precio)+'</td>'+
+            '<td style="padding:3px 6px;font-size:11px;text-align:right;font-weight:500">'+fmt(sub)+'</td>'+
+          '</tr>';
+        }).join('');
+      }
+
+      function seccion(titulo, sub, filas) {
+        if(!filas.length) return '';
+        return '<div style="background:#f2f2f2;padding:3px 8px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:#555;display:flex;justify-content:space-between">'+
+          '<span>'+titulo+'</span><span>'+fmt(sub)+'</span></div>'+
+          '<table style="width:100%;border-collapse:collapse"><thead>'+thead+'</thead><tbody>'+tablaRows(filas)+'</tbody></table>';
+      }
+
+      function filaC(label, val, bold, right) {
+        var s=bold?'font-weight:700;font-size:12px':'font-size:11px;color:#555';
+        return '<tr><td colspan="3" style="padding:2px 8px;'+s+'">'+label+'</td>'+
+          '<td style="padding:2px 6px;font-size:11px;text-align:right;color:#888">'+(right||'')+'</td>'+
+          '<td style="padding:2px 6px;text-align:right;'+s+'">'+fmt(val)+'</td></tr>';
+      }
+
+      return '<div style="page-break-inside:avoid;margin-bottom:1.2rem;border:1px solid #ddd;border-radius:4px;overflow:hidden">'+
+        '<div style="background:#3a3a3a;color:white;padding:6px 10px;display:flex;justify-content:space-between;align-items:baseline">'+
+          '<span style="font-size:12px;font-weight:600">'+info.num+' · '+(info.descripcion||info.codigo)+'</span>'+
+          '<span style="font-size:10px;color:#bbb">'+info.rubro+' · '+(info.unidad||'')+'</span>'+
+        '</div>'+
+        seccion('Materiales', sM, mat)+
+        seccion('Mano de obra', sO, mo)+
+        seccion('Equipos', sE, eq)+
+        '<table style="width:100%;border-collapse:collapse;border-top:1px solid #ddd"><tbody>'+
+          filaC('Costo del ítem', costo, false)+
+          (gg?filaC('Gastos generales', gastosGral, false, pct(gg)):'')+
+          filaC('Subtotal 1', sub1, false)+
+          (ben?filaC('Beneficios', beneficiosV, false, pct(ben)):'')+
+          (cf?filaC('Costo financiero', costoFinV, false, pct(cf)):'')+
+          filaC('Subtotal 2', sub2, false)+
+          (iva?filaC('IVA', ivaV, false, pct(iva)):'')+
+          (ib?filaC('Ingresos brutos', ibV, false, pct(ib)):'')+
+          (im?filaC('Imp. municipales', imV, false, pct(im)):'')+
+          (idc?filaC('Imp. débito/crédito', idcV, false, pct(idc)):'')+
+          filaC('PRECIO DEL ÍTEM', precioItem, true)+
+        '</tbody></table>'+
+      '</div>';
     }
 
   </script>
