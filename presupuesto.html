@@ -43,9 +43,9 @@
       td[colspan="3"] { overflow: visible !important; max-width: none !important; }
       /* Nombre del ítem de BD solo visible al imprimir */
       .print-item-nombre { display: block !important; }
-      /* Datos de la obra en una sola fila */
-      #obra-section .flex { flex-wrap: nowrap !important; }
-      #obra-section .flex > div { min-width: 0 !important; flex-shrink: 1 !important; }
+      /* Datos de la obra: igual que en pantalla, sin wrap */
+      #obra-section .flex.flex-wrap { flex-wrap: nowrap !important; }
+      #obra-section .flex.flex-wrap > div { min-width: 0 !important; }
     }
   </style>
 </head>
