@@ -163,7 +163,7 @@
             oninput="calcularTotales(); actualizarPrint()">
         </div>
         <div style="flex:2; min-width:140px">
-          <label class="block text-xs text-neutral-500 mb-1">Costo de la construcción</label>
+          <label class="block text-xs text-neutral-500 mb-1">Presupuesto general</label>
           <input id="obra-costo-m2" type="text" readonly placeholder="—"
             class="w-full border border-neutral-100 rounded-lg px-3 py-1.5 text-xs bg-neutral-50 text-neutral-600 cursor-default select-none">
         </div>
@@ -172,6 +172,9 @@
 
     <!-- TABLA PRESUPUESTO -->
     <section class="bg-white rounded-xl shadow-sm overflow-hidden mb-4">
+      <div class="px-4 py-3 border-b border-neutral-100">
+        <h2 class="text-xs font-semibold tracking-widest text-neutral-400 uppercase">Presupuesto detallado</h2>
+      </div>
       <table class="w-full text-xs">
         <thead>
           <tr class="bg-neutral-900 text-white text-xs uppercase tracking-wider">
