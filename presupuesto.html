@@ -1061,11 +1061,12 @@
           var nuevas = data.categorias || [];
           cnManoObra = nuevas;
           // Actualizar precios en filas MO existentes del ítem abierto
+          // Solo actualiza si el precio devuelto es válido (> 0)
           cnFilasMO.forEach(function(fila) {
             var match = nuevas.find(function(c) {
               return c.nombre.toLowerCase().trim() === fila.nombre.toLowerCase().trim();
             });
-            if (match) { fila.precio = match.precio; fila.unidad = match.unidad; }
+            if (match && match.precio > 0) { fila.precio = match.precio; fila.unidad = match.unidad; }
           });
           if (cnFilasMO.length) cnRenderTablas();
         })
