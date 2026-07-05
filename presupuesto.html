@@ -164,6 +164,17 @@
       </table>
     </section>
 
+    <!-- CASCADA DE PRECIOS — siempre visible -->
+    <section class="bg-white rounded-xl shadow-sm mb-4 no-print overflow-hidden">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-neutral-100">
+        <h2 class="text-xs font-semibold tracking-widest text-neutral-400 uppercase">Cascada de precios</h2>
+        <button onclick="cnResetPct()" class="text-xs text-neutral-300 hover:text-neutral-500 transition">Restaurar</button>
+      </div>
+      <div class="px-6 py-4">
+        <div id="cn-cascada-inner" class="text-xs text-neutral-400 py-2">Cargando porcentajes...</div>
+      </div>
+    </section>
+
     <!-- ÍTEM — sección unificada -->
     <section class="bg-neutral-100 rounded-xl mb-8 no-print overflow-hidden">
       <div class="flex items-center justify-between px-5 py-4">
@@ -304,11 +315,6 @@
           <span class="text-neutral-400 text-xs uppercase tracking-wider">Equipos</span>      <span class="text-right text-neutral-600" id="cn-res-eq">$ 0</span>
           <span class="font-bold uppercase tracking-wider text-neutral-500 border-t border-neutral-300 pt-2">Costo del Ítem</span>
           <span class="text-right font-bold text-lg text-neutral-700 border-t border-neutral-300 pt-2" id="cn-costo-total">$ 0</span>
-        </div>
-
-        <!-- CASCADA DE PRECIOS -->
-        <div id="cn-cascada" class="hidden mb-5 ml-auto" style="max-width:440px">
-          <div id="cn-cascada-inner"></div>
         </div>
 
       </div>
@@ -453,7 +459,12 @@
       cnCargarApSelector();
       fetch(SCRIPT_URL + '?action=cascada')
         .then(function(r) { return r.json(); })
-        .then(function(d) { cnCascada = d; });
+        .then(function(d) {
+          cnCascada = d;
+          var saved = localStorage.getItem('cn_cascada_custom');
+          if (saved) { try { var c = JSON.parse(saved); Object.keys(c).forEach(function(k){ cnCascada[k]=c[k]; }); } catch(e){} }
+          cnRenderCascada();
+        });
       setInterval(function() {
         document.getElementById('obra-fecha').value = hoyFormateado();
       }, 60000);
@@ -1179,9 +1190,9 @@
     }
 
     function cnRenderCascada() {
-      var div = document.getElementById('cn-cascada');
-      if (!div) return;
-      if (!cnCascada || cnCascada.error) { div.classList.add('hidden'); return; }
+      var inner = document.getElementById('cn-cascada-inner');
+      if (!inner) return;
+      if (!cnCascada || cnCascada.error) { inner.innerHTML = '<p class="text-xs text-neutral-400 py-1">Cargando porcentajes...</p>'; return; }
 
       var sM = cnFilasMat.reduce(function(s,f){ return s+(parseFloat(f.cantidad)||0)*(parseFloat(f.precio)||0);},0);
       var sO = cnFilasMO.reduce(function(s,f){  return s+(parseFloat(f.cantidad)||0)*(parseFloat(f.precio)||0);},0);
@@ -1207,45 +1218,60 @@
       var idcVal     = sub2 * idc;
       var sub3       = sub2 + ivaVal + ibVal + imVal + idcVal;
 
-      function pct(n) { return (n * 100).toFixed(2).replace('.', ',') + '%'; }
-      function amt(n) { return '$ ' + n.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+      function pv(n) { return (n * 100).toFixed(2); }
+      function amt(n) { return costo > 0 ? '$ ' + n.toLocaleString('es-AR', {minimumFractionDigits:2,maximumFractionDigits:2}) : '—'; }
 
-      // Fila con porcentaje
-      function filaP(label, p, val) {
-        return '<div class="flex items-center py-1 border-b border-neutral-100">' +
+      function filaP(label, key, p, val) {
+        return '<div class="flex items-center py-1.5 border-b border-neutral-100">' +
           '<span class="flex-1 text-xs text-neutral-500 pr-2">' + label + '</span>' +
-          '<span class="text-xs text-neutral-400 w-12 text-right pr-3">' + pct(p) + '</span>' +
+          '<div class="flex items-center gap-0.5 w-24 justify-end pr-3">' +
+            '<input type="number" value="' + pv(p) + '" min="0" max="100" step="0.01" ' +
+            'onchange="cnUpdatePct(\'' + key + '\',this.value)" ' +
+            'style="width:54px;text-align:right;border:1px solid #e5e5e5;border-radius:5px;padding:2px 5px;font-size:11px;background:#fafafa;outline:none;color:#525252">' +
+            '<span style="font-size:11px;color:#a3a3a3;margin-left:2px">%</span>' +
+          '</div>' +
           '<span class="text-xs text-neutral-600 w-28 text-right">' + amt(val) + '</span>' +
           '</div>';
       }
-      // Fila de subtotal (sin porcentaje)
-      function filaS(label, val) {
+      function filaS(label, val, bold) {
+        var cls = bold ? 'text-sm font-bold text-neutral-800' : 'text-xs font-semibold uppercase tracking-wide text-neutral-500';
         return '<div class="flex items-center py-1.5 border-b border-neutral-200">' +
-          '<span class="flex-1 text-xs text-neutral-400 uppercase tracking-wide pr-2">' + label + '</span>' +
-          '<span class="w-12 pr-3"></span>' +
-          '<span class="text-xs font-semibold text-neutral-700 w-28 text-right">' + amt(val) + '</span>' +
+          '<span class="flex-1 ' + cls + ' pr-2">' + label + '</span>' +
+          '<div class="w-24 pr-3"></div>' +
+          '<span class="' + (bold ? 'text-sm font-bold text-neutral-800' : 'text-xs font-semibold text-neutral-700') + ' w-28 text-right">' + amt(val) + '</span>' +
           '</div>';
       }
 
-      var html = filaS('Costo del ítem (Subtotal I + II + III)', costo);
-      html += filaP('Gastos generales', gg, gastosGral);
-      html += filaS('Subtotal 1', sub1);
-      html += filaP('Beneficios', ben, beneficios);
-      html += filaP('Costo financiero', cf, costoFin);
-      html += filaS('Subtotal 2', sub2);
-      html += filaP('IVA', iva, ivaVal);
-      html += filaP('Ingresos brutos', ib, ibVal);
-      html += filaP('Impuestos municipales', im, imVal);
-      html += filaP('Impuesto al débito y crédito', idc, idcVal);
-      html += filaS('Subtotal 3', sub3);
-      html += '<div class="flex items-center pt-1.5">' +
-        '<span class="flex-1 text-xs font-bold text-neutral-800 uppercase pr-2">ITEM</span>' +
-        '<span class="w-12 pr-3"></span>' +
-        '<span class="text-xs font-bold text-neutral-800 w-28 text-right">' + amt(sub3) + '</span>' +
-        '</div>';
+      var html = filaS('Costo del ítem', costo, false);
+      html += filaP('Gastos generales', 'gastosGenerales', gg, gastosGral);
+      html += filaS('Subtotal 1', sub1, false);
+      html += filaP('Beneficios', 'beneficios', ben, beneficios);
+      html += filaP('Costo financiero', 'costoFinanciero', cf, costoFin);
+      html += filaS('Subtotal 2', sub2, false);
+      html += filaP('IVA', 'iva', iva, ivaVal);
+      html += filaP('Ingresos brutos', 'ingresosBrutos', ib, ibVal);
+      html += filaP('Imp. municipales', 'impMunicipales', im, imVal);
+      html += filaP('Imp. débito/crédito', 'impDebitoCredito', idc, idcVal);
+      html += filaS('PRECIO DEL ÍTEM', sub3, true);
 
-      document.getElementById('cn-cascada-inner').innerHTML = html;
-      div.classList.remove('hidden');
+      inner.innerHTML = html;
+    }
+
+    function cnUpdatePct(key, value) {
+      if (!cnCascada) cnCascada = {};
+      cnCascada[key] = (parseFloat(value) || 0) / 100;
+      var keys = ['gastosGenerales','beneficios','costoFinanciero','iva','ingresosBrutos','impMunicipales','impDebitoCredito'];
+      var custom = {};
+      keys.forEach(function(k) { custom[k] = cnCascada[k] || 0; });
+      localStorage.setItem('cn_cascada_custom', JSON.stringify(custom));
+      cnRenderCascada();
+    }
+
+    function cnResetPct() {
+      localStorage.removeItem('cn_cascada_custom');
+      fetch(SCRIPT_URL + '?action=cascada')
+        .then(function(r) { return r.json(); })
+        .then(function(d) { cnCascada = d; cnRenderCascada(); });
     }
 
     // ── Análisis de precios ──────────────────────────────────────────────────
