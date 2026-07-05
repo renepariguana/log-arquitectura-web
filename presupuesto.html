@@ -164,17 +164,6 @@
       </table>
     </section>
 
-    <!-- CASCADA DE PRECIOS — siempre visible -->
-    <section class="bg-white rounded-xl shadow-sm mb-4 no-print overflow-hidden">
-      <div class="flex items-center justify-between px-6 py-4 border-b border-neutral-100">
-        <h2 class="text-xs font-semibold tracking-widest text-neutral-400 uppercase">Cascada de precios</h2>
-        <button onclick="cnResetPct()" class="text-xs text-neutral-300 hover:text-neutral-500 transition">Restaurar</button>
-      </div>
-      <div class="px-6 py-4">
-        <div id="cn-cascada-inner" class="text-xs text-neutral-400 py-2">Cargando porcentajes...</div>
-      </div>
-    </section>
-
     <!-- ÍTEM — sección unificada -->
     <section class="bg-neutral-100 rounded-xl mb-8 no-print overflow-hidden">
       <div class="flex items-center justify-between px-5 py-4">
@@ -318,6 +307,18 @@
         </div>
 
       </div>
+
+      <!-- CASCADA DE PRECIOS — siempre visible, siempre abajo -->
+      <div class="border-t border-neutral-200 px-5 py-5 no-print">
+        <div class="ml-auto" style="max-width:440px">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-semibold tracking-widest text-neutral-400 uppercase">Cascada de precios</span>
+            <button onclick="cnResetPct()" class="text-xs text-neutral-400 hover:text-neutral-600 transition">Restaurar</button>
+          </div>
+          <div id="cn-cascada-inner" class="text-xs text-neutral-400 py-1">Cargando porcentajes...</div>
+        </div>
+      </div>
+
     </section>
 
   </main>
