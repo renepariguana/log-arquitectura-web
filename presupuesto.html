@@ -812,7 +812,7 @@
       var lista = pptosList();
       var data  = {
         id    : pptoActivo,
-        obra  : { nombre: document.getElementById('obra-nombre').value, fecha: hoyFormateado(), ubicacion: document.getElementById('obra-ubicacion').value, m2: document.getElementById('obra-m2').value },
+        obra  : { nombre: document.getElementById('obra-nombre').value, fecha: new Date().toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: '2-digit' }), ubicacion: document.getElementById('obra-ubicacion').value, m2: document.getElementById('obra-m2').value },
         items : presupuesto
       };
       var idx = lista.findIndex(function(p) { return p.id === pptoActivo; });
@@ -907,14 +907,21 @@
       }
       el.innerHTML = lista.map(function(p) {
         var nombre  = (p.obra && p.obra.nombre) ? p.obra.nombre : 'Sin nombre';
-        var fecha   = (p.obra && p.obra.fecha)  ? p.obra.fecha  : '';
+        var fechaRaw = (p.obra && p.obra.fecha) ? p.obra.fecha : '';
+        var fecha = '';
+        if (fechaRaw) {
+          fecha = fechaRaw;
+        } else if (p.id && p.id.startsWith('ppto_')) {
+          var ts = parseInt(p.id.replace('ppto_', ''));
+          if (!isNaN(ts)) fecha = new Date(ts).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: '2-digit' });
+        }
         var activo  = p.id === pptoActivo;
         return '<div onclick="cargarPresupuesto(\'' + p.id + '\')" ' +
           'class="group relative flex flex-col px-4 py-2.5 cursor-pointer transition ' +
           (activo ? 'bg-white border-l-2 border-neutral-700 ' : 'hover:bg-neutral-200 ') + '">' +
           '<div class="flex items-baseline gap-2 pr-5 min-w-0">' +
             '<span class="text-xs font-medium ' + (activo ? 'text-neutral-800' : 'text-neutral-500') + ' truncate">' + esc(nombre) + '</span>' +
-            (fecha ? '<span class="text-neutral-300 text-xs flex-shrink-0">' + esc(fecha) + '</span>' : '') +
+            (fecha ? '<span class="text-neutral-400 text-xs flex-shrink-0">' + esc(fecha) + '</span>' : '') +
           '</div>' +
           '<button onclick="borrarPresupuesto(\'' + p.id + '\', event)" ' +
           'class="absolute right-2 top-2.5 text-neutral-400 hover:text-red-400 text-xs opacity-0 group-hover:opacity-100 transition leading-none">✕</button>' +
