@@ -43,9 +43,12 @@
       td[colspan="3"] { overflow: visible !important; max-width: none !important; }
       /* Nombre del ítem de BD solo visible al imprimir */
       .print-item-nombre { display: block !important; }
-      /* Datos de la obra: igual que en pantalla, sin wrap */
-      #obra-section .flex.flex-wrap { flex-wrap: nowrap !important; }
-      #obra-section .flex.flex-wrap > div { min-width: 0 !important; }
+      /* Datos de la obra: label y valor en la misma línea */
+      #obra-section { padding: 0.5rem 0.8rem !important; }
+      #obra-section .flex.flex-wrap { flex-wrap: nowrap !important; gap: 1rem !important; }
+      #obra-section .flex.flex-wrap > div { min-width: 0 !important; display: flex !important; flex-direction: row !important; align-items: baseline !important; gap: 4px !important; flex: 1 !important; }
+      #obra-section label { white-space: nowrap !important; margin-bottom: 0 !important; font-size: 10px !important; color: #888 !important; }
+      #obra-section input, #obra-section select { font-size: 11px !important; font-weight: 600 !important; padding: 0 !important; min-width: 0 !important; width: auto !important; }
     }
   </style>
 </head>
