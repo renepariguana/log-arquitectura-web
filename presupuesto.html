@@ -168,8 +168,8 @@
           <tr class="bg-neutral-900 text-white text-xs uppercase tracking-wider">
             <th class="px-2 py-3 text-center font-medium w-5">Nº</th>
             <th class="px-2 py-3 text-left font-medium w-[100px]">Rubro</th>
-            <th class="px-2 py-3 text-left font-medium">Descripción</th>
             <th class="px-2 py-3 text-left font-medium w-[100px]">Ítem</th>
+            <th class="px-2 py-3 text-left font-medium">Descripción</th>
             <th class="px-2 py-3 text-center font-medium w-10">Unidad</th>
             <th class="px-2 py-3 text-center font-medium w-[100px]">Cantidad</th>
             <th class="px-2 py-3 text-center font-medium w-[100px]">Precio Unit.</th>
@@ -741,6 +741,11 @@
               rubroOpts + '</select>' +
             '</td>' +
             '<td class="px-1 py-1">' +
+              '<select onchange="presupOnItemChange(\'' + item.uid + '\', this)" ' +
+              'class="w-full border border-transparent hover:border-neutral-200 focus:border-neutral-400 rounded px-1 py-1 text-xs focus:outline-none bg-transparent text-neutral-500 cursor-pointer">' +
+              itemOpts + '</select>' +
+            '</td>' +
+            '<td class="px-1 py-1">' +
               '<div class="flex items-center gap-1">' +
                 (item.refCodigo ? '<span class="text-xs text-neutral-400 font-mono flex-shrink-0">' + item.refCodigo + '</span>' : '') +
                 '<input type="text" value="' + (item.descripcion || '').replace(/"/g, '&quot;') + '" ' +
@@ -748,11 +753,6 @@
                 'onblur="presupEdit(\'' + item.uid + '\',\'descripcion\',this.value)" ' +
                 'class="w-full border border-transparent hover:border-neutral-200 focus:border-neutral-400 rounded px-2 py-1 text-xs focus:outline-none bg-transparent text-neutral-700">' +
               '</div>' +
-            '</td>' +
-            '<td class="px-1 py-1">' +
-              '<select onchange="presupOnItemChange(\'' + item.uid + '\', this)" ' +
-              'class="w-full border border-transparent hover:border-neutral-200 focus:border-neutral-400 rounded px-1 py-1 text-xs focus:outline-none bg-transparent text-neutral-500 cursor-pointer">' +
-              itemOpts + '</select>' +
             '</td>' +
             '<td class="px-1 py-1">' +
               '<input type="text" value="' + (item.unidad || '') + '" placeholder="unid." ' +
