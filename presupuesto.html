@@ -1653,6 +1653,11 @@
 
     // ─── IMPRESIÓN CON ANÁLISIS DE PRECIOS ────────────────────────
     function imprimirPresupuesto() {
+      // DEBUG TEMPORAL
+      alert('Items en presupuesto: ' + presupuesto.length + '\n' +
+        presupuesto.map(function(i,n) { return (n+1)+'. refCodigo="'+(i.refCodigo||'')+'" rubroId="'+(i.rubroId||'')+'"'; }).join('\n'));
+      // FIN DEBUG
+
       // Replicar orden y numeración de renderPresupuesto
       var sorted = presupuesto.slice().sort(function(a, b) {
         var ia = todosRubros.findIndex(function(r) { return r.codigo === a.rubroId; });
@@ -1745,6 +1750,7 @@
           printDiv.style.border = '2px solid #22c55e';
           printDiv.style.borderRadius = '8px';
           printDiv.style.marginTop = '1rem';
+          printDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
           btn.disabled = false;
           btn.textContent = '✓ Imprimir ahora';
           btn.dataset.listo = '1';
