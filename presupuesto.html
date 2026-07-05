@@ -1680,10 +1680,12 @@
           nroLocal++;
           if (item.refCodigo && !vistos[item.refCodigo]) {
             vistos[item.refCodigo] = true;
+            var dbItem = todosItems.find(function(i) { return i.codigo === item.refCodigo; });
             itemsParaImprimir.push({
               num: rubroNum + '.' + nroLocal,
               rubro: rubroNom,
               codigo: item.refCodigo,
+              nombre: dbItem ? dbItem.nombre : '',
               descripcion: item.descripcion,
               unidad: item.unidad,
               cantidad: item.cantidad,
@@ -1703,7 +1705,7 @@
         : fetch(SCRIPT_URL + '?action=cascada').then(function(r){return r.json();}).then(function(d){cnCascada=d;return d;});
 
       var fetchItems = itemsParaImprimir.map(function(info) {
-        return fetch(SCRIPT_URL + '?action=analisisitem&codigo=' + encodeURIComponent(info.codigo) + '&nombre=' + encodeURIComponent(info.descripcion || ''))
+        return fetch(SCRIPT_URL + '?action=analisisitem&codigo=' + encodeURIComponent(info.codigo) + '&nombre=' + encodeURIComponent(info.nombre || info.descripcion || ''))
           .then(function(r){return r.json();})
           .then(function(data){return {info:info, data:data};})
           .catch(function(){return {info:info, data:{}};});
