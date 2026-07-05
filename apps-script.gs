@@ -286,7 +286,7 @@ function doGet(e) {
         }
         folderId = carpeta2.getId();
         var linkNuevo = 'https://drive.google.com/drive/folders/' + folderId;
-        hojaClientes.appendRow([nroSuscriptor, nombre, email, 'ACTIVA', linkNuevo]);
+        hojaClientes.appendRow([nroSuscriptor, nombre, email, 'pendiente', linkNuevo]);
         esCliente = true;
       }
 
