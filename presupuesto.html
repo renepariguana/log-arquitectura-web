@@ -412,20 +412,22 @@
     var db = firebase.firestore();
 
     function fbGuardarAp() {
-      if (!usuarioActual) return;
-      db.collection('apUsuarios').doc(usuarioActual.email)
+      var user = firebase.auth().currentUser;
+      if (!user) return;
+      db.collection('apUsuarios').doc(user.email)
         .set({ data: apUsuarios })
         .catch(function(e) { console.warn('Firestore write error:', e); });
     }
 
     function fbCargarAp(callback) {
-      if (!usuarioActual) { callback(); return; }
-      db.collection('apUsuarios').doc(usuarioActual.email)
+      var user = firebase.auth().currentUser;
+      if (!user) { callback(); return; }
+      db.collection('apUsuarios').doc(user.email)
         .get()
         .then(function(doc) {
           if (doc.exists && doc.data().data) {
             apUsuarios = doc.data().data;
-            localStorage.setItem('ap_usuarios', JSON.stringify(apUsuarios)); fbGuardarAp();
+            localStorage.setItem('ap_usuarios', JSON.stringify(apUsuarios));
           }
           callback();
         })
@@ -463,7 +465,16 @@
         usuarioActual = JSON.parse(guardado);
         mostrarUsuario();
         document.getElementById('login-overlay').classList.add('hidden');
-        fbCargarAp(function() { cnCargarApSelector(); });
+        // Firebase Auth persiste su propio estado — esperamos a que se restaure
+        firebase.auth().onAuthStateChanged(function(firebaseUser) {
+          if (firebaseUser) {
+            fbCargarAp(function() { cnCargarApSelector(); });
+          } else {
+            // Sin sesión Firebase (token expirado), cargar desde localStorage
+            apUsuarios = JSON.parse(localStorage.getItem('ap_usuarios') || '[]');
+            cnCargarApSelector();
+          }
+        });
         return;
       }
       // Sin sesión: mostrar botón Google
@@ -489,8 +500,16 @@
       localStorage.setItem('log_usuario', JSON.stringify(usuarioActual));
       mostrarUsuario();
       document.getElementById('login-overlay').classList.add('hidden');
-      // Cargar análisis propios desde Firestore
-      fbCargarAp(function() { cnCargarApSelector(); });
+      // Autenticar en Firebase con la credencial Google (habilita Firestore Rules seguras)
+      var googleCredential = firebase.auth.GoogleAuthProvider.credential(response.credential);
+      firebase.auth().signInWithCredential(googleCredential)
+        .then(function() {
+          fbCargarAp(function() { cnCargarApSelector(); });
+        })
+        .catch(function(e) {
+          console.warn('Firebase auth error:', e);
+          fbCargarAp(function() { cnCargarApSelector(); });
+        });
       // Registrar en Google Sheets
       fetch(SCRIPT_URL, {
         method: 'POST',
