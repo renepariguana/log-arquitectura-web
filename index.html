@@ -1324,8 +1324,20 @@
 
       <!-- Vista: Login -->
       <div id="cl-vista-login">
-        <p style="font-size:12px; color:#888; text-align:center; margin:0 0 24px;">Iniciá sesión para ver tus proyectos o acceder al Presupuestador.</p>
-        <div id="cl-google-btn" style="display:flex; justify-content:center; margin-bottom:16px;"></div>
+        <p style="font-size:12px; color:#888; text-align:center; margin:0 0 18px;">Ingresá a la plataforma según lo que hacés:</p>
+
+        <div id="cl-roles" style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px;">
+          <button type="button" class="cl-rol-card" data-rol="cliente"     onclick="clElegirRol('cliente', this)"     style="border:1px solid #e0e0e0; background:#fff; color:#0D0D0D; font-family:'DM Sans',sans-serif; font-size:13px; padding:14px 12px; cursor:pointer;">🧑 Cliente</button>
+          <button type="button" class="cl-rol-card" data-rol="proyectista" onclick="clElegirRol('proyectista', this)" style="border:1px solid #e0e0e0; background:#fff; color:#0D0D0D; font-family:'DM Sans',sans-serif; font-size:13px; padding:14px 12px; cursor:pointer;">🏗️ Proyectista</button>
+          <button type="button" class="cl-rol-card" data-rol="manoDeObra"  onclick="clElegirRol('manoDeObra', this)"  style="border:1px solid #e0e0e0; background:#fff; color:#0D0D0D; font-family:'DM Sans',sans-serif; font-size:13px; padding:14px 12px; cursor:pointer;">👷 Mano de obra</button>
+          <button type="button" class="cl-rol-card" data-rol="proveedor"   onclick="clElegirRol('proveedor', this)"   style="border:1px solid #e0e0e0; background:#fff; color:#0D0D0D; font-family:'DM Sans',sans-serif; font-size:13px; padding:14px 12px; cursor:pointer;">🧱 Proveedor</button>
+        </div>
+
+        <p id="cl-rol-ayuda" style="font-size:11px; color:#888; text-align:center; margin:0 0 16px;">Elegí una opción para continuar</p>
+
+        <div id="cl-google-wrap" style="display:none;">
+          <div id="cl-google-btn" style="display:flex; justify-content:center; margin-bottom:16px;"></div>
+        </div>
         <p id="cl-google-error" style="display:none; color:#c0392b; font-size:12px; text-align:center; margin-top:8px;"></p>
       </div>
 
@@ -1576,6 +1588,38 @@
       renderGoogleBtn();
     }
 
+    var participanteRolElegido = '';
+
+    function clElegirRol(rol, el) {
+      participanteRolElegido = rol;
+      var cards = document.querySelectorAll('#cl-roles .cl-rol-card');
+      for (var i = 0; i < cards.length; i++) {
+        var activa = cards[i] === el;
+        cards[i].style.borderColor = activa ? '#0D0D0D' : '#e0e0e0';
+        cards[i].style.background  = activa ? '#0D0D0D' : '#fff';
+        cards[i].style.color       = activa ? '#fff'    : '#0D0D0D';
+      }
+      var ayuda = document.getElementById('cl-rol-ayuda');
+      if (ayuda) ayuda.style.display = 'none';
+      var wrap = document.getElementById('cl-google-wrap');
+      if (wrap) wrap.style.display = 'block';
+      renderGoogleBtn();
+    }
+
+    function clResetRol() {
+      participanteRolElegido = '';
+      var cards = document.querySelectorAll('#cl-roles .cl-rol-card');
+      for (var i = 0; i < cards.length; i++) {
+        cards[i].style.borderColor = '#e0e0e0';
+        cards[i].style.background  = '#fff';
+        cards[i].style.color       = '#0D0D0D';
+      }
+      var ayuda = document.getElementById('cl-rol-ayuda');
+      if (ayuda) ayuda.style.display = 'block';
+      var wrap = document.getElementById('cl-google-wrap');
+      if (wrap) wrap.style.display = 'none';
+    }
+
     function renderGoogleBtn() {
       if (!window.google || !window.google.accounts || !window.google.accounts.id) {
         setTimeout(renderGoogleBtn, 200);
@@ -1637,6 +1681,12 @@
         return;
       }
 
+      if (!participanteRolElegido) {
+        var errRol = document.getElementById('cl-google-error');
+        if (errRol) { errRol.textContent = 'Elegí una opción (Cliente, Proyectista, Mano de obra o Proveedor) para continuar.'; errRol.style.display = 'block'; }
+        return;
+      }
+
       // Cerrar overlay de Google One Tap
       if (window.google && google.accounts && google.accounts.id) google.accounts.id.cancel();
 
@@ -1661,7 +1711,7 @@
         if (errEl) { errEl.textContent = 'El servidor está tardando. Intentá de nuevo en un momento.'; errEl.style.display = 'block'; }
       }, 40000);
 
-      fetch(GSHEET_URL + '?action=loginGoogle&email=' + encodeURIComponent(emailGoogle) + '&nombre=' + encodeURIComponent(nombreGoogle))
+      fetch(GSHEET_URL + '?action=loginGoogle&email=' + encodeURIComponent(emailGoogle) + '&nombre=' + encodeURIComponent(nombreGoogle) + '&rol=' + encodeURIComponent(participanteRolElegido) + '&foto=' + encodeURIComponent(payload.picture || ''))
         .then(function(r) { return r.json(); })
         .then(function(data) {
           clearTimeout(timer);
@@ -1734,6 +1784,7 @@
     }
 
     function clMostrarLogin() {
+      clResetRol();
       ['cl-vista-suscripcion','cl-vista-datos','cl-vista-pago','cl-vista-confirmacion'].forEach(function(id){ document.getElementById(id).style.display='none'; });
       document.getElementById('cl-vista-login').style.display = 'block';
     }
