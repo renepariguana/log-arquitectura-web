@@ -204,29 +204,28 @@ function doGet(e) {
       if (!email) throw new Error('Email requerido');
       var ss = SpreadsheetApp.getActiveSpreadsheet();
 
-      // Estructura Clientes: A=Nº, B=Nombre, C=Email, D=CARPETA, E=SUSCRIPCION, F=Inicio, G=Fin suscripcion, H=Tiempo restante, I=LINK DRIVE
-      // Estructura actual del Sheet: A=Nº, B=Nombre, C=Email, D=Suscripcion, E=LINK DRIVE
+      // Estructura Clientes: A=Nombre, B=Email, C=Suscripcion, D=LINK DRIVE
+      // La carpeta de Drive se nombra con el EMAIL del cliente.
       var hojaClientes = ss.getSheetByName('Clientes');
       if (!hojaClientes) {
         hojaClientes = ss.insertSheet('Clientes');
-        hojaClientes.appendRow(['Nº', 'Nombre', 'Email', 'Suscripcion', 'LINK DRIVE']);
-        hojaClientes.getRange(1, 1, 1, 5).setFontWeight('bold');
+        hojaClientes.appendRow(['Nombre', 'Email', 'Suscripcion', 'LINK DRIVE']);
+        hojaClientes.getRange(1, 1, 1, 4).setFontWeight('bold');
       }
 
-      var folderId = '', esCliente = false, suscripcion = false, nroSuscriptor = '';
+      var folderId = '', esCliente = false, suscripcion = false;
       var filaEncontrada = -1;
       var datosC = hojaClientes.getDataRange().getValues();
 
       for (var i = 1; i < datosC.length; i++) {
-        var emailC = (datosC[i][2] || '').toString().trim().toLowerCase(); // Col C: Email
+        var emailC = (datosC[i][1] || '').toString().trim().toLowerCase(); // Col B: Email
         if (emailC !== email) continue;
 
-        nroSuscriptor  = (datosC[i][0] || '').toString().trim();           // Col A: Nº
-        nombre         = (datosC[i][1] || nombre).toString().trim();        // Col B: Nombre
-        var textoSusc  = (datosC[i][3] || '').toString().trim().toLowerCase(); // Col D: Suscripcion
+        nombre         = (datosC[i][0] || nombre).toString().trim();          // Col A: Nombre
+        var textoSusc  = (datosC[i][2] || '').toString().trim().toLowerCase(); // Col C: Suscripcion
         suscripcion    = (textoSusc === 'activa' || textoSusc === 'activo' || textoSusc === 'active' || textoSusc === 'approved');
 
-        var linkDriveC = (datosC[i][4] || '').toString().trim();           // Col E: LINK DRIVE
+        var linkDriveC = (datosC[i][3] || '').toString().trim();             // Col D: LINK DRIVE
         var fm = linkDriveC.match(/[-\w]{25,}/);
         folderId       = fm ? fm[0] : '';
         esCliente      = true;
@@ -239,59 +238,28 @@ function doGet(e) {
         try { DriveApp.getFolderById(folderId); } catch(e) { folderId = ''; }
       }
 
-      // Formato de nombre de carpeta: "001 — Nombre"
-      function nombreCarpeta(nro, nom) {
-        return nro ? nro + ' — ' + nom : nom;
-      }
-
-      // Encontrado pero sin carpeta Drive → buscar existente o crear
+      // Encontrado pero sin carpeta Drive → buscar por email o crear
       if (esCliente && !folderId) {
         var carpetaPadre = DriveApp.getFolderById(CLIENTES_FOLDER_ID);
-        var buscaNro = carpetaPadre.getFoldersByName(nombreCarpeta(nroSuscriptor, nombre));
-        var buscaNom = carpetaPadre.getFoldersByName(nombre || email);
-        var carpeta;
-        if (buscaNro.hasNext()) {
-          carpeta = buscaNro.next();
-        } else if (buscaNom.hasNext()) {
-          carpeta = buscaNom.next();
-          if (nroSuscriptor) carpeta.setName(nombreCarpeta(nroSuscriptor, nombre));
-        } else {
-          carpeta = carpetaPadre.createFolder(nombreCarpeta(nroSuscriptor, nombre));
-        }
+        var busca = carpetaPadre.getFoldersByName(email);
+        var carpeta = busca.hasNext() ? busca.next() : carpetaPadre.createFolder(email);
         folderId = carpeta.getId();
-        hojaClientes.getRange(filaEncontrada, 5).setValue('https://drive.google.com/drive/folders/' + folderId);
+        hojaClientes.getRange(filaEncontrada, 4).setValue('https://drive.google.com/drive/folders/' + folderId); // Col D
       }
 
-      // No existe en Clientes → auto-numerar, crear carpeta, agregar fila
+      // No existe en Clientes → crear carpeta (nombrada por email) + agregar fila
       if (!esCliente) {
-        var siguiente = 1;
-        for (var k = 1; k < datosC.length; k++) {
-          var nroK = parseInt(datosC[k][0]);
-          if (!isNaN(nroK) && nroK >= siguiente) siguiente = nroK + 1;
-        }
-        nroSuscriptor = String(siguiente).padStart(3, '0');
-
         var carpetaPadre2 = DriveApp.getFolderById(CLIENTES_FOLDER_ID);
-        var nomCarpeta2   = nombreCarpeta(nroSuscriptor, nombre || email);
-        var buscaNro2     = carpetaPadre2.getFoldersByName(nomCarpeta2);
-        var buscaNom2     = carpetaPadre2.getFoldersByName(nombre || email);
-        var carpeta2;
-        if (buscaNro2.hasNext()) {
-          carpeta2 = buscaNro2.next();
-        } else if (buscaNom2.hasNext()) {
-          carpeta2 = buscaNom2.next();
-          carpeta2.setName(nomCarpeta2);
-        } else {
-          carpeta2 = carpetaPadre2.createFolder(nomCarpeta2);
-        }
+        var busca2 = carpetaPadre2.getFoldersByName(email);
+        var carpeta2 = busca2.hasNext() ? busca2.next() : carpetaPadre2.createFolder(email);
         folderId = carpeta2.getId();
         var linkNuevo = 'https://drive.google.com/drive/folders/' + folderId;
-        hojaClientes.appendRow([nroSuscriptor, nombre, email, 'ACTIVA', linkNuevo]);
+        hojaClientes.appendRow([nombre || email, email, 'ACTIVA', linkNuevo]);
         esCliente = true;
       }
 
       return ContentService
-        .createTextOutput(JSON.stringify({ ok: true, nombre: nombre, folderId: folderId, esCliente: esCliente, suscripcion: suscripcion, nroSuscriptor: nroSuscriptor }))
+        .createTextOutput(JSON.stringify({ ok: true, nombre: nombre, folderId: folderId, esCliente: esCliente, suscripcion: suscripcion }))
         .setMimeType(ContentService.MimeType.JSON);
 
     } catch (err) {
@@ -584,17 +552,15 @@ function autoCrearCarpeta(e) {
   var row = e.range.getRow();
   if (row < 2) return;
 
-  var nro        = sheet.getRange(row, 1).getValue().toString().trim(); // col A: Nº
-  var nombre     = sheet.getRange(row, 2).getValue().toString().trim(); // col B: Nombre
-  var linkActual = sheet.getRange(row, 5).getValue().toString().trim(); // col E: LINK DRIVE
+  var email      = sheet.getRange(row, 2).getValue().toString().trim(); // col B: Email
+  var linkActual = sheet.getRange(row, 4).getValue().toString().trim(); // col D: LINK DRIVE
 
-  if (!nombre || linkActual) return;
+  if (!email || linkActual) return;
 
-  var nomCarpeta   = nro ? nro + ' — ' + nombre : nombre;
   var carpetaPadre = DriveApp.getFolderById(CLIENTES_FOLDER_ID);
-  var existentes   = carpetaPadre.getFoldersByName(nomCarpeta);
-  var carpeta      = existentes.hasNext() ? existentes.next() : carpetaPadre.createFolder(nomCarpeta);
-  sheet.getRange(row, 5).setValue(carpeta.getUrl()); // col E: LINK DRIVE
+  var existentes   = carpetaPadre.getFoldersByName(email);
+  var carpeta      = existentes.hasNext() ? existentes.next() : carpetaPadre.createFolder(email);
+  sheet.getRange(row, 4).setValue(carpeta.getUrl()); // col D: LINK DRIVE
 }
 
 // ─── Configurar Access Token de MercadoPago (ejecutá una vez) ────────────────
