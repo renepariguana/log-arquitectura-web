@@ -204,12 +204,12 @@ function doGet(e) {
       if (!email) throw new Error('Email requerido');
       var ss = SpreadsheetApp.getActiveSpreadsheet();
 
-      // Estructura Clientes: A=Nombre, B=Email, C=Suscripcion, D=LINK DRIVE
+      // Estructura Clientes: A=Email, B=Nombre, C=Suscripcion, D=Carpeta (LINK DRIVE)
       // La carpeta de Drive se nombra con el EMAIL del cliente.
       var hojaClientes = ss.getSheetByName('Clientes');
       if (!hojaClientes) {
         hojaClientes = ss.insertSheet('Clientes');
-        hojaClientes.appendRow(['Nombre', 'Email', 'Suscripcion', 'LINK DRIVE']);
+        hojaClientes.appendRow(['Email', 'Nombre', 'Suscripcion', 'Carpeta']);
         hojaClientes.getRange(1, 1, 1, 4).setFontWeight('bold');
       }
 
@@ -218,10 +218,10 @@ function doGet(e) {
       var datosC = hojaClientes.getDataRange().getValues();
 
       for (var i = 1; i < datosC.length; i++) {
-        var emailC = (datosC[i][1] || '').toString().trim().toLowerCase(); // Col B: Email
+        var emailC = (datosC[i][0] || '').toString().trim().toLowerCase(); // Col A: Email
         if (emailC !== email) continue;
 
-        nombre         = (datosC[i][0] || nombre).toString().trim();          // Col A: Nombre
+        nombre         = (datosC[i][1] || nombre).toString().trim();          // Col B: Nombre
         var textoSusc  = (datosC[i][2] || '').toString().trim().toLowerCase(); // Col C: Suscripcion
         suscripcion    = (textoSusc === 'activa' || textoSusc === 'activo' || textoSusc === 'active' || textoSusc === 'approved');
 
@@ -254,7 +254,7 @@ function doGet(e) {
         var carpeta2 = busca2.hasNext() ? busca2.next() : carpetaPadre2.createFolder(email);
         folderId = carpeta2.getId();
         var linkNuevo = 'https://drive.google.com/drive/folders/' + folderId;
-        hojaClientes.appendRow([nombre || email, email, 'ACTIVA', linkNuevo]);
+        hojaClientes.appendRow([email, nombre || email, 'ACTIVA', linkNuevo]);
         esCliente = true;
       }
 
@@ -552,8 +552,8 @@ function autoCrearCarpeta(e) {
   var row = e.range.getRow();
   if (row < 2) return;
 
-  var email      = sheet.getRange(row, 2).getValue().toString().trim(); // col B: Email
-  var linkActual = sheet.getRange(row, 4).getValue().toString().trim(); // col D: LINK DRIVE
+  var email      = sheet.getRange(row, 1).getValue().toString().trim(); // col A: Email
+  var linkActual = sheet.getRange(row, 4).getValue().toString().trim(); // col D: Carpeta (LINK DRIVE)
 
   if (!email || linkActual) return;
 
