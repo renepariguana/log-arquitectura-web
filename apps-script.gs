@@ -387,8 +387,8 @@ function registrarParticipante(ss, nombrePestana, email, nombre, foto) {
     var hoja = ss.getSheetByName(nombrePestana);
     if (!hoja) {
       hoja = ss.insertSheet(nombrePestana);
-      hoja.appendRow(['Nombre', 'Email', 'Foto', 'Creado', 'Actualizado']);
-      hoja.getRange(1, 1, 1, 5).setFontWeight('bold');
+      hoja.appendRow(['Nombre', 'Email', 'Foto', 'Creado', 'Actualizado', 'Suscripcion']);
+      hoja.getRange(1, 1, 1, 6).setFontWeight('bold');
     }
     var ahora = new Date().toLocaleString('es-AR');
     var datos = hoja.getDataRange().getValues();
@@ -396,15 +396,19 @@ function registrarParticipante(ss, nombrePestana, email, nombre, foto) {
     for (var i = 1; i < datos.length; i++) {
       if ((datos[i][1] || '').toString().trim().toLowerCase() === email) { fila = i + 1; break; }
     }
+    var suscripcion = false;
     if (fila > 0) {
       if (nombre) hoja.getRange(fila, 1).setValue(nombre);
       if (foto)   hoja.getRange(fila, 3).setValue(foto);
       hoja.getRange(fila, 5).setValue(ahora);           // Actualizado
+      // Col F: Suscripcion (activa/inactiva) — la controla el estudio, no se pisa
+      var textoSusc = (hoja.getRange(fila, 6).getValue() || '').toString().trim().toLowerCase();
+      suscripcion = (textoSusc === 'activa' || textoSusc === 'activo' || textoSusc === 'active' || textoSusc === 'approved');
     } else {
-      hoja.appendRow([nombre, email, foto, ahora, ahora]);
+      hoja.appendRow([nombre, email, foto, ahora, ahora, 'inactiva']);  // arranca sin acceso
     }
     return ContentService
-      .createTextOutput(JSON.stringify({ ok: true, nombre: nombre, esCliente: false, suscripcion: false, folderId: '', rol: nombrePestana }))
+      .createTextOutput(JSON.stringify({ ok: true, nombre: nombre, esCliente: false, suscripcion: suscripcion, folderId: '', rol: nombrePestana }))
       .setMimeType(ContentService.MimeType.JSON);
   } catch (err) {
     return ContentService
@@ -413,18 +417,16 @@ function registrarParticipante(ss, nombrePestana, email, nombre, foto) {
   }
 }
 
-// ─── Setup: crea las pestañas de participantes con encabezados (ejecutar UNA vez) ──
+// ─── Setup: crea/repara las pestañas de participantes con encabezados (ejecutar UNA vez) ──
 
 function crearPestanasParticipantes() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var headers = ['Nombre', 'Email', 'Foto', 'Creado', 'Actualizado', 'Suscripcion'];
   ['Proyectistas', 'Mano de obra', 'Proveedores'].forEach(function(nombre) {
-    if (!ss.getSheetByName(nombre)) {
-      var hoja = ss.insertSheet(nombre);
-      hoja.appendRow(['Nombre', 'Email', 'Foto', 'Creado', 'Actualizado']);
-      hoja.getRange(1, 1, 1, 5).setFontWeight('bold');
-    }
+    var hoja = ss.getSheetByName(nombre) || ss.insertSheet(nombre);
+    hoja.getRange(1, 1, 1, headers.length).setValues([headers]).setFontWeight('bold');
   });
-  Logger.log('Pestañas de participantes verificadas/creadas.');
+  Logger.log('Pestañas de participantes verificadas/reparadas (con columna Suscripcion).');
 }
 
 // ─── POST: formulario → hoja Solicitudes o Mensajes ─────────────────────────
