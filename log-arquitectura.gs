@@ -233,10 +233,8 @@ function doGet(e) {
         break;
       }
 
-      // Validar que el folderId almacenado realmente exista en Drive
-      if (esCliente && folderId) {
-        try { DriveApp.getFolderById(folderId); } catch(e) { folderId = ''; }
-      }
+      // (Optimización) No se valida la carpeta en Drive en cada login: se confía
+      // en el ID guardado. Si estuviera borrada, 'archivos' lo maneja al mostrar.
 
       // Encontrado pero sin carpeta Drive → buscar por email o crear
       if (esCliente && !folderId) {
