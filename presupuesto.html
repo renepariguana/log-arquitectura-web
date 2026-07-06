@@ -751,12 +751,12 @@
       }).slice(0, 10);
       if (!pool.length) { sug.style.display = 'none'; return; }
       sug.innerHTML = pool.map(function(i) {
-        var nom = i.nombre.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-        var uni = (i.unidad || '').replace(/'/g, "\\'");
-        return '<div onmousedown="presupOnItemSelect(\'' + uid + '\',\'' + nom + '\',\'' + uni + '\',' + (i.precio || 0) + ',\'' + i.codigo + '\')" ' +
+        return '<div onmousedown="presupOnItemSelectFromSug(this,\'' + uid + '\')" ' +
+          'data-nombre="' + esc(i.nombre) + '" data-unidad="' + esc(i.unidad||'') + '" ' +
+          'data-precio="' + (parseFloat(i.precio)||0) + '" data-codigo="' + esc(i.codigo) + '" ' +
           'style="padding:7px 12px;cursor:pointer;font-size:12px;color:#404040;border-bottom:1px solid #f5f5f5" ' +
           'onmouseover="this.style.background=\'#f5f5f5\'" onmouseout="this.style.background=\'\'">' +
-          i.nombre + '<span style="color:#aaa;font-size:10px;margin-left:8px">' + (i.unidad || '') + ' · $' + (i.precio || 0).toLocaleString('es-AR', {maximumFractionDigits:0}) + '</span>' +
+          esc(i.nombre) + '<span style="color:#aaa;font-size:10px;margin-left:8px">' + esc(i.unidad||'') + ' · $' + (parseFloat(i.precio)||0).toLocaleString('es-AR', {maximumFractionDigits:0}) + '</span>' +
           '</div>';
       }).join('');
       sug.style.display = 'block';
@@ -776,6 +776,10 @@
       item.refCodigo = codigo;
       renderPresupuesto();
       guardarLocal();
+    }
+
+    function presupOnItemSelectFromSug(div, uid) {
+      presupOnItemSelect(uid, div.dataset.nombre, div.dataset.unidad, parseFloat(div.dataset.precio)||0, div.dataset.codigo);
     }
 
     // ─── RENDER TABLA ─────────────────────────────────────────────────────────
@@ -1924,8 +1928,8 @@
           var sub=f.cantidad*f.precio;
           var bg=i%2===0?'white':'#f9f9f9';
           return '<tr style="background:'+bg+';border-bottom:1px solid #f0f0f0">'+
-            '<td style="padding:3px 8px;font-size:11px">'+f.nombre+'</td>'+
-            '<td style="padding:3px 6px;font-size:11px;text-align:center">'+f.unidad+'</td>'+
+            '<td style="padding:3px 8px;font-size:11px">'+esc(f.nombre)+'</td>'+
+            '<td style="padding:3px 6px;font-size:11px;text-align:center">'+esc(f.unidad)+'</td>'+
             '<td style="padding:3px 6px;font-size:11px;text-align:right">'+f.cantidad+'</td>'+
             '<td style="padding:3px 6px;font-size:11px;text-align:right">'+fmt(f.precio)+'</td>'+
             '<td style="padding:3px 6px;font-size:11px;text-align:right;font-weight:500">'+fmt(sub)+'</td>'+
@@ -1949,8 +1953,8 @@
 
       return '<div style="page-break-inside:avoid;margin-bottom:1.2rem;overflow:hidden">'+
         '<div style="background:'+BG_GRIS+';color:white;padding:6px 10px;display:flex;justify-content:space-between;align-items:baseline">'+
-          '<span style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em">'+info.num+' · '+(info.descripcion||info.rubro||info.codigo)+'</span>'+
-          '<span style="font-size:10px;color:#ccc">'+info.rubro+'</span>'+
+          '<span style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em">'+esc(info.num)+' · '+esc(info.descripcion||info.rubro||info.codigo)+'</span>'+
+          '<span style="font-size:10px;color:#ccc">'+esc(info.rubro)+'</span>'+
         '</div>'+
         seccion('Materiales', sM, mat)+
         seccion('Mano de obra', sO, mo)+
