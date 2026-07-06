@@ -1316,28 +1316,17 @@
       <!-- Header común -->
       <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:24px;">
         <div>
-          <p style="font-size:10px; letter-spacing:0.22em; text-transform:uppercase; color:#888; margin:0;">LOG arquitectura</p>
+          <p style="font-size:10px; letter-spacing:0.22em; text-transform:uppercase; color:#888; margin:0 0 6px;">LOG arquitectura</p>
+          <h2 style="font-size:11px; font-weight:300; color:#0D0D0D; margin:0;">Si ya sos cliente de LOG arquitectura podés ver y descargar tus Proyectos o también podés suscribirte para aprovechar nuestros servicios</h2>
         </div>
         <button onclick="closeClientesLogin()" style="background:none; border:none; cursor:pointer; font-size:22px; color:#888; line-height:1; padding:0; margin-left:12px;">&times;</button>
       </div>
 
       <!-- Vista: Login -->
       <div id="cl-vista-login">
-        <p style="font-size:12px; color:#888; text-align:center; margin:0 0 20px;">Iniciá sesión para ingresar a la plataforma.</p>
+        <p style="font-size:12px; color:#888; text-align:center; margin:0 0 24px;">Iniciá sesión para ver tus proyectos o acceder al Presupuestador.</p>
         <div id="cl-google-btn" style="display:flex; justify-content:center; margin-bottom:16px;"></div>
         <p id="cl-google-error" style="display:none; color:#c0392b; font-size:12px; text-align:center; margin-top:8px;"></p>
-      </div>
-
-      <!-- Vista: elegir categoría (post-login, solo la primera vez) -->
-      <div id="cl-vista-rol" style="display:none;">
-        <p style="font-size:12px; color:#888; text-align:center; margin:0 0 18px;">¿Con qué rol querés participar?</p>
-        <div id="cl-roles" style="display:grid; grid-template-columns:repeat(4, 1fr); gap:8px; margin-bottom:8px;">
-          <button type="button" class="cl-rol-card" onclick="clConfirmarRol('cliente')"     style="border:1px solid #e0e0e0; background:#fff; color:#0D0D0D; font-family:'DM Sans',sans-serif; font-size:11px; line-height:1.2; text-align:center; padding:14px 4px; cursor:pointer;">Cliente</button>
-          <button type="button" class="cl-rol-card" onclick="clConfirmarRol('proyectista')" style="border:1px solid #e0e0e0; background:#fff; color:#0D0D0D; font-family:'DM Sans',sans-serif; font-size:11px; line-height:1.2; text-align:center; padding:14px 4px; cursor:pointer;">Proyectista</button>
-          <button type="button" class="cl-rol-card" onclick="clConfirmarRol('manoDeObra')"  style="border:1px solid #e0e0e0; background:#fff; color:#0D0D0D; font-family:'DM Sans',sans-serif; font-size:11px; line-height:1.2; text-align:center; padding:14px 4px; cursor:pointer;">Mano de obra</button>
-          <button type="button" class="cl-rol-card" onclick="clConfirmarRol('proveedor')"   style="border:1px solid #e0e0e0; background:#fff; color:#0D0D0D; font-family:'DM Sans',sans-serif; font-size:11px; line-height:1.2; text-align:center; padding:14px 4px; cursor:pointer;">Proveedor</button>
-        </div>
-        <p id="cl-rol-error" style="display:none; font-size:12px; text-align:center; margin-top:8px;"></p>
       </div>
 
       <!-- Vista: Elegir plan -->
@@ -1587,17 +1576,6 @@
       renderGoogleBtn();
     }
 
-    var _pendEmail = '', _pendNombre = '', _pendFoto = '';
-
-    function clMostrarVistaRol() {
-      document.getElementById('cl-vista-login').style.display = 'none';
-      document.getElementById('cl-vista-rol').style.display = 'block';
-    }
-
-    function clConfirmarRol(rol) {
-      clLoginGoogleBackend(rol);
-    }
-
     function renderGoogleBtn() {
       if (!window.google || !window.google.accounts || !window.google.accounts.id) {
         setTimeout(renderGoogleBtn, 200);
@@ -1662,22 +1640,10 @@
       // Cerrar overlay de Google One Tap
       if (window.google && google.accounts && google.accounts.id) google.accounts.id.cancel();
 
-      // Guardar credenciales por si es el primer login y hay que elegir categoría
-      _pendEmail  = emailGoogle;
-      _pendNombre = nombreGoogle;
-      _pendFoto   = payload.picture || '';
-
-      // Login sin rol → el backend decide si ya está identificado o hay que elegir
-      clLoginGoogleBackend('');
-    }
-
-    function clLoginGoogleBackend(rol) {
       var errEl   = document.getElementById('cl-google-error');
-      var errRol  = document.getElementById('cl-rol-error');
       var btnWrap = document.getElementById('cl-google-btn');
       if (errEl) errEl.style.display = 'none';
-      if (rol && errRol) { errRol.style.color = '#888'; errRol.textContent = 'Guardando...'; errRol.style.display = 'block'; }
-      if (!rol && btnWrap) btnWrap.innerHTML = '<p style="font-size:12px; color:#888; text-align:center; margin:0;">Verificando cuenta, aguardá un momento...</p>';
+      if (btnWrap) btnWrap.innerHTML = '<p style="font-size:12px; color:#888; text-align:center; margin:0;">Verificando cuenta, aguardá un momento...</p>';
 
       function restaurarBtn() {
         if (!btnWrap) return;
@@ -1687,46 +1653,35 @@
         }
       }
 
-      function mostrarError(msg) {
-        var el = document.getElementById(rol ? 'cl-rol-error' : 'cl-google-error');
-        if (el) { el.style.color = '#c0392b'; el.textContent = msg; el.style.display = 'block'; }
-      }
-
       // Timeout de 40 segundos por si el servidor tarda demasiado
       var timedOut = false;
       var timer = setTimeout(function() {
         timedOut = true;
         restaurarBtn();
-        mostrarError('El servidor está tardando. Intentá de nuevo en un momento.');
+        if (errEl) { errEl.textContent = 'El servidor está tardando. Intentá de nuevo en un momento.'; errEl.style.display = 'block'; }
       }, 40000);
 
-      fetch(GSHEET_URL + '?action=loginGoogle&email=' + encodeURIComponent(_pendEmail) + '&nombre=' + encodeURIComponent(_pendNombre) + '&rol=' + encodeURIComponent(rol) + '&foto=' + encodeURIComponent(_pendFoto))
+      fetch(GSHEET_URL + '?action=loginGoogle&email=' + encodeURIComponent(emailGoogle) + '&nombre=' + encodeURIComponent(nombreGoogle))
         .then(function(r) { return r.json(); })
         .then(function(data) {
           clearTimeout(timer);
           if (timedOut) return;
           if (!data.ok) {
             restaurarBtn();
-            mostrarError(data.error || 'Error al verificar cuenta.');
+            if (errEl) { errEl.textContent = data.error || 'Error al verificar cuenta.'; errEl.style.display = 'block'; }
             return;
           }
-          // Primer login sin categoría → mostrar el cartel de roles
-          if (data.yaIdentificado === false) {
-            restaurarBtn();
-            clMostrarVistaRol();
-            return;
-          }
-          var nombre = data.nombre || _pendNombre;
-          var sesion = { nombre: nombre, folderId: data.folderId || '', esCliente: !!data.esCliente, suscripcion: !!data.suscripcion, email: _pendEmail, nroSuscriptor: data.nroSuscriptor || '', picture: _pendFoto };
+          var nombre = data.nombre || nombreGoogle;
+          var sesion = { nombre: nombre, folderId: data.folderId || '', esCliente: !!data.esCliente, suscripcion: !!data.suscripcion, email: emailGoogle, nroSuscriptor: data.nroSuscriptor || '', picture: payload.picture || '' };
           sessionStorage.setItem('cl_sesion', JSON.stringify(sesion));
           closeClientesLogin();
-          mostrarPortal(nombre, data.folderId || '', data.suscripcion, data.esCliente, data.nroSuscriptor || '', _pendFoto);
+          mostrarPortal(nombre, data.folderId || '', data.suscripcion, data.esCliente, data.nroSuscriptor || '', payload.picture || '');
         })
         .catch(function() {
           clearTimeout(timer);
           if (timedOut) return;
           restaurarBtn();
-          mostrarError('Error de conexión. Intentá de nuevo.');
+          if (errEl) { errEl.textContent = 'Error de conexión. Intentá de nuevo.'; errEl.style.display = 'block'; }
         });
     }
 
@@ -1779,7 +1734,7 @@
     }
 
     function clMostrarLogin() {
-      ['cl-vista-suscripcion','cl-vista-datos','cl-vista-pago','cl-vista-confirmacion','cl-vista-rol'].forEach(function(id){ var el=document.getElementById(id); if(el) el.style.display='none'; });
+      ['cl-vista-suscripcion','cl-vista-datos','cl-vista-pago','cl-vista-confirmacion'].forEach(function(id){ document.getElementById(id).style.display='none'; });
       document.getElementById('cl-vista-login').style.display = 'block';
     }
 

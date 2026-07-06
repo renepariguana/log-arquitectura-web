@@ -204,15 +204,6 @@ function doGet(e) {
       if (!email) throw new Error('Email requerido');
       var ss = SpreadsheetApp.getActiveSpreadsheet();
 
-      // ── Ruteo por rol: los 3 sectores de servicio van a su propia pestaña ──
-      var rol  = (e.parameter.rol  || '').toString().trim();
-      var foto = (e.parameter.foto || '').toString().trim();
-      var PESTANA_POR_ROL = { proyectista: 'Proyectistas', manoDeObra: 'Mano de obra', proveedor: 'Proveedores' };
-      if (PESTANA_POR_ROL[rol]) {
-        return registrarParticipante(ss, PESTANA_POR_ROL[rol], email, nombre, foto);
-      }
-      // rol === 'cliente' o vacío → continúa el flujo de Clientes de siempre
-
       // Estructura Clientes: A=Nº, B=Nombre, C=Email, D=CARPETA, E=SUSCRIPCION, F=Inicio, G=Fin suscripcion, H=Tiempo restante, I=LINK DRIVE
       // Estructura actual del Sheet: A=Nº, B=Nombre, C=Email, D=Suscripcion, E=LINK DRIVE
       var hojaClientes = ss.getSheetByName('Clientes');
@@ -271,22 +262,7 @@ function doGet(e) {
         hojaClientes.getRange(filaEncontrada, 5).setValue('https://drive.google.com/drive/folders/' + folderId);
       }
 
-      // No está en Clientes.
-      if (!esCliente && rol !== 'cliente') {
-        // Login sin rol elegido → buscar en las otras 3 pestañas
-        var encP = buscarParticipanteEnPestanas(ss, email);
-        if (encP) {
-          return ContentService
-            .createTextOutput(JSON.stringify({ ok: true, yaIdentificado: true, esCliente: false, nombre: encP.nombre || nombre, suscripcion: encP.suscripcion, folderId: '', rol: encP.rol, nroSuscriptor: '' }))
-            .setMimeType(ContentService.MimeType.JSON);
-        }
-        // No está en ninguna pestaña → el front muestra el cartel de categorías
-        return ContentService
-          .createTextOutput(JSON.stringify({ ok: true, yaIdentificado: false, nombre: nombre }))
-          .setMimeType(ContentService.MimeType.JSON);
-      }
-
-      // No existe en Clientes y eligió "cliente" → auto-numerar, crear carpeta, agregar fila
+      // No existe en Clientes → auto-numerar, crear carpeta, agregar fila
       if (!esCliente) {
         var siguiente = 1;
         for (var k = 1; k < datosC.length; k++) {
@@ -315,7 +291,7 @@ function doGet(e) {
       }
 
       return ContentService
-        .createTextOutput(JSON.stringify({ ok: true, yaIdentificado: true, nombre: nombre, folderId: folderId, esCliente: esCliente, suscripcion: suscripcion, nroSuscriptor: nroSuscriptor }))
+        .createTextOutput(JSON.stringify({ ok: true, nombre: nombre, folderId: folderId, esCliente: esCliente, suscripcion: suscripcion, nroSuscriptor: nroSuscriptor }))
         .setMimeType(ContentService.MimeType.JSON);
 
     } catch (err) {
@@ -393,76 +369,6 @@ function doGet(e) {
   return ContentService
     .createTextOutput('LOG arquitectura — Apps Script activo.')
     .setMimeType(ContentService.MimeType.TEXT);
-}
-
-// ─── Registro de participantes no-cliente (proyectistas, mano de obra, proveedores) ──
-
-function registrarParticipante(ss, nombrePestana, email, nombre, foto) {
-  try {
-    var hoja = ss.getSheetByName(nombrePestana);
-    if (!hoja) {
-      hoja = ss.insertSheet(nombrePestana);
-      hoja.appendRow(['Nombre', 'Email', 'Foto', 'Creado', 'Actualizado', 'Suscripcion']);
-      hoja.getRange(1, 1, 1, 6).setFontWeight('bold');
-    }
-    var ahora = new Date().toLocaleString('es-AR');
-    var datos = hoja.getDataRange().getValues();
-    var fila  = -1;
-    for (var i = 1; i < datos.length; i++) {
-      if ((datos[i][1] || '').toString().trim().toLowerCase() === email) { fila = i + 1; break; }
-    }
-    var suscripcion = false;
-    if (fila > 0) {
-      if (nombre) hoja.getRange(fila, 1).setValue(nombre);
-      if (foto)   hoja.getRange(fila, 3).setValue(foto);
-      hoja.getRange(fila, 5).setValue(ahora);           // Actualizado
-      // Col F: Suscripcion (activa/inactiva) — la controla el estudio, no se pisa
-      var textoSusc = (hoja.getRange(fila, 6).getValue() || '').toString().trim().toLowerCase();
-      suscripcion = (textoSusc === 'activa' || textoSusc === 'activo' || textoSusc === 'active' || textoSusc === 'approved');
-    } else {
-      hoja.appendRow([nombre, email, foto, ahora, ahora, 'inactiva']);  // arranca sin acceso
-    }
-    return ContentService
-      .createTextOutput(JSON.stringify({ ok: true, yaIdentificado: true, nombre: nombre, esCliente: false, suscripcion: suscripcion, folderId: '', rol: nombrePestana }))
-      .setMimeType(ContentService.MimeType.JSON);
-  } catch (err) {
-    return ContentService
-      .createTextOutput(JSON.stringify({ ok: false, error: err.toString() }))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
-}
-
-// ─── Busca un email en las 3 pestañas de participantes; devuelve {rol, nombre, suscripcion} o null ──
-
-function buscarParticipanteEnPestanas(ss, email) {
-  var ROL_POR_PESTANA = { 'Proyectistas': 'proyectista', 'Mano de obra': 'manoDeObra', 'Proveedores': 'proveedor' };
-  email = (email || '').toString().trim().toLowerCase();
-  var pestanas = Object.keys(ROL_POR_PESTANA);
-  for (var p = 0; p < pestanas.length; p++) {
-    var hoja = ss.getSheetByName(pestanas[p]);
-    if (!hoja) continue;
-    var datos = hoja.getDataRange().getValues();
-    for (var i = 1; i < datos.length; i++) {
-      if ((datos[i][1] || '').toString().trim().toLowerCase() === email) {  // Col B: Email
-        var textoSusc = (datos[i][5] || '').toString().trim().toLowerCase(); // Col F: Suscripcion
-        var susc = (textoSusc === 'activa' || textoSusc === 'activo' || textoSusc === 'active' || textoSusc === 'approved');
-        return { rol: ROL_POR_PESTANA[pestanas[p]], nombre: (datos[i][0] || '').toString(), suscripcion: susc };
-      }
-    }
-  }
-  return null;
-}
-
-// ─── Setup: crea/repara las pestañas de participantes con encabezados (ejecutar UNA vez) ──
-
-function crearPestanasParticipantes() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var headers = ['Nombre', 'Email', 'Foto', 'Creado', 'Actualizado', 'Suscripcion'];
-  ['Proyectistas', 'Mano de obra', 'Proveedores'].forEach(function(nombre) {
-    var hoja = ss.getSheetByName(nombre) || ss.insertSheet(nombre);
-    hoja.getRange(1, 1, 1, headers.length).setValues([headers]).setFontWeight('bold');
-  });
-  Logger.log('Pestañas de participantes verificadas/reparadas (con columna Suscripcion).');
 }
 
 // ─── POST: formulario → hoja Solicitudes o Mensajes ─────────────────────────
