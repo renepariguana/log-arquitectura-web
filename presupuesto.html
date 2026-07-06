@@ -464,7 +464,7 @@
         usuarioActual = JSON.parse(guardado);
         mostrarUsuario();
         document.getElementById('login-overlay').classList.add('hidden');
-        fbCargarAp(function() { cnRenderSel(); });
+        fbCargarAp(function() { cnCargarApSelector(); });
         return;
       }
       // Sin sesión: mostrar botón Google
@@ -491,7 +491,7 @@
       mostrarUsuario();
       document.getElementById('login-overlay').classList.add('hidden');
       // Cargar análisis propios desde Firestore
-      fbCargarAp(function() { cnRenderSel(); });
+      fbCargarAp(function() { cnCargarApSelector(); });
       // Registrar en Google Sheets
       fetch(SCRIPT_URL, {
         method: 'POST',
