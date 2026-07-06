@@ -7,6 +7,10 @@
   <script>if(new URLSearchParams(location.search).get('embedded')==='1')document.documentElement.setAttribute('data-embedded','1');</script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://accounts.google.com/gsi/client" async></script>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
   <style>
     [data-embedded="1"] #app-header,
@@ -36,7 +40,8 @@
         padding-right: 0 !important;
       }
       #obra-section { border: 1px solid #e5e5e5 !important; padding: 1rem !important; }
-      #print-analisis { display: block !important; page-break-before: always; }
+      #print-analisis:not(:empty) { display: block !important; page-break-before: always; }
+      #print-analisis:empty { display: none !important; }
       /* Forzar colores de fondo en impresión */
       * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
       /* Mostrar texto completo en celda ítem */
@@ -396,6 +401,38 @@
     var GOOGLE_CLIENT_ID = '234264899285-3rnoku76f2ge7prvonktsr601cs959c3.apps.googleusercontent.com';
     var ALLOWED_ORIGIN   = 'https://logarquitectura.com.ar';
 
+    // ─── FIREBASE ─────────────────────────────────────────────────────────────
+    firebase.initializeApp({
+      apiKey: "AIzaSyDhxovpZU38QJ-W5cvcLhG9WpSTMkPy1tw",
+      authDomain: "log-arquitectura-d8857.firebaseapp.com",
+      projectId: "log-arquitectura-d8857",
+      storageBucket: "log-arquitectura-d8857.firebasestorage.app",
+      messagingSenderId: "797517195869",
+      appId: "1:797517195869:web:7def3e6849207ad161fbb4"
+    });
+    var db = firebase.firestore();
+
+    function fbGuardarAp() {
+      if (!usuarioActual) return;
+      db.collection('apUsuarios').doc(usuarioActual.email)
+        .set({ data: apUsuarios })
+        .catch(function(e) { console.warn('Firestore write error:', e); });
+    }
+
+    function fbCargarAp(callback) {
+      if (!usuarioActual) { callback(); return; }
+      db.collection('apUsuarios').doc(usuarioActual.email)
+        .get()
+        .then(function(doc) {
+          if (doc.exists && doc.data().data) {
+            apUsuarios = doc.data().data;
+            localStorage.setItem('ap_usuarios', JSON.stringify(apUsuarios)); fbGuardarAp();
+          }
+          callback();
+        })
+        .catch(function(e) { console.warn('Firestore read error:', e); callback(); });
+    }
+
     // ─── SANITIZACIÓN ────────────────────────────────────────────────────────
     function esc(str) {
       return String(str == null ? '' : str)
@@ -427,6 +464,7 @@
         usuarioActual = JSON.parse(guardado);
         mostrarUsuario();
         document.getElementById('login-overlay').classList.add('hidden');
+        fbCargarAp(function() { cnRenderSel(); });
         return;
       }
       // Sin sesión: mostrar botón Google
@@ -452,6 +490,8 @@
       localStorage.setItem('log_usuario', JSON.stringify(usuarioActual));
       mostrarUsuario();
       document.getElementById('login-overlay').classList.add('hidden');
+      // Cargar análisis propios desde Firestore
+      fbCargarAp(function() { cnRenderSel(); });
       // Registrar en Google Sheets
       fetch(SCRIPT_URL, {
         method: 'POST',
@@ -1384,7 +1424,7 @@
       if (!ap) return;
       if (!confirm('¿Eliminás el análisis "' + ap.nombre + '" y todos sus ítems?')) return;
       apUsuarios = apUsuarios.filter(function(a) { return a.id !== apId; });
-      localStorage.setItem('ap_usuarios', JSON.stringify(apUsuarios));
+      localStorage.setItem('ap_usuarios', JSON.stringify(apUsuarios)); fbGuardarAp();
       cnCargarApSelector();
       document.getElementById('sel-ap').value = 'log';
       cnOnApChange();
@@ -1399,7 +1439,7 @@
       if (!item) return;
       if (!confirm('¿Eliminás el ítem "' + item.nombre + '" del análisis?')) return;
       ap.items = ap.items.filter(function(i) { return i.codigo !== cnCodigoActual; });
-      localStorage.setItem('ap_usuarios', JSON.stringify(apUsuarios));
+      localStorage.setItem('ap_usuarios', JSON.stringify(apUsuarios)); fbGuardarAp();
       cnLimpiar();
     }
 
@@ -1564,7 +1604,7 @@
       if (!nombre) return;
       var id = 'ap_' + Date.now();
       apUsuarios.push({ id: id, nombre: nombre, items: [] });
-      localStorage.setItem('ap_usuarios', JSON.stringify(apUsuarios));
+      localStorage.setItem('ap_usuarios', JSON.stringify(apUsuarios)); fbGuardarAp();
       cnCargarApSelector();
       document.getElementById('sel-ap').value = id;
       document.getElementById('modal-crear-ap').classList.add('hidden');
@@ -1645,7 +1685,7 @@
         equipos:    cnFilasEq.map(function(f) { return Object.assign({}, f); })
       };
       pool.push(nuevoItem);
-      if (ap) localStorage.setItem('ap_usuarios', JSON.stringify(apUsuarios));
+      if (ap) { localStorage.setItem('ap_usuarios', JSON.stringify(apUsuarios)); fbGuardarAp(); }
       agregarItem(nuevoItem);
 
       cnLimpiar();
@@ -1653,11 +1693,6 @@
 
     // ─── IMPRESIÓN CON ANÁLISIS DE PRECIOS ────────────────────────
     function imprimirPresupuesto() {
-      // DEBUG TEMPORAL
-      alert('Items en presupuesto: ' + presupuesto.length + '\n' +
-        presupuesto.map(function(i,n) { return (n+1)+'. refCodigo="'+(i.refCodigo||'')+'" rubroId="'+(i.rubroId||'')+'"'; }).join('\n'));
-      // FIN DEBUG
-
       // Replicar orden y numeración de renderPresupuesto
       var sorted = presupuesto.slice().sort(function(a, b) {
         var ia = todosRubros.findIndex(function(r) { return r.codigo === a.rubroId; });
@@ -1715,8 +1750,12 @@
         return;
       }
 
-      // Sin ítems con análisis: imprimir directo
-      if (!itemsParaImprimir.length) { window.print(); return; }
+      // Sin ítems con análisis: limpiar sección y imprimir sin página extra
+      if (!itemsParaImprimir.length) {
+        document.getElementById('print-analisis').innerHTML = '';
+        window.print();
+        return;
+      }
 
       // Primera pulsación: preparar análisis
       btn.disabled = true;
