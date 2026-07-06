@@ -278,7 +278,7 @@
   </style>
 
   <!-- ─── NAV ──────────────────────────────────────────────── -->
-  <nav class="fixed left-0 right-0 z-40 bg-white/95 backdrop-blur-sm border-b border-gray-100 flex items-center justify-between px-4 md:px-10 h-[68px]" style="top:32px;">
+  <nav class="fixed left-0 right-0 z-40 bg-white/95 backdrop-blur-sm border-b border-gray-100 flex items-center justify-between pl-4 pr-4 md:pr-10 h-[68px]" style="top:32px;">
     <a id="nav-logo-wrapper" href="#" class="flex items-center gap-3 cursor-pointer">
       <img id="nav-logo-img" src="https://lh3.googleusercontent.com/d/1oT79ZpldR-UwMVNijHdIJTuN8oPKvzrg" alt="LOG" style="height:54px; width:auto; filter:invert(1);">
       <span class="text-[10px] font-light tracking-[0.28em] uppercase text-gray-600">arquitectura</span>
@@ -1664,11 +1664,9 @@
       fetch(GSHEET_URL + '?action=loginGoogle&email=' + encodeURIComponent(emailGoogle) + '&nombre=' + encodeURIComponent(nombreGoogle))
         .then(function(r) { return r.json(); })
         .then(function(data) {
-          console.log('[LOGIN] respuesta loginGoogle:', data);
           clearTimeout(timer);
-          if (timedOut) { console.warn('[LOGIN] la respuesta llegó DESPUÉS del timeout (40s)'); return; }
+          if (timedOut) return;
           if (!data.ok) {
-            console.warn('[LOGIN] data.ok=false →', data.error);
             restaurarBtn();
             if (errEl) { errEl.textContent = data.error || 'Error al verificar cuenta.'; errEl.style.display = 'block'; }
             return;
@@ -1676,13 +1674,10 @@
           var nombre = data.nombre || nombreGoogle;
           var sesion = { nombre: nombre, folderId: data.folderId || '', esCliente: !!data.esCliente, suscripcion: !!data.suscripcion, email: emailGoogle, nroSuscriptor: data.nroSuscriptor || '', picture: payload.picture || '' };
           sessionStorage.setItem('cl_sesion', JSON.stringify(sesion));
-          console.log('[LOGIN] sesión guardada. Llamando mostrarPortal → esCliente=', data.esCliente, 'folderId=', data.folderId);
           closeClientesLogin();
           mostrarPortal(nombre, data.folderId || '', data.suscripcion, data.esCliente, data.nroSuscriptor || '', payload.picture || '');
-          console.log('[LOGIN] mostrarPortal ejecutado SIN error');
         })
-        .catch(function(err) {
-          console.error('[LOGIN] CATCH (falló el fetch o mostrarPortal):', err);
+        .catch(function() {
           clearTimeout(timer);
           if (timedOut) return;
           restaurarBtn();
@@ -2109,7 +2104,6 @@
     });
 
     function mostrarPortal(nombre, folderId, suscripcion, esCliente, nroSuscriptor, picture) {
-      console.log('[PORTAL] mostrarPortal INICIO →', { nombre: nombre, esCliente: esCliente, folderId: folderId });
       document.getElementById('portal-saludo').textContent = nombre;
       document.getElementById('portal-clientes').style.display = 'flex';
 
