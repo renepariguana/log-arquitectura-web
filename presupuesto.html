@@ -235,23 +235,23 @@
           <span class="text-xs font-semibold tracking-widest text-neutral-400 uppercase">Análisis de Precios</span>
           <span id="crear-chevron" class="text-neutral-400 text-xs transition-transform">▼</span>
         </button>
+        <div class="flex items-center gap-3">
+          <button onclick="cnLimpiar()" class="text-xs text-neutral-400 hover:text-neutral-600 transition">Limpiar</button>
+          <button onclick="cnAgregarAlPresupuesto()" class="px-4 py-1.5 bg-neutral-700 text-white rounded-lg text-xs hover:bg-neutral-800 transition font-medium">+ Agregar</button>
+        </div>
       </div>
 
-      <!-- Dos paneles lado a lado -->
-      <div class="border-t border-neutral-200 grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-neutral-200">
+      <!-- Panel de selección y formulario -->
+      <div class="border-t border-neutral-200">
 
-        <!-- PANEL IZQUIERDO: CREAR -->
         <div class="px-5 py-4">
-          <div class="flex items-center justify-between mb-3">
-            <span class="text-xs font-semibold tracking-widest text-neutral-500 uppercase">Crear ítem</span>
-            <div class="flex items-center gap-2">
-              <button id="cn-btn-borrar-ap" onclick="cnBorrarAnalisis()" style="display:none" class="text-xs text-red-300 hover:text-red-500 transition">Eliminar análisis</button>
-              <button onclick="cnCrearAnalisis()" class="text-xs text-neutral-400 hover:text-neutral-600 transition">+ Nuevo análisis</button>
-            </div>
-          </div>
-          <div class="space-y-2">
+          <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
             <div>
-              <label class="block text-xs text-neutral-400 mb-1">Análisis de precios</label>
+              <label class="block text-xs text-neutral-400 mb-1">
+                Análisis de precios
+                <button id="cn-btn-borrar-ap" onclick="cnBorrarAnalisis()" style="display:none" class="text-red-300 hover:text-red-500 transition">· Eliminar</button>
+                <button onclick="cnCrearAnalisis()" class="text-neutral-400 hover:text-neutral-600 transition ml-1">+ Crear</button>
+              </label>
               <select id="sel-ap" onchange="cnOnApChange()" class="w-full border border-neutral-300 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-neutral-400 bg-white text-neutral-600">
                 <option value="log">LOG arquitectura</option>
               </select>
@@ -262,68 +262,27 @@
                 <option value="">Seleccioná...</option>
               </select>
             </div>
-            <div class="flex gap-2">
-              <div class="flex-1 relative">
-                <label class="block text-xs text-neutral-400 mb-1">Nombre del ítem</label>
-                <input id="cn-nombre" type="text" placeholder="Buscá o escribí..."
-                  oninput="cnFiltrarItems(this)" onblur="cnOcultar(this)"
-                  onclick="if(this.readOnly) cnDesbloquearNombre(false)"
-                  class="w-full border border-neutral-300 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-neutral-400 bg-white text-neutral-600">
-                <div id="cn-nombre-sug" class="hidden absolute z-20 bg-white border border-neutral-200 rounded-lg shadow-lg max-h-52 overflow-y-auto w-full left-0 top-full mt-0.5"></div>
-              </div>
-              <div style="width:80px">
-                <label class="block text-xs text-neutral-400 mb-1">Unidad</label>
-                <input id="cn-unidad" type="text" placeholder="m3"
-                  onclick="if(this.readOnly) cnDesbloquearNombre(false)"
-                  class="w-full border border-neutral-300 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-neutral-400 bg-white text-neutral-600">
-              </div>
+            <div class="relative">
+              <label class="block text-xs text-neutral-400 mb-1">Nombre del ítem</label>
+              <input id="cn-nombre" type="text" placeholder="Buscá un ítem..."
+                oninput="cnFiltrarItems(this)" onblur="cnOcultar(this)"
+                onclick="if(this.readOnly) cnDesbloquearNombre(false)"
+                class="w-full border border-neutral-300 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-neutral-400 bg-white text-neutral-600">
+              <div id="cn-nombre-sug" class="hidden absolute z-20 bg-white border border-neutral-200 rounded-lg shadow-lg max-h-52 overflow-y-auto w-full left-0 top-full mt-0.5"></div>
+            </div>
+            <div>
+              <label class="block text-xs text-neutral-400 mb-1">Unidad</label>
+              <input id="cn-unidad" type="text" placeholder="Ej: m3"
+                onclick="if(this.readOnly) cnDesbloquearNombre(false)"
+                class="w-full border border-neutral-300 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-neutral-400 bg-white text-neutral-600">
             </div>
           </div>
-          <div class="flex items-center gap-2 mt-3">
-            <button onclick="cnLimpiar()" class="text-xs text-neutral-400 hover:text-neutral-600 transition">Limpiar</button>
+          <div class="flex justify-end mt-2 gap-2">
             <button id="cn-btn-borrar-item" onclick="cnBorrarItem()" style="display:none"
               class="text-xs text-red-400 hover:text-red-600 transition">Eliminar ítem</button>
-            <div class="flex-1"></div>
-            <button id="cn-btn-solo-crear" onclick="cnGuardar(false)" style="display:none"
-              class="px-3 py-1.5 bg-white border border-neutral-300 text-neutral-600 rounded-lg text-xs hover:bg-neutral-100 transition font-medium">
-              Solo crear
-            </button>
             <button id="cn-btn-crear" onclick="cnGuardar(true)" style="display:none"
               class="px-3 py-1.5 bg-neutral-700 text-white rounded-lg text-xs hover:bg-neutral-800 transition font-medium">
-              Crear y agregar
-            </button>
-          </div>
-        </div>
-
-        <!-- PANEL DERECHO: AGREGAR -->
-        <div class="px-5 py-4">
-          <div class="mb-3">
-            <span class="text-xs font-semibold tracking-widest text-neutral-500 uppercase">Agregar al presupuesto</span>
-          </div>
-          <div class="space-y-2">
-            <div>
-              <label class="block text-xs text-neutral-400 mb-1">Análisis de precios</label>
-              <select id="agregar-ap" onchange="agregarOnApChange(this.value)" class="w-full border border-neutral-300 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-neutral-400 bg-white text-neutral-600">
-                <option value="log">LOG arquitectura</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-xs text-neutral-400 mb-1">Rubro</label>
-              <select id="agregar-rubro" onchange="agregarOnRubroChange(this.value)" class="w-full border border-neutral-300 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-neutral-400 bg-white text-neutral-600">
-                <option value="">Seleccioná...</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-xs text-neutral-400 mb-1">Ítem</label>
-              <select id="agregar-item" class="w-full border border-neutral-300 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-neutral-400 bg-white text-neutral-600">
-                <option value="">Seleccioná un rubro primero...</option>
-              </select>
-            </div>
-          </div>
-          <div class="flex justify-end mt-3">
-            <button id="cn-btn-agregar" onclick="cnAgregarDesdePanel()"
-              class="px-4 py-1.5 bg-neutral-700 text-white rounded-lg text-xs hover:bg-neutral-800 transition font-medium">
-              + Agregar al presupuesto
+              Guardar ítem
             </button>
           </div>
         </div>
@@ -865,22 +824,9 @@
           var total = (parseFloat(item.cantidad) || 0) * (parseFloat(item.precio) || 0);
           var incid = totalGeneral > 0 ? (total / totalGeneral * 100).toFixed(1).replace('.', ',') + ' %' : '—';
 
-          // Select de AP
-          var itemApId = item.apId || 'log';
-          var apOpts = '<option value="log"' + (itemApId === 'log' ? ' selected' : '') + '>LOG</option>' +
-            apUsuarios.map(function(a) {
-              return '<option value="' + a.id + '"' + (itemApId === a.id ? ' selected' : '') + '>' + a.nombre + '</option>';
-            }).join('');
-
-          // Pool de ítems según AP seleccionado
-          var itemPool = presupGetItemSource(item);
-
-          // Select de rubro (filtrado a rubros que tienen ítems en el pool)
-          var rubrosConItems = {};
-          itemPool.forEach(function(i) { rubrosConItems[i.rubroId] = true; });
-          var rubrosDisp = (itemApId === 'log') ? todosRubros : todosRubros.filter(function(r) { return rubrosConItems[r.codigo]; });
+          // Select de rubro
           var rubroOpts = '<option value="">Rubro...</option>' +
-            rubrosDisp.map(function(r) {
+            todosRubros.map(function(r) {
               return '<option value="' + r.codigo + '"' + (item.rubroId === r.codigo ? ' selected' : '') + '>' + r.nombre + '</option>';
             }).join('');
 
@@ -888,7 +834,7 @@
           var itemOpts = '<option value="">Ítem...</option>';
           var itemNombrePrint = '';
           if (item.rubroId) {
-            itemPool.filter(function(i) { return i.rubroId === item.rubroId; }).forEach(function(i) {
+            todosItems.filter(function(i) { return i.rubroId === item.rubroId; }).forEach(function(i) {
               itemOpts += '<option value="' + i.codigo + '"' + (item.refCodigo === i.codigo ? ' selected' : '') + '>' + i.nombre + '</option>';
               if (item.refCodigo === i.codigo) itemNombrePrint = i.nombre;
             });
@@ -898,9 +844,6 @@
             '<td class="px-3 py-1.5 text-xs text-neutral-400 font-mono text-center">' + rubroNum + '.' + nroLocal + '</td>' +
             '<td class="px-1 py-0.5" colspan="3" style="max-width:0;overflow:hidden">' +
               '<div class="flex gap-1 w-full no-print">' +
-                '<select onchange="presupOnApChange(\'' + item.uid + '\', this.value)" ' +
-                'class="flex-1 min-w-0 border border-transparent hover:border-neutral-200 focus:border-neutral-400 rounded px-1 py-0.5 text-xs focus:outline-none bg-transparent text-neutral-400 cursor-pointer appearance-none">' +
-                apOpts + '</select>' +
                 '<select onchange="presupOnRubroChange(\'' + item.uid + '\', this.value)" ' +
                 'class="flex-1 min-w-0 border border-transparent hover:border-neutral-200 focus:border-neutral-400 rounded px-1 py-0.5 text-xs focus:outline-none bg-transparent text-neutral-400 cursor-pointer appearance-none">' +
                 rubroOpts + '</select>' +
@@ -1482,35 +1425,42 @@
 
     function cnOnApChange() {
       var esLog = cnEsModoLog();
-      var inputNombre   = document.getElementById('cn-nombre');
-      var inputUnidad   = document.getElementById('cn-unidad');
-      var btnCrear      = document.getElementById('cn-btn-crear');
-      var btnAgregar    = document.getElementById('cn-btn-agregar');
-      var btnBorrarAp   = document.getElementById('cn-btn-borrar-ap');
-      var btnBorrarItem = document.getElementById('cn-btn-borrar-item');
+      var inputNombre = document.getElementById('cn-nombre');
+      var inputUnidad = document.getElementById('cn-unidad');
+      var btnBorrarAp = document.getElementById('cn-btn-borrar-ap');
 
       if (esLog) {
         inputNombre.placeholder = 'Buscá un ítem...';
         inputUnidad.readOnly = true;
         inputUnidad.classList.add('bg-neutral-100', 'text-neutral-400');
         inputUnidad.classList.remove('bg-neutral-50', 'text-neutral-600');
-        if (btnCrear)      btnCrear.style.display      = 'none';
-        if (btnAgregar)    btnAgregar.style.display     = '';
-        if (btnBorrarAp)   btnBorrarAp.style.display    = 'none';
-        if (btnBorrarItem) btnBorrarItem.style.display  = 'none';
+        if (btnBorrarAp) btnBorrarAp.style.display = 'none';
       } else {
         inputNombre.placeholder = 'Buscá o escribí un ítem nuevo...';
         inputUnidad.readOnly = false;
         inputUnidad.classList.remove('bg-neutral-100', 'text-neutral-400');
         inputUnidad.classList.add('bg-neutral-50', 'text-neutral-600');
-        if (btnCrear)    btnCrear.style.display    = '';
-        var btnSoloCrear = document.getElementById('cn-btn-solo-crear');
-        if (btnSoloCrear) btnSoloCrear.style.display = '';
-        if (btnAgregar)  btnAgregar.style.display  = 'none';
         if (btnBorrarAp) btnBorrarAp.style.display = '';
       }
 
       cnLimpiar();
+    }
+
+    function cnAgregarAlPresupuesto() {
+      if (cnEsModoLog()) {
+        // Ítem de la base LOG: agregar el seleccionado
+        cnAgregarExistente();
+      } else {
+        // Análisis de usuario: guardar si tiene datos, y agregar
+        var rubroId = document.getElementById('cn-rubro').value;
+        var nombre  = document.getElementById('cn-nombre').value.trim();
+        if (!rubroId || !nombre) { alert('Seleccioná un ítem o completá el análisis antes de agregar.'); return; }
+        if (cnCodigoActual) {
+          cnAgregarExistente();
+        } else {
+          cnGuardar(true);
+        }
+      }
     }
 
     function cnBorrarAnalisis() {
@@ -1678,60 +1628,16 @@
     var apUsuarios = JSON.parse(localStorage.getItem('ap_usuarios') || '[]');
 
     function cnCargarApSelector() {
-      ['sel-ap', 'agregar-ap'].forEach(function(selId) {
-        var sel = document.getElementById(selId);
-        if (!sel) return;
-        Array.from(sel.options).forEach(function(o) { if (o.dataset.usuario) sel.remove(o.index); });
-        apUsuarios.forEach(function(ap) {
-          var opt = document.createElement('option');
-          opt.value = ap.id;
-          opt.textContent = ap.nombre;
-          opt.dataset.usuario = '1';
-          sel.appendChild(opt);
-        });
+      var sel = document.getElementById('sel-ap');
+      if (!sel) return;
+      Array.from(sel.options).forEach(function(o) { if (o.dataset.usuario) sel.remove(o.index); });
+      apUsuarios.forEach(function(ap) {
+        var opt = document.createElement('option');
+        opt.value = ap.id;
+        opt.textContent = ap.nombre;
+        opt.dataset.usuario = '1';
+        sel.appendChild(opt);
       });
-    }
-
-    function agregarGetPool(apId) {
-      if (!apId || apId === 'log') return todosItems;
-      var ap = apUsuarios.find(function(a) { return a.id === apId; });
-      return ap ? ap.items : todosItems;
-    }
-
-    function agregarOnApChange(apId) {
-      var pool = agregarGetPool(apId);
-      var rubrosVistos = {};
-      var rubros = [];
-      pool.forEach(function(i) {
-        if (!rubrosVistos[i.rubroId]) {
-          rubrosVistos[i.rubroId] = true;
-          var r = todosRubros.find(function(r) { return r.codigo === i.rubroId; });
-          if (r) rubros.push(r);
-        }
-      });
-      var sel = document.getElementById('agregar-rubro');
-      sel.innerHTML = '<option value="">Seleccioná...</option>' +
-        rubros.map(function(r) { return '<option value="' + r.codigo + '">' + r.nombre + '</option>'; }).join('');
-      document.getElementById('agregar-item').innerHTML = '<option value="">Seleccioná un rubro primero...</option>';
-    }
-
-    function agregarOnRubroChange(rubroId) {
-      var apId = document.getElementById('agregar-ap').value;
-      var pool = agregarGetPool(apId);
-      var items = pool.filter(function(i) { return i.rubroId === rubroId; });
-      var sel = document.getElementById('agregar-item');
-      sel.innerHTML = '<option value="">Seleccioná un ítem...</option>' +
-        items.map(function(i) { return '<option value="' + i.codigo + '">' + i.nombre + '</option>'; }).join('');
-    }
-
-    function cnAgregarDesdePanel() {
-      var apId = document.getElementById('agregar-ap').value;
-      var codigo = document.getElementById('agregar-item').value;
-      if (!codigo) { alert('Seleccioná un ítem primero.'); return; }
-      var pool = agregarGetPool(apId);
-      var item = pool.find(function(i) { return i.codigo === codigo; });
-      if (!item) return;
-      agregarItem(item, apId);
     }
 
     function cnCrearAnalisis() {
@@ -1772,17 +1678,12 @@
       if (body) body.classList.add('hidden');
       if (chevron) chevron.style.transform = '';
       cnRenderTablas();
-      // ocultar "Eliminar ítem"
-      var btnBorrarItem = document.getElementById('cn-btn-borrar-item');
-      if (btnBorrarItem) btnBorrarItem.style.display = 'none';
-      // restaurar botones según modo AP
+      // ocultar botones según modo AP
       var esLog = cnEsModoLog();
-      var btnCrear     = document.getElementById('cn-btn-crear');
-      var btnSoloCrear = document.getElementById('cn-btn-solo-crear');
-      var btnAgregar   = document.getElementById('cn-btn-agregar');
-      if (btnCrear)     btnCrear.style.display     = esLog ? 'none' : '';
-      if (btnSoloCrear) btnSoloCrear.style.display = esLog ? 'none' : '';
-      if (btnAgregar)   btnAgregar.style.display   = esLog ? '' : 'none';
+      var btnBorrarItem = document.getElementById('cn-btn-borrar-item');
+      var btnCrear      = document.getElementById('cn-btn-crear');
+      if (btnBorrarItem) btnBorrarItem.style.display = 'none';
+      if (btnCrear)      btnCrear.style.display      = esLog ? 'none' : 'none';
     }
 
     function cnAgregarExistente() {

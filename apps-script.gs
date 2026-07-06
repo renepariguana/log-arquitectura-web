@@ -346,6 +346,40 @@ function doGet(e) {
     }
   }
 
+  if (e && e.parameter && e.parameter.action === 'manoobra') {
+    try {
+      var AP_SS  = SpreadsheetApp.openById('1mzWe4dXvMYvRDJA9MIqjJDy3U2kZY133qKyICT6W43s');
+      var hojaM  = AP_SS.getSheetByName('mano de obra')
+                || AP_SS.getSheetByName('Mano de Obra')
+                || AP_SS.getSheetByName('MO');
+      if (!hojaM) throw new Error('Hoja "mano de obra" no encontrada');
+
+      var datosM = hojaM.getDataRange().getValues();
+      var items  = [];
+      var header = datosM[0] || [];
+
+      for (var ri = 1; ri < datosM.length; ri++) {
+        var fila = datosM[ri];
+        if (!fila[0] && !fila[1]) continue;
+        var obj = {};
+        for (var ci = 0; ci < header.length; ci++) {
+          var key = (header[ci] || 'col' + ci).toString().trim().toLowerCase()
+            .replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+          obj[key] = fila[ci];
+        }
+        items.push(obj);
+      }
+
+      return ContentService
+        .createTextOutput(JSON.stringify(items))
+        .setMimeType(ContentService.MimeType.JSON);
+    } catch (err) {
+      return ContentService
+        .createTextOutput(JSON.stringify({ error: err.toString() }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+  }
+
   if (e && e.parameter && e.parameter.action === 'precios') {
     try {
       var sheet  = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Servicios');
@@ -605,6 +639,283 @@ function configurarMPToken() {
     'TEST-4519992620088034-070312-dcb30786a1159aa0285ab249a61f81fd-151587833'
   );
   Logger.log('MP Access Token guardado.');
+}
+
+// ─── UOCRA — Actualizar escalas salariales mano de obra ──────────────────────
+// REQUISITO PREVIO: en el proyecto Apps Script ir a
+//   Servicios → Agregar servicio → Drive API v2 → Agregar
+// Luego ejecutar crearTriggerMensualUOCRA() una sola vez.
+
+var UOCRA_SHEET_ID  = '1mzWe4dXvMYvRDJA9MIqjJDy3U2kZY133qKyICT6W43s';
+var UOCRA_EMAIL     = 'estudiologarquitectura@gmail.com';
+var UOCRA_PAGE_URL  = 'https://www.uocra.org/?s=nuevas-escalas-salariales&lang=1';
+// Tucumán pertenece a Zona A (CCT 76/75 — construcción interior del país)
+// Zona A: CABA, Bs.As., Santa Fe, Córdoba, Mendoza, Tucumán y otras provincias del NOA/NEA/centro
+// Zona B: Neuquén, Río Negro, Chubut | Zona C: Santa Cruz | Zona C Austral: Tierra del Fuego
+var UOCRA_ZONA      = 'A';
+var UOCRA_CCT       = '76'; // buscar PDF del CCT 76/75 (construcción interior)
+
+function actualizarSalariosUOCRA() {
+  try {
+    // 1. Scrapear página UOCRA — extraer todos los links a PDF
+    var html = UrlFetchApp.fetch(UOCRA_PAGE_URL, { muteHttpExceptions: true }).getContentText();
+    var pdfLinks = [];
+    var reLink = /href="([^"]*\.pdf[^"]*)"/gi;
+    var m;
+    while ((m = reLink.exec(html)) !== null) pdfLinks.push(m[1]);
+
+    if (!pdfLinks.length) {
+      Logger.log('UOCRA: No se encontraron PDFs en la página.');
+      return;
+    }
+
+    // Buscar primero un PDF del CCT 76/75 (aplica a Tucumán, interior del país)
+    // Si no se encuentra, usar el primero disponible como fallback
+    var pdfPath = '';
+    for (var i = 0; i < pdfLinks.length; i++) {
+      if (/76[-_]?75|76[-_]75|cct[-_]?76/i.test(pdfLinks[i])) {
+        pdfPath = pdfLinks[i];
+        break;
+      }
+    }
+    if (!pdfPath) pdfPath = pdfLinks[0]; // fallback al primero
+
+    var pdfUrl  = pdfPath.startsWith('http')
+      ? pdfPath
+      : 'https://www.uocra.org/' + pdfPath.replace(/^\//, '');
+
+    // 2. Verificar si ya fue procesado
+    var props    = PropertiesService.getScriptProperties();
+    var ultimoUrl = props.getProperty('UOCRA_LAST_PDF') || '';
+    if (ultimoUrl === pdfUrl) {
+      Logger.log('UOCRA: Sin novedades. Último PDF procesado: ' + pdfUrl);
+      return;
+    }
+
+    // 3. Descargar PDF
+    var pdfBlob = UrlFetchApp.fetch(pdfUrl, { muteHttpExceptions: true })
+      .getBlob().setName('uocra_escalas.pdf');
+
+    // 4. Subir a Drive con OCR (convierte imagen escaneada a texto)
+    var tempDoc = Drive.Files.insert(
+      { title: 'uocra_ocr_' + Date.now(), mimeType: 'application/vnd.google-apps.document' },
+      pdfBlob,
+      { ocr: true, ocrLanguage: 'es' }
+    );
+
+    // 5. Extraer texto del documento
+    var texto = DocumentApp.openById(tempDoc.id).getBody().getText();
+    DriveApp.getFileById(tempDoc.id).setTrashed(true);
+
+    // 6. Parsear salarios y actualizar hoja
+    props.setProperty('UOCRA_LAST_PDF', pdfUrl);
+    var salarios = parsearSalariosUOCRA(texto);
+    var fecha    = new Date().toLocaleDateString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' });
+
+    var hayDatos = salarios && salarios.basicos && Object.keys(salarios.basicos).length > 0;
+    if (hayDatos) {
+      actualizarHojaManoObra(salarios, fecha);
+      // Armar resumen del email
+      var lineasEmail = ['Salarios básicos (iguales para todas las zonas):'];
+      var basicosA = salarios.basicos['Zona A'] || {};
+      Object.keys(basicosA).forEach(function(cat) {
+        lineasEmail.push('  • ' + cat + ': $' + Number(basicosA[cat]).toLocaleString('es-AR') + '/h');
+      });
+      if (salarios.adicionales && Object.keys(salarios.adicionales).length) {
+        lineasEmail.push('\nAdicionales por zona:');
+        Object.keys(salarios.adicionales).forEach(function(zona) {
+          lineasEmail.push('  ' + zona + ':');
+          var adics = salarios.adicionales[zona];
+          Object.keys(adics).forEach(function(cat) {
+            lineasEmail.push('    + $' + Number(adics[cat]).toLocaleString('es-AR') + ' (' + cat + ')');
+          });
+        });
+      }
+      MailApp.sendEmail(UOCRA_EMAIL,
+        'UOCRA — Salarios actualizados ' + fecha,
+        'Fuente: ' + pdfUrl + '\n\n' + lineasEmail.join('\n')
+      );
+      Logger.log('UOCRA: Actualizado — ' + JSON.stringify(salarios));
+    } else {
+      MailApp.sendEmail(UOCRA_EMAIL,
+        'UOCRA — Nuevo PDF detectado (revisión manual)',
+        'Se detectó un nuevo PDF pero no se pudo parsear automáticamente.\n' +
+        'URL: ' + pdfUrl + '\n\n' +
+        'Texto extraído:\n' + texto.substring(0, 3000)
+      );
+      Logger.log('UOCRA: Parseo fallido para ' + pdfUrl);
+    }
+
+  } catch (err) {
+    Logger.log('UOCRA Error: ' + err.toString());
+    MailApp.sendEmail(UOCRA_EMAIL, 'UOCRA — Error al actualizar salarios', err.toString());
+  }
+}
+
+function parsearSalariosUOCRA(texto) {
+  // Retorna: { basicos: { 'Zona A': {cat: val}, ... }, adicionales: { 'Zona B': {cat: val}, ... } }
+  // CCT 76/75: Zona A/B/C/C Austral  |  CCT 545/08 fallback: Zona I/II/III/IV
+  var NCAT = 5;
+  var categorias = ['Ayudante', 'Medio oficial', 'Oficial', 'Oficial especializado', 'Sereno (mensual)'];
+
+  var zonaDefs = [
+    { key: 'Zona A',         re: /zona\s*[Aa]\b/,                hayAdic: false },
+    { key: 'Zona B',         re: /zona\s*[Bb]\b/,                hayAdic: true  },
+    { key: 'Zona C Austral', re: /zona\s*[Cc]\s*austral/i,       hayAdic: true  },
+    { key: 'Zona C',         re: /zona\s*[Cc]\b(?!\s*austral)/i, hayAdic: true  },
+    { key: 'Zona A',         re: /zona\s*[I1l]\b(?!\s*[I1Vv])/,  hayAdic: false },
+    { key: 'Zona B',         re: /zona\s*II\b/i,                 hayAdic: true  },
+    { key: 'Zona C',         re: /zona\s*III\b/i,                hayAdic: true  },
+    { key: 'Zona C Austral', re: /zona\s*IV\b/i,                 hayAdic: true  }
+  ];
+
+  var lineas     = texto.split('\n');
+  var basicos    = {};
+  var adicionales = {};
+
+  zonaDefs.forEach(function(z) {
+    var k = z.key;
+    if (basicos[k] && (!z.hayAdic || adicionales[k])) return;
+
+    var ultimaFila = -1;
+    for (var i = 0; i < lineas.length; i++) {
+      if (z.re.test(lineas[i]) && /[\d.,]{3,}/.test(lineas[i])) ultimaFila = i;
+    }
+    if (ultimaFila === -1) return;
+
+    var filaTexto = lineas.slice(ultimaFila, ultimaFila + 3).join(' ');
+    var reNum = /\b\d{1,3}(?:[.,]\d{3})+(?:[.,]\d+)?\b|\b\d{3,}\b/g;
+    var nums = [], m;
+    while ((m = reNum.exec(filaTexto)) !== null) {
+      var val = parseFloat(m[0].replace(/\./g, '').replace(',', '.'));
+      if (val >= 50 && val < 100000000) nums.push(val);
+    }
+    if (!nums.length) return;
+
+    // Si hay > NCAT+4 números, la fila tiene intercalados básico+adicional por categoría
+    var intercalado = z.hayAdic && nums.length > NCAT + 4;
+    var bObj = {}, aObj = {};
+
+    for (var i = 0; i < NCAT; i++) {
+      var bi = intercalado ? i * 2     : i;
+      var ai = intercalado ? i * 2 + 1 : -1;
+      if (bi < nums.length) bObj[categorias[i]] = nums[bi];
+      if (ai !== -1 && ai < nums.length) aObj[categorias[i]] = nums[ai];
+    }
+
+    if (!basicos[k])      basicos[k] = bObj;
+    if (z.hayAdic && Object.keys(aObj).length && !adicionales[k]) adicionales[k] = aObj;
+  });
+
+  return { basicos: basicos, adicionales: adicionales };
+}
+
+function actualizarHojaManoObra(data, fecha) {
+  // data = { basicos: { 'Zona A': {cat:val}, ... }, adicionales: { 'Zona B': {cat:val}, ... } }
+  var ss   = SpreadsheetApp.openById(UOCRA_SHEET_ID);
+  var hoja = ss.getSheetByName('MANO DE OBRA')
+          || ss.getSheetByName('mano de obra')
+          || ss.getSheetByName('Mano de Obra')
+          || ss.getSheetByName('MO');
+  if (!hoja) throw new Error('Hoja "MANO DE OBRA" no encontrada.');
+
+  var datos = hoja.getDataRange().getValues();
+
+  // Detectar la fila de encabezados sub-columna (tiene "CATEGORIA" y "Salario Básico")
+  // y mapear cada tipo de columna a su índice.
+  // Estructura esperada:
+  //   "Salario Básico Zona A"         → basico_A
+  //   "Salario Básico Zona B"         → basico_B
+  //   "Adicional zona desfavorable... B" → adicional_B
+  //   "Salario Básico Zona C Austral" → basico_CA
+  //   "Adicional ... C Austral"       → adicional_CA
+  //   "Salario Básico Zona C"         → basico_C  (detectar DESPUÉS de CA para no confundir)
+  //   "Adicional ... C"               → adicional_C
+
+  var colCat  = 0;
+  var colMap  = {}; // { 'basico_A': col, 'basico_B': col, 'adicional_B': col, ... }
+  var filaHeader = -1;
+
+  for (var r = 0; r < datos.length; r++) {
+    var fila = datos[r];
+    var encontro = false;
+    for (var c = 0; c < fila.length; c++) {
+      var t = (fila[c] || '').toString().toLowerCase().replace(/["""]/g, '').trim();
+      if (!t) continue;
+
+      if (/^categor/.test(t))                                         { colCat = c; encontro = true; }
+
+      // Básicos — C Austral ANTES que C para evitar match parcial
+      if (/salario.*b[aá]s.*zona.*a\b/.test(t))                      { colMap.basico_A  = c; encontro = true; }
+      if (/salario.*b[aá]s.*zona.*b\b/.test(t))                      { colMap.basico_B  = c; encontro = true; }
+      if (/salario.*b[aá]s.*zona.*c.*austral/.test(t))               { colMap.basico_CA = c; encontro = true; }
+      else if (/salario.*b[aá]s.*zona.*c\b/.test(t))                 { colMap.basico_C  = c; encontro = true; }
+
+      // Adicionales
+      if (/adicional.*zona.*b\b|zona.*b.*adicional/.test(t))         { colMap.adicional_B  = c; encontro = true; }
+      if (/adicional.*zona.*c.*austral|zona.*c.*austral.*adicional/.test(t)) { colMap.adicional_CA = c; encontro = true; }
+      else if (/adicional.*zona.*c\b|zona.*c.*adicional/.test(t))    { colMap.adicional_C  = c; encontro = true; }
+    }
+    if (encontro) { filaHeader = r; break; }
+  }
+
+  var zonaColDef = [
+    { zona: 'Zona A',         colBasico: 'basico_A',  colAdic: null         },
+    { zona: 'Zona B',         colBasico: 'basico_B',  colAdic: 'adicional_B'  },
+    { zona: 'Zona C',         colBasico: 'basico_C',  colAdic: 'adicional_C'  },
+    { zona: 'Zona C Austral', colBasico: 'basico_CA', colAdic: 'adicional_CA' }
+  ];
+
+  var filaInicio = filaHeader >= 0 ? filaHeader + 1 : 1;
+  var actualizados = [];
+
+  for (var r = filaInicio; r < datos.length; r++) {
+    var catCelda = (datos[r][colCat] || '').toString().trim();
+    if (!catCelda) continue;
+
+    zonaColDef.forEach(function(def) {
+      var basicosZona = (data.basicos || {})[def.zona] || {};
+      var adicsZona   = (data.adicionales || {})[def.zona] || {};
+
+      for (var cat in basicosZona) {
+        var a = catCelda.toLowerCase(), b = cat.toLowerCase();
+        if (a.indexOf(b) === -1 && b.indexOf(a) === -1) continue;
+
+        // Escribir básico
+        var colB = colMap[def.colBasico];
+        if (colB !== undefined) {
+          hoja.getRange(r + 1, colB + 1).setValue(basicosZona[cat]);
+          actualizados.push(def.zona + ' ' + cat + ' básico $' + basicosZona[cat]);
+        }
+        // Escribir adicional (Zona B/C/C Austral)
+        if (def.colAdic && adicsZona[cat] !== undefined) {
+          var colA = colMap[def.colAdic];
+          if (colA !== undefined) {
+            hoja.getRange(r + 1, colA + 1).setValue(adicsZona[cat]);
+            actualizados.push(def.zona + ' ' + cat + ' adicional $' + adicsZona[cat]);
+          }
+        }
+        break;
+      }
+    });
+  }
+
+  Logger.log('UOCRA: ' + actualizados.join(' | '));
+  return actualizados;
+}
+
+// Ejecutar UNA VEZ para instalar el trigger mensual
+function crearTriggerMensualUOCRA() {
+  ScriptApp.getProjectTriggers().forEach(function(t) {
+    if (t.getHandlerFunction() === 'actualizarSalariosUOCRA') ScriptApp.deleteTrigger(t);
+  });
+  ScriptApp.newTrigger('actualizarSalariosUOCRA')
+    .timeBased()
+    .onMonthDay(1)
+    .atHour(9)
+    .inTimezone('America/Argentina/Buenos_Aires')
+    .create();
+  Logger.log('Trigger mensual creado: actualizarSalariosUOCRA corre el día 1 de cada mes a las 9 AM.');
 }
 
 function crearTriggerClientes() {
