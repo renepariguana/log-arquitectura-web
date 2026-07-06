@@ -239,9 +239,13 @@
             class="px-4 py-1.5 text-xs text-red-400 hover:text-red-600 transition">
             Eliminar ítem
           </button>
-          <button id="cn-btn-crear" onclick="cnGuardar()" style="display:none"
+          <button id="cn-btn-solo-crear" onclick="cnGuardar(false)" style="display:none"
+            class="px-4 py-1.5 bg-white border border-neutral-300 text-neutral-600 rounded-lg text-xs hover:bg-neutral-100 transition font-medium">
+            Solo crear
+          </button>
+          <button id="cn-btn-crear" onclick="cnGuardar(true)" style="display:none"
             class="px-4 py-1.5 bg-neutral-400 text-white rounded-lg text-xs hover:bg-neutral-500 transition font-medium">
-            Crear y Agregar
+            Crear y agregar
           </button>
           <button id="cn-btn-agregar" onclick="cnAgregarExistente()"
             class="px-4 py-1.5 bg-neutral-400 text-white rounded-lg text-xs hover:bg-neutral-500 transition font-medium">
@@ -1228,11 +1232,13 @@
         cnActualizarModo();
         cnRenderTablas();
         cnRenderCascada();
-        // ítem existente del usuario → "+ Agregar" + "Eliminar ítem", ocultar "Crear y Agregar"
+        // ítem existente del usuario → "+ Agregar" + "Eliminar ítem", ocultar botones de crear
         var btnCrear      = document.getElementById('cn-btn-crear');
+        var btnSoloCrear  = document.getElementById('cn-btn-solo-crear');
         var btnAgregar    = document.getElementById('cn-btn-agregar');
         var btnBorrarItem = document.getElementById('cn-btn-borrar-item');
         if (btnCrear)      btnCrear.style.display      = 'none';
+        if (btnSoloCrear)  btnSoloCrear.style.display  = 'none';
         if (btnAgregar)    btnAgregar.style.display     = '';
         if (btnBorrarItem) btnBorrarItem.style.display  = '';
       } else {
@@ -1410,6 +1416,8 @@
         inputUnidad.classList.remove('bg-neutral-100', 'text-neutral-400');
         inputUnidad.classList.add('bg-neutral-50', 'text-neutral-600');
         if (btnCrear)    btnCrear.style.display    = '';
+        var btnSoloCrear = document.getElementById('cn-btn-solo-crear');
+        if (btnSoloCrear) btnSoloCrear.style.display = '';
         if (btnAgregar)  btnAgregar.style.display  = 'none';
         if (btnBorrarAp) btnBorrarAp.style.display = '';
       }
@@ -1450,7 +1458,9 @@
         if (el) el.style.display = cnModoVer ? 'none' : '';
       });
       var btnCrear = document.getElementById('cn-btn-crear');
-      if (btnCrear) btnCrear.style.display = (cnModoVer || esLog) ? 'none' : '';
+      var btnSoloCrear = document.getElementById('cn-btn-solo-crear');
+      if (btnCrear)     btnCrear.style.display     = (cnModoVer || esLog) ? 'none' : '';
+      if (btnSoloCrear) btnSoloCrear.style.display = (cnModoVer || esLog) ? 'none' : '';
     }
 
     function cnRenderTabla(tipo, filas, bodyId, subId) {
@@ -1635,10 +1645,12 @@
       if (btnBorrarItem) btnBorrarItem.style.display = 'none';
       // restaurar botones según modo AP
       var esLog = cnEsModoLog();
-      var btnCrear   = document.getElementById('cn-btn-crear');
-      var btnAgregar = document.getElementById('cn-btn-agregar');
-      if (btnCrear)   btnCrear.style.display   = esLog ? 'none' : '';
-      if (btnAgregar) btnAgregar.style.display  = esLog ? '' : 'none';
+      var btnCrear     = document.getElementById('cn-btn-crear');
+      var btnSoloCrear = document.getElementById('cn-btn-solo-crear');
+      var btnAgregar   = document.getElementById('cn-btn-agregar');
+      if (btnCrear)     btnCrear.style.display     = esLog ? 'none' : '';
+      if (btnSoloCrear) btnSoloCrear.style.display = esLog ? 'none' : '';
+      if (btnAgregar)   btnAgregar.style.display   = esLog ? '' : 'none';
     }
 
     function cnAgregarExistente() {
@@ -1650,7 +1662,7 @@
       cnLimpiar();
     }
 
-    function cnGuardar() {
+    function cnGuardar(agregarAlPresupuesto) {
       var rubroId = document.getElementById('cn-rubro').value;
       var nombre  = document.getElementById('cn-nombre').value.trim().toUpperCase();
       var unidad  = document.getElementById('cn-unidad').value.trim();
@@ -1677,7 +1689,6 @@
       });
       var codigo = rubroId + '.' + (lastDecimal + 1);
 
-      // Guardar en el análisis del usuario (localStorage) y agregar al presupuesto
       var nuevoItem = {
         codigo: codigo, nombre: nombre, unidad: unidad, precio: costo, rubroId: rubroId,
         materiales: cnFilasMat.map(function(f) { return Object.assign({}, f); }),
@@ -1686,7 +1697,7 @@
       };
       pool.push(nuevoItem);
       if (ap) { localStorage.setItem('ap_usuarios', JSON.stringify(apUsuarios)); fbGuardarAp(); }
-      agregarItem(nuevoItem);
+      if (agregarAlPresupuesto) agregarItem(nuevoItem);
 
       cnLimpiar();
     }
