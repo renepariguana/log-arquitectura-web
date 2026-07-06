@@ -15,14 +15,14 @@
 - El Apps Script usa `SpreadsheetApp.getActiveSpreadsheet()` — la hoja "Clientes" debe existir en ese mismo spreadsheet
 - Columnas hoja "Clientes": Nombre | Proyecto | Email | Contraseña (DNI) | Link Drive | Estado
 - La carpeta Drive de cada cliente se identifica por su ID (extraído del Link Drive)
-- Cada vez que se modifica apps-script.gs hay que publicar una **nueva versión** del Web App y actualizar `GSHEET_URL` en index.html
+- Cada vez que se modifica log-arquitectura.gs hay que publicar una **nueva versión** del Web App y actualizar `GSHEET_URL` en index.html
 
 ---
 
 ### Task 1: Apps Script — endpoint login + listar archivos
 
 **Files:**
-- Modify: `apps-script.gs`
+- Modify: `log-arquitectura.gs`
 
 **Interfaces:**
 - Produce: `doPost({ action:"login", email, dni })` → `{ ok:true, nombre, folderId }` | `{ ok:false, error }`
@@ -30,7 +30,7 @@
 
 - [ ] **Step 1: Agregar acción `login` al `doPost`**
 
-En `apps-script.gs`, dentro de la función `doPost`, antes del bloque `if (p.hoja === 'mensajes')`, agregar:
+En `log-arquitectura.gs`, dentro de la función `doPost`, antes del bloque `if (p.hoja === 'mensajes')`, agregar:
 
 ```javascript
 if (p.action === 'login') {
@@ -83,7 +83,7 @@ if (p.action === 'login') {
 
 - [ ] **Step 2: Agregar acción `archivos` al `doGet`**
 
-En `apps-script.gs`, dentro de `doGet`, agregar un nuevo bloque `if` antes del `return` final:
+En `log-arquitectura.gs`, dentro de `doGet`, agregar un nuevo bloque `if` antes del `return` final:
 
 ```javascript
 if (e && e.parameter && e.parameter.action === 'archivos') {
@@ -128,7 +128,7 @@ En Google Apps Script:
 - [ ] **Step 4: Commit**
 
 ```bash
-git add apps-script.gs
+git add log-arquitectura.gs
 git commit -m "feat: agregar login y listar archivos al Apps Script"
 ```
 
@@ -397,7 +397,7 @@ function cerrarPdf() {
 }
 ```
 
-**Nota importante:** El login usa `doGet` con parámetros (en lugar de `doPost`) porque el Apps Script necesitar una nueva acción GET para login. Agregar en `doGet` de apps-script.gs:
+**Nota importante:** El login usa `doGet` con parámetros (en lugar de `doPost`) porque el Apps Script necesitar una nueva acción GET para login. Agregar en `doGet` de log-arquitectura.gs:
 
 ```javascript
 if (e && e.parameter && e.parameter.action === 'login') {
@@ -462,7 +462,7 @@ Reemplazar la URL en la línea `var GSHEET_URL = '...'` con la nueva URL del App
 - [ ] **Step 3: Push a GitHub**
 
 ```bash
-git add index.html apps-script.gs
+git add index.html log-arquitectura.gs
 git commit -m "feat: actualizar GSHEET_URL para portal de clientes"
 git push https://TOKEN@github.com/renepariguana/log-arquitectura-web.git main
 ```

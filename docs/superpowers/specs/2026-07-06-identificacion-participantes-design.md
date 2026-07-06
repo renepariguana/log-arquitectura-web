@@ -134,7 +134,7 @@ Drive de estos roles se agregan en pasos futuros.)
 
 ---
 
-## Cambios en Apps Script (`apps-script.gs`)
+## Cambios en Apps Script (`log-arquitectura.gs`)
 
 Requiere **re-publicar una nueva versión** del Web App tras editar.
 
@@ -187,7 +187,7 @@ Requiere **re-publicar una nueva versión** del Web App tras editar.
 
 ## Testing
 
-`index.html` + `apps-script.gs` sin build ni test runner → validación **manual**:
+`index.html` + `log-arquitectura.gs` sin build ni test runner → validación **manual**:
 
 1. Modal → 4 tarjetas visibles; botón de Google deshabilitado hasta elegir un rol.
 2. Elegir **Mano de obra** → login → se crea la pestaña `Mano de obra` (si no existía) y
