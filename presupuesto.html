@@ -627,6 +627,21 @@
       guardarLocal();
     }
 
+    function agregarItem(dbItem) {
+      presupuesto.push({
+        uid       : Date.now() + '_' + Math.floor(Math.random() * 9999),
+        rubroId   : dbItem.rubroId   || '',
+        refCodigo : dbItem.codigo    || '',
+        descripcion: '',
+        unidad    : dbItem.unidad    || '',
+        cantidad  : 1,
+        precio    : parseFloat(dbItem.precio) || 0,
+        precioBase: parseFloat(dbItem.precio) || 0
+      });
+      renderPresupuesto();
+      guardarLocal();
+    }
+
     // ─── EDICIÓN INLINE ───────────────────────────────────────────────────────
     function presupEdit(uid, field, value) {
       var item = presupuesto.find(function(i) { return i.uid === uid; });
