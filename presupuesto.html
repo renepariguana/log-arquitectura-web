@@ -627,9 +627,10 @@
       guardarLocal();
     }
 
-    function agregarItem(dbItem) {
+    function agregarItem(dbItem, apId) {
       presupuesto.push({
         uid       : Date.now() + '_' + Math.floor(Math.random() * 9999),
+        apId      : apId || 'log',
         rubroId   : dbItem.rubroId   || '',
         refCodigo : dbItem.codigo    || '',
         descripcion: '',
@@ -638,6 +639,24 @@
         precio    : parseFloat(dbItem.precio) || 0,
         precioBase: parseFloat(dbItem.precio) || 0
       });
+      renderPresupuesto();
+      guardarLocal();
+    }
+
+    function presupGetItemSource(item) {
+      if (!item.apId || item.apId === 'log') return todosItems;
+      var ap = apUsuarios.find(function(a) { return a.id === item.apId; });
+      return ap ? ap.items : todosItems;
+    }
+
+    function presupOnApChange(uid, apId) {
+      var item = presupuesto.find(function(i) { return i.uid === uid; });
+      if (!item) return;
+      item.apId = apId;
+      item.rubroId = '';
+      item.refCodigo = '';
+      item.unidad = '';
+      item.precio = 0;
       renderPresupuesto();
       guardarLocal();
     }
@@ -685,7 +704,8 @@
       var item = presupuesto.find(function(i) { return i.uid === uid; });
       if (!item) return;
       item.refCodigo = select.value;
-      var dbItem = todosItems.find(function(i) { return i.codigo === select.value; });
+      var pool = presupGetItemSource(item);
+      var dbItem = pool.find(function(i) { return i.codigo === select.value; });
       if (dbItem) {
         item.unidad = dbItem.unidad || item.unidad;
         item.precioBase = dbItem.precio || 0;
@@ -808,9 +828,22 @@
           var total = (parseFloat(item.cantidad) || 0) * (parseFloat(item.precio) || 0);
           var incid = totalGeneral > 0 ? (total / totalGeneral * 100).toFixed(1).replace('.', ',') + ' %' : '—';
 
-          // Select de rubro
+          // Select de AP
+          var itemApId = item.apId || 'log';
+          var apOpts = '<option value="log"' + (itemApId === 'log' ? ' selected' : '') + '>LOG</option>' +
+            apUsuarios.map(function(a) {
+              return '<option value="' + a.id + '"' + (itemApId === a.id ? ' selected' : '') + '>' + a.nombre + '</option>';
+            }).join('');
+
+          // Pool de ítems según AP seleccionado
+          var itemPool = presupGetItemSource(item);
+
+          // Select de rubro (filtrado a rubros que tienen ítems en el pool)
+          var rubrosConItems = {};
+          itemPool.forEach(function(i) { rubrosConItems[i.rubroId] = true; });
+          var rubrosDisp = (itemApId === 'log') ? todosRubros : todosRubros.filter(function(r) { return rubrosConItems[r.codigo]; });
           var rubroOpts = '<option value="">Rubro...</option>' +
-            todosRubros.map(function(r) {
+            rubrosDisp.map(function(r) {
               return '<option value="' + r.codigo + '"' + (item.rubroId === r.codigo ? ' selected' : '') + '>' + r.nombre + '</option>';
             }).join('');
 
@@ -818,7 +851,7 @@
           var itemOpts = '<option value="">Ítem...</option>';
           var itemNombrePrint = '';
           if (item.rubroId) {
-            todosItems.filter(function(i) { return i.rubroId === item.rubroId; }).forEach(function(i) {
+            itemPool.filter(function(i) { return i.rubroId === item.rubroId; }).forEach(function(i) {
               itemOpts += '<option value="' + i.codigo + '"' + (item.refCodigo === i.codigo ? ' selected' : '') + '>' + i.nombre + '</option>';
               if (item.refCodigo === i.codigo) itemNombrePrint = i.nombre;
             });
@@ -828,6 +861,9 @@
             '<td class="px-3 py-1.5 text-xs text-neutral-400 font-mono text-center">' + rubroNum + '.' + nroLocal + '</td>' +
             '<td class="px-1 py-0.5" colspan="3" style="max-width:0;overflow:hidden">' +
               '<div class="flex gap-1 w-full no-print">' +
+                '<select onchange="presupOnApChange(\'' + item.uid + '\', this.value)" ' +
+                'class="flex-1 min-w-0 border border-transparent hover:border-neutral-200 focus:border-neutral-400 rounded px-1 py-0.5 text-xs focus:outline-none bg-transparent text-neutral-400 cursor-pointer appearance-none">' +
+                apOpts + '</select>' +
                 '<select onchange="presupOnRubroChange(\'' + item.uid + '\', this.value)" ' +
                 'class="flex-1 min-w-0 border border-transparent hover:border-neutral-200 focus:border-neutral-400 rounded px-1 py-0.5 text-xs focus:outline-none bg-transparent text-neutral-400 cursor-pointer appearance-none">' +
                 rubroOpts + '</select>' +
@@ -1673,7 +1709,8 @@
       var pool = cnItemsDelAp();
       var item = pool.find(function(i) { return i.codigo === cnCodigoActual; });
       if (!item) return;
-      agregarItem(item);
+      var apId = document.getElementById('sel-ap').value;
+      agregarItem(item, apId);
       cnLimpiar();
     }
 
@@ -1712,7 +1749,7 @@
       };
       pool.push(nuevoItem);
       if (ap) { localStorage.setItem('ap_usuarios', JSON.stringify(apUsuarios)); fbGuardarAp(); }
-      if (agregarAlPresupuesto) agregarItem(nuevoItem);
+      if (agregarAlPresupuesto) agregarItem(nuevoItem, apId);
 
       cnLimpiar();
     }
