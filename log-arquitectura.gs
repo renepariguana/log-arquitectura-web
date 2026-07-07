@@ -252,7 +252,7 @@ function doGet(e) {
         var carpeta2 = busca2.hasNext() ? busca2.next() : carpetaPadre2.createFolder(email);
         folderId = carpeta2.getId();
         var linkNuevo = 'https://drive.google.com/drive/folders/' + folderId;
-        hojaClientes.appendRow([email, nombre || email, 'ACTIVA', linkNuevo]);
+        hojaClientes.appendRow([email, nombre || email, 'inactiva', linkNuevo]);  // arranca sin acceso; el estudio activa
         esCliente = true;
       }
 
