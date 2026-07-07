@@ -252,7 +252,14 @@ function doGet(e) {
         var carpeta2 = busca2.hasNext() ? busca2.next() : carpetaPadre2.createFolder(email);
         folderId = carpeta2.getId();
         var linkNuevo = 'https://drive.google.com/drive/folders/' + folderId;
-        hojaClientes.appendRow([email, nombre || email, 'inactiva', linkNuevo]);  // arranca sin acceso; el estudio activa
+        hojaClientes.appendRow([email, nombre || email, 'INACTIVA', linkNuevo]);  // arranca sin acceso; el estudio activa
+        // Dropdown ACTIVA/INACTIVA en la celda de Suscripcion (col C) de la fila nueva
+        var filaNueva = hojaClientes.getLastRow();
+        var reglaSusc = SpreadsheetApp.newDataValidation()
+          .requireValueInList(['ACTIVA', 'INACTIVA'], true)
+          .setAllowInvalid(false)
+          .build();
+        hojaClientes.getRange(filaNueva, 3).setDataValidation(reglaSusc);
         esCliente = true;
       }
 
